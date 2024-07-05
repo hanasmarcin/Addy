@@ -12,13 +12,23 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import com.hanas.addy.R
 import org.koin.androidx.compose.koinViewModel
+import org.koin.androidx.compose.navigation.koinNavViewModel
+
+const val HOME_ROUTE = "Home"
+
+fun NavGraphBuilder.homeComposable() {
+    composable(HOME_ROUTE) {
+        val viewModel: HomeViewModel = koinNavViewModel()
+        HomeScreen()
+    }
+}
 
 @Composable
 fun HomeScreen() {
-    val viewModel: HomeViewModel = koinViewModel()
-
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {

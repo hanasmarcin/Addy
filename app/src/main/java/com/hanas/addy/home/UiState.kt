@@ -1,4 +1,4 @@
-package com.hanas.addy
+package com.hanas.addy.home
 
 /**
  * A sealed hierarchy describing the state of the text generation.
