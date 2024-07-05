@@ -15,12 +15,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
+import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
-const val HOME_ROUTE = "Home"
+@Serializable
+object Home
 
 fun NavGraphBuilder.homeComposable() {
-    composable(HOME_ROUTE) {
+    composable<Home> {
         val viewModel: HomeViewModel = koinNavViewModel()
         HomeScreen()
     }

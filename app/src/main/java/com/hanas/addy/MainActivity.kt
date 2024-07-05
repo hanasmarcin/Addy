@@ -8,7 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.hanas.addy.home.HOME_ROUTE
+import com.hanas.addy.home.Home
 import com.hanas.addy.home.homeComposable
 import com.hanas.addy.ui.theme.AddyTheme
 
@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             AddyTheme {
                 val navController = rememberNavController()
-                NavHost(navController, HOME_ROUTE) {
+                NavHost(navController, Home) {
                     homeComposable()
                 }
             }
