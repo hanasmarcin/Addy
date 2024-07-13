@@ -1,18 +1,21 @@
 package com.hanas.addy.home
 
-import android.util.TypedValue
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.VectorConverter
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -20,33 +23,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.ImageShader
-import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.graphics.TileMode
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.VectorPainter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import com.hanas.addy.R
 import com.hanas.addy.ui.theme.AddyTheme
 
@@ -57,7 +49,7 @@ fun GameCardFront(
     title: String = "Smoke detector",
     description: String = "Devices that use radioactive isotopes to detect smoke"
 ) {
-    val borderStroke = BorderStroke(12.dp, MaterialTheme.colorScheme.outline)
+    val borderStroke = BorderStroke(8.dp, Color(0xFF253659))
     val cardElevation = CardDefaults.elevatedCardElevation()
     Card(
         modifier = modifier,
@@ -67,80 +59,133 @@ fun GameCardFront(
     ) {
         Column(
             Modifier
-                .background(MaterialTheme.colorScheme.outline)
-                .drawPattern(R.drawable.melt)
-                .fillMaxSize()
+                .background(Color(0xFF03A696))
+                .drawPattern(R.drawable.graph_paper)
+                .padding(16.dp)
+
         ) {
-            val containerColor = MaterialTheme.colorScheme.primaryContainer
             Column(
                 Modifier
-                    .padding(24.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .fillMaxWidth()
-                    .drawContentBackground(containerColor)
+                    .background(Color(0xFFBF665E))
+                    .drawPattern(R.drawable.charlie_brown, Color.Black.copy(0.1f))
+                    .padding(8.dp)
             ) {
-                Text(title, Modifier.padding(16.dp), style = MaterialTheme.typography.headlineMedium)
-                Image(
-                    painter = image,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .aspectRatio(16 / 9f)
+                Column(
+                    Modifier
                         .clip(RoundedCornerShape(8.dp))
-                )
-                Text(description, Modifier.padding(16.dp), style = MaterialTheme.typography.bodyLarge)
+                        .background(Color(0xFF253659))
+                        .drawPattern(R.drawable.hideout, Color.White.copy(0.1f))
+                ) {
+                    Text(title, Modifier.padding(16.dp), style = MaterialTheme.typography.headlineMedium, color = Color.White)
+                    Image(
+                        painter = image,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .aspectRatio(16 / 9f)
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                }
+                Text(description, Modifier.padding(16.dp, 16.dp, 16.dp, 8.dp), style = MaterialTheme.typography.bodyLarge, color = Color.White)
             }
             Row(
                 Modifier
-                    .padding(24.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .padding(top = 16.dp)
                     .fillMaxWidth()
-                    .drawContentBackground(containerColor)
+                    .height(IntrinsicSize.Min)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFF253659))
+                    .drawPattern(R.drawable.hideout, Color.White.copy(0.1f))
+                    .padding(8.dp)
             ) {
-                Text(title, Modifier.padding(16.dp), style = MaterialTheme.typography.headlineMedium)
+                Box(
+                    Modifier
+                        .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFF4CAF50))
+                        .padding(8.dp)
+                ) {
+                    Text("10", Modifier.align(Alignment.Center), style = MaterialTheme.typography.titleLarge, color = Color.White)
+                }
+                Text(
+                    text = "Green attribute description",
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    style = MaterialTheme.typography.bodyLarge, color = Color.White
+                )
             }
-//            Column(
-//                Modifier
-//                    .fillMaxSize()
-//                    .padding(borderStroke.width)
-//                    .clip(RoundedCornerShape(32.dp - borderStroke.width))
-//            ) {
-//                Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primary) {
-//                    Text(title, modifier = Modifier.padding(8.dp), style = MaterialTheme.typography.headlineMedium)
-//                }
-//                Box(
-//                    modifier = Modifier
-//                        .background(MaterialTheme.colorScheme.background)
-//                        .padding(12.dp)
-//                        .clip(RoundedCornerShape(8.dp))
-//                        .background(MaterialTheme.colorScheme.primaryContainer)
-//                        .fillMaxWidth()
-//                ) {
-//                    Image(
-//                        painter = image,
-//                        contentDescription = null,
-//                        modifier = Modifier.aspectRatio(16 / 9f).clip(RoundedCornerShape(8.dp))
-//                    )
-//                }
-//                Column(Modifier.background(MaterialTheme.colorScheme.primary).padding(8.dp)) {
-//                    Text(title, style = MaterialTheme.typography.headlineMedium)
-//                    Text(description, style = MaterialTheme.typography.bodyLarge)
-//                }
-//            }
+            Row(
+                Modifier
+                    .padding(top = 16.dp)
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFF253659))
+                    .drawPattern(R.drawable.charlie_brown, Color.White.copy(0.1f))
+                    .padding(8.dp)
+            ) {
+                Box(
+                    Modifier
+                        .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFF2196F3))
+                        .padding(8.dp)
+                ) {
+                    Text("10", Modifier.align(Alignment.Center), style = MaterialTheme.typography.titleLarge, color = Color.White)
+                }
+                Text(
+                    "Blue attribute",
+                    Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(), style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White
+
+                )
+            }
+            Row(
+                Modifier
+                    .padding(top = 16.dp)
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFF253659))
+                    .drawPattern(R.drawable.hexagons, Color.White.copy(0.1f))
+                    .padding(8.dp)
+            ) {
+                Box(
+                    Modifier
+                        .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFF44336))
+                        .padding(8.dp)
+                ) {
+                    Text("10", Modifier.align(Alignment.Center), style = MaterialTheme.typography.titleLarge, color = Color.White)
+                }
+                Text(
+                    "Red attribute",
+                    Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(), style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White
+                )
+            }
         }
     }
 }
 
 private fun Modifier.drawContentBackground(containerColor: Color): Modifier = drawBehind {
     drawRect(color = Color.White, blendMode = BlendMode.Difference)
-//    drawRect(color = Color(0xFFFFFFFF), blendMode = BlendMode.Softlight)
     drawRect(color = Color(0xFFDDDDDD), blendMode = BlendMode.Screen)
     drawRect(color = containerColor, blendMode = BlendMode.Color)
 }
 
-private fun Modifier.drawPattern(@DrawableRes id: Int) = composed {
+private fun Modifier.drawPattern(
+    @DrawableRes id: Int,
+    tint: Color = Color.White.copy(alpha = 0.5f)
+) = composed {
     val vector = ImageVector.vectorResource(id = id)
     val painter = rememberVectorPainter(image = vector)
-    val tint = MaterialTheme.colorScheme.surfaceTint
     drawBehind {
         val patternWidth = painter.intrinsicSize.width
         val patternHeight = painter.intrinsicSize.height
@@ -155,7 +200,7 @@ private fun Modifier.drawPattern(@DrawableRes id: Int) = composed {
                     val yPos = y * patternHeight
                     // Use translate to position the painter
                     translate(left = xPos, top = yPos) {
-                        draw(size = painter.intrinsicSize, colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.2f)))
+                        draw(size = painter.intrinsicSize, colorFilter = ColorFilter.tint(tint))
                     }
                 }
             }
@@ -172,7 +217,6 @@ fun GameCardFrontPreview() {
             GameCardFront(
                 Modifier
                     .padding(16.dp)
-                    .fillMaxSize()
             )
         }
     }
