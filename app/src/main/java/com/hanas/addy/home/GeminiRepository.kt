@@ -8,7 +8,7 @@ import com.hanas.addy.BuildConfig
 
 class GeminiRepository {
     private val generativeModel = GenerativeModel(
-        modelName = "gemini-pro-vision",
+        modelName = "gemini-1.5-pro",
         apiKey = BuildConfig.apiKey
     )
 
