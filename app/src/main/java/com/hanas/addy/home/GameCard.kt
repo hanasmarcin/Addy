@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,8 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.drawscope.draw
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -48,10 +51,10 @@ fun GameCardFront(
     blueAttribute: Pair<Int, String> = Pair(10, "Blue attribute"),
     redAttribute: Pair<Int, String> = Pair(10, "Red attribute")
 ) {
-    val cardBackgroundColor = Color(0xFFD7E5E4)
-    val primaryColor = Color(0xFF253659)
+    val primaryColor = Color(0xFF1F255B)
     val borderStroke = BorderStroke(8.dp, primaryColor)
     val cardElevation = CardDefaults.elevatedCardElevation()
+    val cardBackgroundColor = Color(0xFFD3D4DF)
 
     // Extracted repeated styling into variables for better readability and maintainability
     val attributeRowModifier = Modifier
@@ -60,15 +63,16 @@ fun GameCardFront(
         .height(IntrinsicSize.Min)
         .clip(RoundedCornerShape(16.dp))
         .background(primaryColor)
-        .padding(8.dp)
 
     val attributeValueBoxModifier = Modifier
-        .aspectRatio(1f, matchHeightConstraintsFirst = true)
-        .clip(RoundedCornerShape(16.dp))
         .padding(8.dp)
+        .aspectRatio(1f, matchHeightConstraintsFirst = true)
+        .clip(RoundedCornerShape(8.dp))
 
+    val tint = Color.White.copy(0.15f)
+    val tint1 = Color(0xFF6F7EB0)
     Card(
-        modifier = modifier,
+        modifier = modifier.aspectRatio(0.6f),
         shape = RoundedCornerShape(32.dp),
         elevation = cardElevation,
         border = borderStroke,
@@ -76,24 +80,25 @@ fun GameCardFront(
         Column(
             Modifier
                 .background(cardBackgroundColor)
-                .drawPattern(R.drawable.graph_paper, Color(0xFF9BA8D2))
+                .drawPattern(R.drawable.graph_paper, tint1)
                 .padding(16.dp)
         ) {
             // Content Section
+            val color = Color(0xFF5C2D73)
             Column(
                 Modifier
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFF8C565E))
-                    .drawPattern(R.drawable.charlie_brown, Color.Black.copy(0.1f))
+                    .background(color)
+                    .drawPattern(R.drawable.charlie_brown, Color.Black.copy(0.15f))
                     .padding(8.dp)
             ) {
                 Column(
                     Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .background(primaryColor)
-                        .drawPattern(R.drawable.hideout, Color.White.copy(0.1f))
+                        .drawPattern(R.drawable.hideout, tint)
                 ) {
-                    Text(title, Modifier.padding(16.dp), style = MaterialTheme.typography.headlineMedium, color = Color.White)
+                    Text(title, Modifier.padding(8.dp), style = MaterialTheme.typography.headlineMedium, color = Color.White)
                     Image(
                         painter = image,
                         contentDescription = "Game Card Image", // Added content description for accessibility
@@ -102,30 +107,102 @@ fun GameCardFront(
                             .clip(RoundedCornerShape(8.dp))
                     )
                 }
-                Text(description, Modifier.padding(16.dp, 16.dp, 16.dp, 8.dp), style = MaterialTheme.typography.bodyLarge, color = Color.White)
+                Text(description, Modifier.padding(8.dp, 8.dp, 8.dp, 0.dp), style = MaterialTheme.typography.bodyLarge, color = Color.White)
             }
 
             // Attribute Rows - Refactored to use a common structure
             AttributeRow(
-                modifier = attributeRowModifier.drawPattern(R.drawable.hideout, Color.White.copy(0.1f)),
-                valueBoxModifier = attributeValueBoxModifier.background(Color(0xFF4CAF50)),
+                modifier = attributeRowModifier.drawPattern(R.drawable.hideout, tint),
+                valueBoxModifier = attributeValueBoxModifier
+                    .drawBehind {
+                    drawRect(Color(0xFF4CAF50), blendMode = BlendMode.Screen)
+                    drawRect(Color(0xFF4CAF50), blendMode = BlendMode.Color)
+                },
                 attribute = greenAttribute
             )
 
             AttributeRow(
-                modifier = attributeRowModifier.drawPattern(R.drawable.charlie_brown, Color.White.copy(0.1f)),
-                valueBoxModifier = attributeValueBoxModifier.background(Color(0xFF2196F3)),
+                modifier = attributeRowModifier.drawPattern(R.drawable.charlie_brown, tint),
+                valueBoxModifier = attributeValueBoxModifier
+                    .drawBehind {
+                        drawRect(Color(0xFF2196F3), blendMode = BlendMode.Screen)
+                        drawRect(Color(0xFF2196F3), blendMode = BlendMode.Color)
+                    },
                 attribute = blueAttribute
             )
 
             AttributeRow(
-                modifier = attributeRowModifier.drawPattern(R.drawable.hexagons, Color.White.copy(0.1f)),
-                valueBoxModifier = attributeValueBoxModifier.background(Color(0xFFF44336)),
+                modifier = attributeRowModifier.drawPattern(R.drawable.hexagons, tint),
+                valueBoxModifier = attributeValueBoxModifier
+                    .drawBehind {
+                        drawRect(Color(0xFFF44336), blendMode = BlendMode.Screen)
+                        drawRect(Color(0xFFF44336), blendMode = BlendMode.Color)
+                    },
                 attribute = redAttribute
             )
         }
     }
 }
+
+@Composable
+fun GameCardBack(
+    modifier: Modifier = Modifier,
+) {
+    val primaryColor = Color(0xFF1F255B)
+    val borderStroke = BorderStroke(8.dp, primaryColor)
+    val cardElevation = CardDefaults.elevatedCardElevation()
+    val cardBackgroundColor = Color(0xFFD3D4DF)
+    val tint = Color.White.copy(0.15f)
+    val tint1 = Color(0xFF6F7EB0)
+    val color = Color(0xFF5C2D73)
+
+    Card(
+        modifier = modifier.aspectRatio(0.6f),
+        shape = RoundedCornerShape(32.dp),
+        elevation = cardElevation,
+        border = borderStroke,
+    ) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(cardBackgroundColor)
+                .drawPattern(R.drawable.graph_paper, tint1)
+                .padding(24.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(color)
+                .drawPattern(R.drawable.charlie_brown, Color.Black.copy(0.15f))
+                .padding(16.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(primaryColor)
+                .drawPattern(R.drawable.hideout, tint)
+                .padding(16.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(cardBackgroundColor)
+                .drawPattern(R.drawable.graph_paper, tint1)
+                .padding(16.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(color)
+                .drawPattern(R.drawable.charlie_brown, Color.Black.copy(0.15f))
+                .padding(16.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(primaryColor)
+                .drawPattern(R.drawable.hideout, tint)
+
+
+        )
+    }
+}
+
+@Preview
+@Composable
+fun GameCardBackPreview() {
+    AddyTheme {
+        Surface {
+            GameCardBack()
+        }
+    }
+}
+
 
 @Composable
 fun AttributeRow(

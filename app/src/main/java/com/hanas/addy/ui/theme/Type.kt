@@ -14,17 +14,17 @@ import com.hanas.addy.R
 
 val AppFontFamily = FontFamily(
     Font(
-        R.font.anybody_variable,
+        R.font.playwrite_de_grund_variable,
         weight = FontWeight.Normal,
         variationSettings = FontVariation.Settings(
-            FontVariation.weight(FontWeight.Normal.weight),
+            FontVariation.weight(FontWeight.Medium.weight),
         )
     ),
     Font(
-        R.font.anybody_variable,
+        R.font.playwrite_de_grund_variable,
         weight = FontWeight.Bold,
         variationSettings = FontVariation.Settings(
-            FontVariation.weight(FontWeight.SemiBold.weight),
+            FontVariation.weight(FontWeight.Black.weight),
         )
     )
 )
