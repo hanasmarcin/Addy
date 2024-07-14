@@ -12,9 +12,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
+import com.hanas.addy.ui.theme.AddyTheme
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -43,5 +45,13 @@ fun HomeScreen() {
         Column(Modifier.padding(it)) {
 
         }
+    }
+}
+
+@Preview
+@Composable
+fun HomeScreenPreview() {
+    AddyTheme {
+        HomeScreen()
     }
 }

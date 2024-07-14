@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,7 +29,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.drawscope.draw
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -51,7 +51,7 @@ fun GameCardFront(
     blueAttribute: Pair<Int, String> = Pair(10, "Blue attribute"),
     redAttribute: Pair<Int, String> = Pair(10, "Red attribute")
 ) {
-    val primaryColor = Color(0xFF1F255B)
+    val primaryColor = Color(0x77FFDD00)
     val borderStroke = BorderStroke(8.dp, primaryColor)
     val cardElevation = CardDefaults.elevatedCardElevation()
     val cardBackgroundColor = Color(0xFFD3D4DF)
@@ -211,13 +211,13 @@ fun AttributeRow(
     attribute: Pair<Int, String>
 ) {
     Row(modifier) {
-        Box(valueBoxModifier) {
+        Box(valueBoxModifier.widthIn(min = 36.dp)) {
             Text(attribute.first.toString(), Modifier.align(Alignment.Center), style = MaterialTheme.typography.titleLarge, color = Color.White)
         }
         Text(
             text = attribute.second,
             modifier = Modifier
-                .padding(16.dp)
+                .align(Alignment.CenterVertically)
                 .fillMaxWidth(),
             style = MaterialTheme.typography.bodyLarge,
             color = Color.White
