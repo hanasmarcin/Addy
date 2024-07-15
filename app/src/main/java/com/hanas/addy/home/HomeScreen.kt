@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
@@ -39,9 +38,12 @@ import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
 interface NavScreen
+interface NavAction
+
+object GoBack: NavAction
 
 @Serializable
-object Home : NavScreen
+object Home : NavScreen, NavAction
 
 fun NavGraphBuilder.homeComposable(navigate: Navigate) {
     composable<Home> {
@@ -50,7 +52,7 @@ fun NavGraphBuilder.homeComposable(navigate: Navigate) {
     }
 }
 
-typealias Navigate = (NavScreen) -> Unit
+typealias Navigate = (NavAction) -> Unit
 
 @Composable
 fun HomeScreen(navigate: Navigate) {
@@ -64,7 +66,9 @@ fun HomeScreen(navigate: Navigate) {
                 .drawPattern(R.drawable.graph_paper, tint = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f))
         ) {
             Image(
-                modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(32.dp),
                 painter = painterResource(R.drawable.teens_playing),
                 contentDescription = null
             )

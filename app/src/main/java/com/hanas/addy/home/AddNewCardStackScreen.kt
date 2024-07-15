@@ -28,7 +28,7 @@ import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
 @Serializable
-object AddNewCardStack : NavScreen
+object AddNewCardStack : NavScreen, NavAction
 
 fun NavGraphBuilder.addNewCardStackComposable() {
     composable<AddNewCardStack> {
@@ -46,7 +46,6 @@ fun AddNewCardStackScreen() {
                 .fillMaxSize()
         )
         {
-            BrainBackground()
             Box(Modifier.padding(16.dp))
             {
                 Card(Modifier.fillMaxSize()) {

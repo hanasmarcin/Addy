@@ -17,9 +17,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,17 +51,17 @@ import com.hanas.addy.ui.AppTheme
 import kotlinx.serialization.Serializable
 
 @Serializable
-object CardStackList : NavScreen
+object CardStackList : NavScreen, NavAction
 
 
-fun NavGraphBuilder.cardStackListComposable() {
+fun NavGraphBuilder.cardStackListComposable(navigate: Navigate) {
     composable<CardStackList> {
-        CardStackListScreen()
+        CardStackListScreen(navigate)
     }
 }
 
 @Composable
-private fun CardStackListScreen() {
+private fun CardStackListScreen(navigate: Navigate) {
     Scaffold(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background)
@@ -68,7 +71,15 @@ private fun CardStackListScreen() {
         topBar = {
             TopAppBar(
                 title = { Text("Card stacks") },
-                navigationIcon = { Icon(Icons.AutoMirrored.Default.ArrowBack, null) },
+                navigationIcon = {
+                    FilledIconButton(
+                        shape = BlobShape(),
+                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                        onClick = { navigate(GoBack) },
+                    ) {
+                        Icon(Icons.AutoMirrored.Default.ArrowBack, null)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent)
             )
         },
@@ -153,6 +164,6 @@ fun Path.transformToFitBounds(size: Size): Path {
 @Composable
 fun CardStackListScreenPreview() {
     AppTheme {
-        CardStackListScreen()
+        CardStackListScreen {}
     }
 }
