@@ -4,10 +4,13 @@ package com.hanas.addy.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -37,6 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
@@ -57,7 +61,7 @@ fun NavGraphBuilder.cardStackListComposable() {
 private fun CardStackListScreen() {
     Scaffold(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .drawPattern(R.drawable.graph_paper, tint = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f)),
         containerColor = Color.Transparent,
         contentColor = contentColorFor(MaterialTheme.colorScheme.background),
@@ -83,9 +87,18 @@ private fun CardStackListScreen() {
                 .padding(it)
                 .fillMaxSize()
         ) {
-            Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(painterResource(R.drawable.stacks_of_cards_for_a_custom_educational_game_), null)
-                Text("You have no card stacks yet")
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.stacks_of_cards),
+                    contentDescription = null
+                )
+                Text("You have no card stacks yet. You can create them by uploading photos of material that you want to base them on.")
                 Button(
                     onClick = {},
                     colors = ButtonDefaults.buttonColors(
@@ -93,7 +106,7 @@ private fun CardStackListScreen() {
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 ) {
-                    Text("Add new stack")
+                    Text("Create new stack")
                 }
             }
         }

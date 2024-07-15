@@ -55,14 +55,19 @@ typealias Navigate = (NavScreen) -> Unit
 @Composable
 fun HomeScreen(navigate: Navigate) {
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.primaryContainer
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Box(
             Modifier
                 .padding(it)
                 .fillMaxSize()
-                .drawPattern(R.drawable.graph_paper, tint = MaterialTheme.colorScheme.surface)
+                .drawPattern(R.drawable.graph_paper, tint = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f))
         ) {
+            Image(
+                modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                painter = painterResource(R.drawable.teens_playing),
+                contentDescription = null
+            )
             Column(
                 Modifier
                     .align(Alignment.BottomCenter)
@@ -71,22 +76,17 @@ fun HomeScreen(navigate: Navigate) {
             ) {
                 HomeMenuButton(
                     title = "Play",
-                    color = MaterialTheme.colorScheme.surfaceContainer
+                    color = MaterialTheme.colorScheme.primaryContainer
                 ) {}
                 HomeMenuButton(
                     title = "Your card stacks",
-                    color = MaterialTheme.colorScheme.surfaceContainer
+                    color = MaterialTheme.colorScheme.tertiaryContainer
                 ) {
                     navigate(CardStackList)
                 }
             }
         }
     }
-}
-
-@Composable
-fun BrainBackground() {
-
 }
 
 @Composable
