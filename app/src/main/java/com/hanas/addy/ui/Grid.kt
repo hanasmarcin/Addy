@@ -13,22 +13,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.min
-import com.hanas.addy.ui.theme.AddyTheme
 import kotlin.math.min
 import kotlin.random.Random
 
@@ -126,7 +121,7 @@ private fun RandomColorBox(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 fun GridPreview() {
-    AddyTheme {
+    AppTheme {
         Surface(Modifier.fillMaxSize()) {
             Column {
                 Grid(Size(4, 5))
@@ -147,7 +142,7 @@ private fun RecompositionButton(x: Int, onClick: () -> Unit) {
 @Preview
 @Composable
 fun GridLayoutPreview() {
-    AddyTheme {
+    AppTheme {
         Surface(Modifier.fillMaxSize()) {
             GridLayout(Size(4, 6))
         }
