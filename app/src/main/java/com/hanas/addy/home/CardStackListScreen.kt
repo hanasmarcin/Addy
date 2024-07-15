@@ -1,8 +1,7 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.hanas.addy.home
 
-import android.Manifest
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -41,17 +40,13 @@ import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.hanas.addy.BuildConfig
 import com.hanas.addy.R
 import com.hanas.addy.ui.AppTheme
 import kotlinx.serialization.Serializable
@@ -62,11 +57,9 @@ object CardStackList : NavScreen
 
 fun NavGraphBuilder.cardStackListComposable(navigate: Navigate) {
     composable<CardStackList> {
-        val (a, b) = rememberCameraHelper()
+        val cameraHelper = rememberCameraHelper()
+        val photoUris = cameraHelper.photoUris
 
-        val context = LocalContext.current.applicationContext
-        val file = context.createImageFile()
-        val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.fileprovider", file)
         val pickMultipleMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
             if (uris.isNotEmpty()) {
                 Log.d("PhotoPicker", "Number of items selected: ${uris.size}")
@@ -74,18 +67,11 @@ fun NavGraphBuilder.cardStackListComposable(navigate: Navigate) {
                 Log.d("PhotoPicker", "No media selected")
             }
         }
-        val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success) {
-                Log.d("PhotoPicker", "taken")
-            } else {
-                Log.d("PhotoPicker", "not taken")
-            }
-        }
         val launcher = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted ->
             if (isGranted) {
-                takePicture.launch(uri)
+                cameraHelper.takeNewCameraPhoto()
                 // Open camera
             } else {
                 // Show dialog
@@ -101,7 +87,7 @@ fun NavGraphBuilder.cardStackListComposable(navigate: Navigate) {
                 )
             },
             takePhoto = {
-                checkAndRequestCameraPermission(context, Manifest.permission.CAMERA, launcher)
+                cameraHelper.takeNewCameraPhoto()
             }
         )
     }

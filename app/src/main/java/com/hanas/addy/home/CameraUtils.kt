@@ -1,5 +1,6 @@
 package com.hanas.addy.home
 
+import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -33,14 +34,16 @@ fun Context.createImageFile(): File {
     )
 }
 
-fun checkAndRequestCameraPermission(
+fun requestCameraPermission(
     context: Context,
     permission: String,
-    launcher: ManagedActivityResultLauncher<String, Boolean>
+    launcher: ManagedActivityResultLauncher<String, Boolean>,
+    getPhotoFromCamera: () -> Unit
 ) {
     val permissionCheckResult = ContextCompat.checkSelfPermission(context, permission)
     if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
         // Open camera because permission is already granted
+        getPhotoFromCamera()
     } else {
         // Request a permission
         launcher.launch(permission)
@@ -85,7 +88,7 @@ fun checkAndRequestCameraPermission(
 @Composable
 fun rememberCameraHelper(): CameraHelper {
     val context = LocalContext.current
-    val photoUris = rememberSaveable { mutableStateListOf<Uri>() }
+    val photoUris = remember { mutableStateListOf<Uri>() }
     var nextUriForCamera by rememberSaveable { mutableStateOf<Uri?>(null) }
     val takePictureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
@@ -95,11 +98,29 @@ fun rememberCameraHelper(): CameraHelper {
             nextUriForCamera = null
         }
     }
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            getPhotoFromCamera(context, takePictureLauncher) { uri ->
+                nextUriForCamera = uri
+            }
+        } else {
+            // Show dialog
+        }
+    }
 
     return remember(context, photoUris, takePictureLauncher) {
         object : CameraHelper {
             override val photoUris = photoUris
-            override fun takeNewCameraPhoto() = getPhotoFromCamera(context, takePictureLauncher) { nextUriForCamera = it }
+            override fun takeNewCameraPhoto() {
+                requestCameraPermission(context, Manifest.permission.CAMERA, launcher) {
+                    getPhotoFromCamera(context, takePictureLauncher) { uri ->
+                        nextUriForCamera = uri
+                    }
+                }
+            }
+
             override fun removeCameraPhoto(uri: Uri) {
                 photoUris.remove(uri)
             }
@@ -107,15 +128,14 @@ fun rememberCameraHelper(): CameraHelper {
     }
 }
 
-
-fun getPhotoFromCamera(
+private fun getPhotoFromCamera(
     context: Context,
     takePictureLauncher: ManagedActivityResultLauncher<Uri, Boolean>,
-    setNextUriForCamera: (Uri) -> Unit
+    onFileCreated: (Uri) -> Unit
 ) {
     val file = context.createImageFile()
     val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.fileprovider", file)
-    setNextUriForCamera(uri)
+    onFileCreated(uri)
     takePictureLauncher.launch(uri)
 }
 
