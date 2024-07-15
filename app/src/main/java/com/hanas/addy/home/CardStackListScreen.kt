@@ -1,16 +1,23 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 
 package com.hanas.addy.home
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Environment
+import android.util.Log
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -21,7 +28,6 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -39,53 +45,111 @@ import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
+import com.hanas.addy.BuildConfig
 import com.hanas.addy.R
 import com.hanas.addy.ui.AppTheme
 import kotlinx.serialization.Serializable
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.Objects
 
 @Serializable
 object CardStackList : NavScreen, NavAction
 
 
+fun Context.createImageFile(): File {
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+    val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+    return File.createTempFile(
+        "JPEG_${timeStamp}", /* prefix */
+        ".jpg", /* suffix */
+        storageDir /* directory */
+    )
+}
+
 fun NavGraphBuilder.cardStackListComposable(navigate: Navigate) {
     composable<CardStackList> {
-        CardStackListScreen(navigate)
+        val context = LocalContext.current.applicationContext
+        val file = context.createImageFile()
+        val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.fileprovider", file)
+        val pickMultipleMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
+            if (uris.isNotEmpty()) {
+                Log.d("PhotoPicker", "Number of items selected: ${uris.size}")
+            } else {
+                Log.d("PhotoPicker", "No media selected")
+            }
+        }
+        val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                Log.d("PhotoPicker", "taken")
+            } else {
+                Log.d("PhotoPicker", "not taken")
+            }
+        }
+        val launcher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                takePicture.launch(uri)
+                // Open camera
+            } else {
+                // Show dialog
+            }
+        }
+        CardStackListScreen(
+            navigate,
+            pickImages = {
+                pickMultipleMedia.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                    )
+                )
+            },
+            takePhoto = {
+                checkAndRequestCameraPermission(context, Manifest.permission.CAMERA, launcher)
+            }
+        )
     }
 }
 
 @Composable
-private fun CardStackListScreen(navigate: Navigate) {
-    Scaffold(
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.background)
-            .drawPattern(R.drawable.graph_paper, tint = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f)),
+private fun CardStackListScreen(
+    navigate: Navigate, pickImages: () -> Unit, takePhoto: () -> Unit
+) {
+    Scaffold(modifier = Modifier
+        .background(MaterialTheme.colorScheme.background)
+        .drawPattern(R.drawable.graph_paper, tint = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f)),
         containerColor = Color.Transparent,
         contentColor = contentColorFor(MaterialTheme.colorScheme.background),
         topBar = {
-            TopAppBar(
-                title = { Text("Card stacks") },
-                navigationIcon = {
-                    FilledIconButton(
-                        shape = BlobShape(),
-                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                        onClick = { navigate(GoBack) },
-                    ) {
-                        Icon(Icons.AutoMirrored.Default.ArrowBack, null)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent)
+            TopAppBar(title = { Text("Card stacks") }, navigationIcon = {
+                FilledIconButton(
+                    shape = BlobShape(),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                    onClick = { navigate(GoBack) },
+                ) {
+                    Icon(Icons.AutoMirrored.Default.ArrowBack, null)
+                }
+            }, colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent)
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* ... */ },
+                onClick = takePhoto,
                 shape = BlobShape(),
                 elevation = FloatingActionButtonDefaults.loweredElevation(),
                 containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -106,15 +170,12 @@ private fun CardStackListScreen(navigate: Navigate) {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Image(
-                    painter = painterResource(R.drawable.stacks_of_cards),
-                    contentDescription = null
+                    painter = painterResource(R.drawable.stacks_of_cards), contentDescription = null
                 )
                 Text("You have no card stacks yet. You can create them by uploading photos of material that you want to base them on.")
                 Button(
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    onClick = pickImages, colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 ) {
                     Text("Create new stack")
@@ -164,6 +225,20 @@ fun Path.transformToFitBounds(size: Size): Path {
 @Composable
 fun CardStackListScreenPreview() {
     AppTheme {
-        CardStackListScreen {}
+        CardStackListScreen({}, {}) {}
+    }
+}
+
+fun checkAndRequestCameraPermission(
+    context: Context,
+    permission: String,
+    launcher: ManagedActivityResultLauncher<String, Boolean>
+) {
+    val permissionCheckResult = ContextCompat.checkSelfPermission(context, permission)
+    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+        // Open camera because permission is already granted
+    } else {
+        // Request a permission
+        launcher.launch(permission)
     }
 }
