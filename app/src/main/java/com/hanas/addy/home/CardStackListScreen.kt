@@ -3,11 +3,7 @@
 package com.hanas.addy.home
 
 import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Environment
 import android.util.Log
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -51,38 +47,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberPermissionState
 import com.hanas.addy.BuildConfig
 import com.hanas.addy.R
 import com.hanas.addy.ui.AppTheme
 import kotlinx.serialization.Serializable
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.Objects
 
 @Serializable
-object CardStackList : NavScreen, NavAction
+object CardStackList : NavScreen
 
-
-fun Context.createImageFile(): File {
-    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-    val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-    return File.createTempFile(
-        "JPEG_${timeStamp}", /* prefix */
-        ".jpg", /* suffix */
-        storageDir /* directory */
-    )
-}
 
 fun NavGraphBuilder.cardStackListComposable(navigate: Navigate) {
     composable<CardStackList> {
+        val (a, b) = rememberCameraHelper()
+
         val context = LocalContext.current.applicationContext
         val file = context.createImageFile()
         val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.fileprovider", file)
@@ -130,9 +111,10 @@ fun NavGraphBuilder.cardStackListComposable(navigate: Navigate) {
 private fun CardStackListScreen(
     navigate: Navigate, pickImages: () -> Unit, takePhoto: () -> Unit
 ) {
-    Scaffold(modifier = Modifier
-        .background(MaterialTheme.colorScheme.background)
-        .drawPattern(R.drawable.graph_paper, tint = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f)),
+    Scaffold(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.background)
+            .drawPattern(R.drawable.graph_paper, tint = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f)),
         containerColor = Color.Transparent,
         contentColor = contentColorFor(MaterialTheme.colorScheme.background),
         topBar = {
@@ -226,19 +208,5 @@ fun Path.transformToFitBounds(size: Size): Path {
 fun CardStackListScreenPreview() {
     AppTheme {
         CardStackListScreen({}, {}) {}
-    }
-}
-
-fun checkAndRequestCameraPermission(
-    context: Context,
-    permission: String,
-    launcher: ManagedActivityResultLauncher<String, Boolean>
-) {
-    val permissionCheckResult = ContextCompat.checkSelfPermission(context, permission)
-    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-        // Open camera because permission is already granted
-    } else {
-        // Request a permission
-        launcher.launch(permission)
     }
 }
