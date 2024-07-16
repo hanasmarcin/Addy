@@ -3,6 +3,7 @@ package com.hanas.addy.home
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Environment
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -12,12 +13,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import coil.imageLoader
+import coil.request.ImageRequest
 import com.hanas.addy.BuildConfig
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -28,12 +33,23 @@ fun interface CameraHelper {
 }
 
 @Composable
-fun rememberCameraHelper(onPhotoTaken: (Uri) -> Unit): CameraHelper {
+fun rememberCameraHelper(onPhotoTaken: suspend (Drawable) -> Unit): CameraHelper {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var uriPhotoToCapture by rememberSaveable { mutableStateOf<Uri?>(null) }
     val capturePhotoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
-            uriPhotoToCapture?.let { onPhotoTaken(it) }
+            uriPhotoToCapture?.let {
+                coroutineScope.launch {
+                    val request = ImageRequest.Builder(context).data(it).build()
+                    val drawable = context.imageLoader.execute(request).drawable
+                    if (drawable != null) {
+                        onPhotoTaken(drawable)
+                    } else {
+                        uriPhotoToCapture = null
+                    }
+                }
+            }
             uriPhotoToCapture = null
         } else {
             uriPhotoToCapture = null

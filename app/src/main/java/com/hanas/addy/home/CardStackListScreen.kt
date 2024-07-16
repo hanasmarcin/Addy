@@ -59,8 +59,6 @@ object CardStackList : NavScreen
 fun NavGraphBuilder.cardStackListComposable(navHandler: NavigationHandler) {
     composable<CardStackList> {
         val photoUris = remember { mutableStateListOf<Uri>() }
-        val cameraHelper = rememberCameraHelper { photoUris.add(it) }
-        val photoPickerHelper = rememberPhotoPickerHelper { photoUris.addAll(it) }
         CardStackListScreen(
             navHandler = navHandler,
             photoUris = photoUris,

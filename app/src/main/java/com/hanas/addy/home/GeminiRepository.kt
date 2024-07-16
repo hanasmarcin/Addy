@@ -6,16 +6,19 @@ import com.google.ai.client.generativeai.type.GenerateContentResponse
 import com.google.ai.client.generativeai.type.content
 import com.hanas.addy.BuildConfig
 
+
 class GeminiRepository {
     private val generativeModel = GenerativeModel(
         modelName = "gemini-1.5-pro",
         apiKey = BuildConfig.apiKey
     )
 
-    suspend fun generateContent(content: Bitmap, prompt: String): GenerateContentResponse {
+    suspend fun generateContent(content: List<Bitmap>, prompt: String): GenerateContentResponse {
         return generativeModel.generateContent(
             content {
-                image(content)
+                content.forEach { bitmap ->
+                    image(bitmap)
+                }
                 text(prompt)
             }
         )

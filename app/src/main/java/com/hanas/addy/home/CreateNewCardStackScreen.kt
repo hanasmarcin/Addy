@@ -2,7 +2,9 @@
 
 package com.hanas.addy.home
 
+import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -49,6 +51,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -66,12 +69,21 @@ object CreateNewCardStack : NavScreen
 fun NavGraphBuilder.createNewCardStackComposable(navHandler: NavigationHandler) {
     composable<CreateNewCardStack> {
         val viewModel: CreateNewCardStackViewModel = koinNavViewModel()
-        val photoUris by viewModel.photoUrisFlow.collectAsState()
-        val cameraHelper = rememberCameraHelper { viewModel.addPhoto(it) }
-        val photoPickerHelper = rememberPhotoPickerHelper { viewModel.addAllPhotos(it) }
+        val photoDrawables by viewModel.photoUrisFlow.collectAsState()
+        val outputContent by viewModel.outputContentFlow.collectAsState()
+        val cameraHelper = rememberCameraHelper {
+            viewModel.addPhoto(it)
+        }
+        val photoPickerHelper = rememberPhotoPickerHelper {
+//            viewModel.addAllPhotos(it)
+        }
+        val context = LocalContext.current
+        LaunchedEffect(outputContent) {
+            Toast.makeText(context, outputContent ?: "", Toast.LENGTH_SHORT).show()
+        }
         CreateNewCardStackScreen(
             navHandler = navHandler,
-            photoUris = photoUris,
+            photoDrawables = photoDrawables,
             pickImages = photoPickerHelper::pickPhotos,
             takePhoto = cameraHelper::takePhoto,
             generateStack = viewModel::generateStack
@@ -82,16 +94,16 @@ fun NavGraphBuilder.createNewCardStackComposable(navHandler: NavigationHandler) 
 @Composable
 private fun CreateNewCardStackScreen(
     navHandler: NavigationHandler,
-    photoUris: List<Uri>,
+    photoDrawables: List<Drawable>,
     pickImages: () -> Unit,
     takePhoto: () -> Unit,
     generateStack: () -> Unit
 ) {
     val color = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f).compositeOver(MaterialTheme.colorScheme.background)
-    val pagerState = rememberPagerState { photoUris.size + 1 }
-    LaunchedEffect(photoUris.size) {
-        pagerState.scrollToPage(photoUris.lastIndex + 1)
-        pagerState.animateScrollToPage(photoUris.lastIndex, animationSpec = tween(delayMillis = 100))
+    val pagerState = rememberPagerState { photoDrawables.size + 1 }
+    LaunchedEffect(photoDrawables.size) {
+        pagerState.scrollToPage(photoDrawables.lastIndex + 1)
+        pagerState.animateScrollToPage(photoDrawables.lastIndex, animationSpec = tween(delayMillis = 100))
     }
     Scaffold(
         modifier = Modifier
@@ -115,7 +127,7 @@ private fun CreateNewCardStackScreen(
             )
         },
         bottomBar = {
-            AnimatedVisibility(photoUris.isNotEmpty()) {
+            AnimatedVisibility(photoDrawables.isNotEmpty()) {
                 GenerateStackCard(generateStack)
             }
         }
@@ -129,7 +141,7 @@ private fun CreateNewCardStackScreen(
                 contentPadding = PaddingValues(top = 0.dp, start = 32.dp, end = 32.dp),
                 pageSpacing = 16.dp
             ) { page ->
-                if (page == photoUris.lastIndex + 1) {
+                if (page == photoDrawables.lastIndex + 1) {
                     Column {
                         Image(painterResource(R.drawable.girl_photographing_book), null)
                         Spacer(Modifier.size(16.dp))
@@ -169,7 +181,7 @@ private fun CreateNewCardStackScreen(
                     }
                 } else {
                     Box(Modifier.fillMaxSize()) {
-                        val photoUri = photoUris[page]
+                        val photoUri = photoDrawables[page]
                         Box(Modifier.align(Alignment.Center)) {
                             AsyncImage(
                                 modifier = Modifier.clip(RoundedCornerShape(16.dp)),
