@@ -2,10 +2,7 @@
 
 package com.hanas.addy.home
 
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +28,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -41,6 +40,7 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
@@ -55,47 +55,26 @@ import kotlinx.serialization.Serializable
 object CardStackList : NavScreen
 
 
-fun NavGraphBuilder.cardStackListComposable(navigate: Navigate) {
+fun NavGraphBuilder.cardStackListComposable(navHandler: NavigationHandler) {
     composable<CardStackList> {
-        val cameraHelper = rememberCameraHelper()
-        val photoUris = cameraHelper.photoUris
-
-        val pickMultipleMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
-            if (uris.isNotEmpty()) {
-                Log.d("PhotoPicker", "Number of items selected: ${uris.size}")
-            } else {
-                Log.d("PhotoPicker", "No media selected")
-            }
-        }
-        val launcher = rememberLauncherForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted ->
-            if (isGranted) {
-                cameraHelper.takeNewCameraPhoto()
-                // Open camera
-            } else {
-                // Show dialog
-            }
-        }
+        val photoUris = remember { mutableStateListOf<Uri>() }
+        val cameraHelper = rememberCameraHelper { photoUris.add(it) }
+        val photoPickerHelper = rememberPhotoPickerHelper { photoUris.addAll(it) }
         CardStackListScreen(
-            navigate,
-            pickImages = {
-                pickMultipleMedia.launch(
-                    PickVisualMediaRequest(
-                        ActivityResultContracts.PickVisualMedia.ImageOnly
-                    )
-                )
-            },
-            takePhoto = {
-                cameraHelper.takeNewCameraPhoto()
-            }
+            navHandler = navHandler,
+            photoUris = photoUris,
+            pickImages = photoPickerHelper::pickPhotos,
+            takePhoto = cameraHelper::takePhoto
         )
     }
 }
 
 @Composable
 private fun CardStackListScreen(
-    navigate: Navigate, pickImages: () -> Unit, takePhoto: () -> Unit
+    navHandler: NavigationHandler,
+    photoUris: List<Uri>,
+    pickImages: () -> Unit,
+    takePhoto: () -> Unit
 ) {
     Scaffold(
         modifier = Modifier
@@ -104,11 +83,11 @@ private fun CardStackListScreen(
         containerColor = Color.Transparent,
         contentColor = contentColorFor(MaterialTheme.colorScheme.background),
         topBar = {
-            TopAppBar(title = { Text("Card stacks") }, navigationIcon = {
+            TopAppBar(title = { Text(stringResource(R.string.card_stack_list_screen_title)) }, navigationIcon = {
                 FilledIconButton(
                     shape = BlobShape(),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                    onClick = { navigate(GoBack) },
+                    onClick = { navHandler.navigate(GoBack) },
                 ) {
                     Icon(Icons.AutoMirrored.Default.ArrowBack, null)
                 }
@@ -137,16 +116,17 @@ private fun CardStackListScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                Text(photoUris.joinToString("/n"))
                 Image(
                     painter = painterResource(R.drawable.stacks_of_cards), contentDescription = null
                 )
-                Text("You have no card stacks yet. You can create them by uploading photos of material that you want to base them on.")
+                Text(stringResource(R.string.card_stack_list_screen_empty_state_description))
                 Button(
                     onClick = pickImages, colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 ) {
-                    Text("Create new stack")
+                    Text(stringResource(R.string.card_stack_list_screen_empty_state_button_label))
                 }
             }
         }
@@ -193,6 +173,6 @@ fun Path.transformToFitBounds(size: Size): Path {
 @Composable
 fun CardStackListScreenPreview() {
     AppTheme {
-        CardStackListScreen({}, {}) {}
+        CardStackListScreen({}, emptyList(), {}) {}
     }
 }

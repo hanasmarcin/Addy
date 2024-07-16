@@ -30,17 +30,19 @@ import org.koin.androidx.compose.navigation.koinNavViewModel
 @Serializable
 object Home : NavScreen
 
-fun NavGraphBuilder.homeComposable(navigate: Navigate) {
+fun NavGraphBuilder.homeComposable(navigate: NavigationHandler) {
     composable<Home> {
         val viewModel: HomeViewModel = koinNavViewModel()
         HomeScreen(navigate)
     }
 }
 
-typealias Navigate = (NavAction) -> Unit
+fun interface NavigationHandler {
+    fun navigate(action: NavAction)
+}
 
 @Composable
-fun HomeScreen(navigate: Navigate) {
+fun HomeScreen(navHandler: NavigationHandler) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface
     ) {
@@ -71,7 +73,7 @@ fun HomeScreen(navigate: Navigate) {
                     title = "Your card stacks",
                     color = MaterialTheme.colorScheme.tertiaryContainer
                 ) {
-                    navigate(CardStackList)
+                    navHandler.navigate(CardStackList)
                 }
             }
         }
