@@ -40,8 +40,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,21 +58,23 @@ import coil.compose.AsyncImage
 import com.hanas.addy.R
 import com.hanas.addy.ui.AppTheme
 import kotlinx.serialization.Serializable
+import org.koin.androidx.compose.navigation.koinNavViewModel
 
 @Serializable
 object CreateNewCardStack : NavScreen
 
 fun NavGraphBuilder.createNewCardStackComposable(navHandler: NavigationHandler) {
     composable<CreateNewCardStack> {
-//        val viewModel: HomeViewModel = koinNavViewModel()
-        val photoUris = remember { mutableStateListOf<Uri>() }
-        val cameraHelper = rememberCameraHelper { photoUris.add(it) }
-        val photoPickerHelper = rememberPhotoPickerHelper { photoUris.addAll(it) }
+        val viewModel: CreateNewCardStackViewModel = koinNavViewModel()
+        val photoUris by viewModel.photoUrisFlow.collectAsState()
+        val cameraHelper = rememberCameraHelper { viewModel.addPhoto(it) }
+        val photoPickerHelper = rememberPhotoPickerHelper { viewModel.addAllPhotos(it) }
         CreateNewCardStackScreen(
             navHandler = navHandler,
             photoUris = photoUris,
             pickImages = photoPickerHelper::pickPhotos,
-            takePhoto = cameraHelper::takePhoto
+            takePhoto = cameraHelper::takePhoto,
+            generateStack = viewModel::generateStack
         )
     }
 }
@@ -82,7 +84,8 @@ private fun CreateNewCardStackScreen(
     navHandler: NavigationHandler,
     photoUris: List<Uri>,
     pickImages: () -> Unit,
-    takePhoto: () -> Unit
+    takePhoto: () -> Unit,
+    generateStack: () -> Unit
 ) {
     val color = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f).compositeOver(MaterialTheme.colorScheme.background)
     val pagerState = rememberPagerState { photoUris.size + 1 }
@@ -113,7 +116,7 @@ private fun CreateNewCardStackScreen(
         },
         bottomBar = {
             AnimatedVisibility(photoUris.isNotEmpty()) {
-                GenerateStackCard(pickImages)
+                GenerateStackCard(generateStack)
             }
         }
     ) {
@@ -192,7 +195,7 @@ private fun CreateNewCardStackScreen(
 }
 
 @Composable
-private fun GenerateStackCard(pickImages: () -> Unit) {
+private fun GenerateStackCard(generateStack: () -> Unit) {
     Card(
         Modifier
             .fillMaxWidth()
@@ -210,7 +213,7 @@ private fun GenerateStackCard(pickImages: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 48.dp),
-                onClick = pickImages,
+                onClick = generateStack,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -246,6 +249,6 @@ fun AddNewCardStackScreenPreview() {
 //            "https://picsum.photos/200/800".toUri(),
 //            "https://picsum.photos/200/800".toUri(),
         )
-        CreateNewCardStackScreen({}, emptyList(), {}, {})
+        CreateNewCardStackScreen({}, emptyList(), {}, {}, {})
     }
 }
