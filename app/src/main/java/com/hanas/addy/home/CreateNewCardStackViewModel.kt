@@ -10,12 +10,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 class CreateNewCardStackViewModel(
     private val geminiRepository: GeminiRepository,
     private val imageLoader: ImageLoader
 ) : ViewModel() {
-    val outputContentFlow = MutableStateFlow<String?>(null)
+    val outputContentFlow = MutableStateFlow<List<PlayingCard>>(emptyList())
     val photoUrisFlow: StateFlow<List<Drawable>>
         get() = _photoUrisFlow
 
@@ -32,10 +33,12 @@ class CreateNewCardStackViewModel(
     fun generateStack() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-               val bitmaps = _photoUrisFlow.value.map { it.toBitmap() }
+                val bitmaps = _photoUrisFlow.value.map { it.toBitmap() }
                 val response = geminiRepository.generateContent(bitmaps, "Summarize in one sentence this collection of photos")
                 response.text?.let { outputContent ->
-                    outputContentFlow.value = outputContent
+                    val cleanString = outputContent.replaceFirst("```json", "").replaceFirst("```", "")
+                    val playingCards = Json.decodeFromString<List<PlayingCard>>(cleanString)
+                    outputContentFlow.value = playingCards
                 }
             } catch (e: Exception) {
                 Log.e("HANASSS", e.stackTraceToString())

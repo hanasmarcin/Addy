@@ -20,7 +20,7 @@ import com.hanas.addy.home.Home
 import com.hanas.addy.home.NavScreen
 import com.hanas.addy.home.NavigationHandler
 import com.hanas.addy.home.cardStackListComposable
-import com.hanas.addy.home.createNewCardStackComposable
+import com.hanas.addy.home.createNewCardStackNavigation
 import com.hanas.addy.home.homeComposable
 import com.hanas.addy.ui.AppTheme
 
@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         homeComposable(navigate)
                         cardStackListComposable(navigate)
-                        createNewCardStackComposable(navigate)
+                        createNewCardStackNavigation(navigate, navController)
                     }
                 }
             }
