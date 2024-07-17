@@ -96,6 +96,7 @@ private fun CreateNewCardStackSelectPhotosScreen(
         pagerState.animateScrollToPage(photoDrawables.lastIndex, animationSpec = tween(delayMillis = 100))
     }
     AppScaffold(navHandler = navHandler,
+        modifier = Modifier.fillMaxSize(),
         topBarTitle = {
             Text("Add New Card Stack")
         },
@@ -104,6 +105,7 @@ private fun CreateNewCardStackSelectPhotosScreen(
                 GenerateStackCard(generateStack)
             }
         },
+        actions = {},
         content = {
             HorizontalPager(
                 modifier = Modifier.fillMaxSize(),
@@ -176,8 +178,7 @@ private fun CreateNewCardStackSelectPhotosScreen(
                     }
                 }
             }
-        },
-        actions = {}
+        }
     )
 }
 
