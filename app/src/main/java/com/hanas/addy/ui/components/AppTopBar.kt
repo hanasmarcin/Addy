@@ -1,5 +1,6 @@
 package com.hanas.addy.ui.components
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,16 +18,24 @@ import com.hanas.addy.home.NavigationHandler
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppTopBar(navHandler: NavigationHandler, topBarTitleContent: @Composable () -> Unit) {
+fun AppTopBar(
+    hasBackButton: Boolean = true,
+    navHandler: NavigationHandler,
+    topBarTitleContent: @Composable () -> Unit,
+    actions: @Composable RowScope.() -> Unit
+) {
     TopAppBar(
         title = topBarTitleContent,
+        actions = actions,
         navigationIcon = {
-            FilledIconButton(
-                shape = BlobShape(),
-                colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                onClick = { navHandler.navigate(GoBack) },
-            ) {
-                Icon(Icons.AutoMirrored.Default.ArrowBack, null)
+            if (hasBackButton) {
+                FilledIconButton(
+                    shape = BlobShape(),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                    onClick = { navHandler.navigate(GoBack, true) },
+                ) {
+                    Icon(Icons.AutoMirrored.Default.ArrowBack, null)
+                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent)

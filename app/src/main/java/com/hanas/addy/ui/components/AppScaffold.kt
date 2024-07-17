@@ -3,6 +3,7 @@ package com.hanas.addy.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -18,9 +19,11 @@ import com.hanas.addy.home.drawPattern
 @Composable
 fun AppScaffold(
     navHandler: NavigationHandler,
-    topBarTitleContent: @Composable () -> Unit,
+    hasBackButton: Boolean = true,
+    topBarTitle: @Composable () -> Unit,
     bottomBar: @Composable () -> Unit = {},
-    content: @Composable BoxScope.() -> Unit
+    actions: @Composable RowScope.() -> Unit,
+    content: @Composable BoxScope.() -> Unit,
 ) {
     val color = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f).compositeOver(MaterialTheme.colorScheme.background)
     Scaffold(
@@ -30,7 +33,7 @@ fun AppScaffold(
         containerColor = Color.Transparent,
         contentColor = contentColorFor(MaterialTheme.colorScheme.background),
         topBar = {
-            AppTopBar(navHandler, topBarTitleContent)
+            AppTopBar(hasBackButton, navHandler, topBarTitle, actions)
         },
         bottomBar = bottomBar
     ) {

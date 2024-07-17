@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.hanas.addy" />
+                  <option name="mobileSdkAppId" value="1:127019653016:android:3a690278a8c06bcd1bfded" />
+                  <option name="projectId" value="addy-7f8ed236" />
+                  <option name="projectNumber" value="127019653016" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

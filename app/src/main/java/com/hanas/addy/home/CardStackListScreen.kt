@@ -82,7 +82,7 @@ private fun CardStackListScreen(
                 FilledIconButton(
                     shape = BlobShape(),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                    onClick = { navHandler.navigate(GoBack) },
+                    onClick = { navHandler.navigate(GoBack, true) },
                 ) {
                     Icon(Icons.AutoMirrored.Default.ArrowBack, null)
                 }
@@ -91,7 +91,7 @@ private fun CardStackListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navHandler.navigate(CreateNewCardStack) },
+                onClick = { navHandler.navigate(CreateNewCardStack, true) },
                 shape = BlobShape(),
                 elevation = FloatingActionButtonDefaults.loweredElevation(),
                 containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -118,7 +118,7 @@ private fun CardStackListScreen(
                 Text(stringResource(R.string.card_stack_list_screen_empty_state_description))
                 Button(
                     modifier = Modifier.heightIn(min = 48.dp),
-                    onClick = { navHandler.navigate(CreateNewCardStack) },
+                    onClick = { navHandler.navigate(CreateNewCardStack, true) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -200,6 +200,6 @@ fun Path.transformToFitBounds(size: Size): Path {
 @Composable
 fun CardStackListScreenPreview() {
     AppTheme {
-        CardStackListScreen({}, emptyList())
+        CardStackListScreen({ _, _ -> }, emptyList())
     }
 }

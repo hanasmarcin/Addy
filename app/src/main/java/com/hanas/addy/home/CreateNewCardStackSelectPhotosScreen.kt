@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.hanas.addy.home
 
 import android.graphics.drawable.Drawable
@@ -27,7 +25,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -70,9 +67,10 @@ fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: Navigat
         }
         LaunchedEffect(outputContent) {
             if (outputContent.isNotEmpty()) {
-                navHandler.navigate(CreateNewCardStack.PreviewNewStack)
+                navHandler.navigate(CreateNewCardStack.PreviewNewStack, true)
             }
         }
+
         CreateNewCardStackSelectPhotosScreen(
             navHandler = navHandler,
             photoDrawables = photoDrawables,
@@ -98,87 +96,89 @@ private fun CreateNewCardStackSelectPhotosScreen(
         pagerState.animateScrollToPage(photoDrawables.lastIndex, animationSpec = tween(delayMillis = 100))
     }
     AppScaffold(navHandler = navHandler,
+        topBarTitle = {
+            Text("Add New Card Stack")
+        },
         bottomBar = {
             AnimatedVisibility(photoDrawables.isNotEmpty()) {
                 GenerateStackCard(generateStack)
             }
         },
-        topBarTitleContent = {
-            Text("Add New Card Stack")
-        }
-    ) {
-        HorizontalPager(
-            modifier = Modifier.fillMaxSize(),
-            state = pagerState,
-            contentPadding = PaddingValues(top = 0.dp, start = 32.dp, end = 32.dp),
-            pageSpacing = 16.dp
-        ) { page ->
-            if (page == photoDrawables.lastIndex + 1) {
-                Column {
-                    Image(painterResource(R.drawable.girl_photographing_book), null)
-                    Spacer(Modifier.size(16.dp))
-                    Card(
-                        Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
-                    ) {
-                        Column(
-                            Modifier
-                                .drawPattern(R.drawable.hideout, MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f))
-                                .fillMaxWidth()
-                                .padding(16.dp),
+        content = {
+            HorizontalPager(
+                modifier = Modifier.fillMaxSize(),
+                state = pagerState,
+                contentPadding = PaddingValues(top = 0.dp, start = 32.dp, end = 32.dp),
+                pageSpacing = 16.dp
+            ) { page ->
+                if (page == photoDrawables.lastIndex + 1) {
+                    Column {
+                        Image(painterResource(R.drawable.girl_photographing_book), null)
+                        Spacer(Modifier.size(16.dp))
+                        Card(
+                            Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
                         ) {
-                            Button(
-                                modifier = Modifier
+                            Column(
+                                Modifier
+                                    .drawPattern(R.drawable.hideout, MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f))
                                     .fillMaxWidth()
-                                    .heightIn(min = 48.dp),
-                                onClick = pickImages,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
+                                    .padding(16.dp),
                             ) {
-                                Text("Choose from gallery")
-                            }
-                            Spacer(Modifier.size(8.dp))
-                            Button(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(min = 48.dp),
-                                onClick = takePhoto,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                            ) {
-                                Text("Take a new photo")
+                                Button(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = 48.dp),
+                                    onClick = pickImages,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                ) {
+                                    Text("Choose from gallery")
+                                }
+                                Spacer(Modifier.size(8.dp))
+                                Button(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = 48.dp),
+                                    onClick = takePhoto,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                ) {
+                                    Text("Take a new photo")
+                                }
                             }
                         }
                     }
-                }
-            } else {
-                Box(Modifier.fillMaxSize()) {
-                    val photoUri = photoDrawables[page]
-                    Box(Modifier.align(Alignment.Center)) {
-                        AsyncImage(
-                            modifier = Modifier.clip(RoundedCornerShape(16.dp)),
-                            model = photoUri,
-                            contentDescription = null
-                        )
-                        FilledIconButton(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .offset(8.dp, (-8).dp),
-                            shape = BlobShape(),
-                            onClick = {},
-                            colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                        ) {
-                            Icon(Icons.Default.Clear, "")
+                } else {
+                    Box(Modifier.fillMaxSize()) {
+                        val photoUri = photoDrawables[page]
+                        Box(Modifier.align(Alignment.Center)) {
+                            AsyncImage(
+                                modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                                model = photoUri,
+                                contentDescription = null
+                            )
+                            FilledIconButton(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(8.dp, (-8).dp),
+                                shape = BlobShape(),
+                                onClick = {},
+                                colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                            ) {
+                                Icon(Icons.Default.Clear, "")
+                            }
                         }
                     }
                 }
             }
-        }
-    }
+        },
+        actions = {}
+    )
 }
 
 @Composable
@@ -237,6 +237,6 @@ fun AddNewCardStackScreenPreview() {
 //            "https://picsum.photos/200/800".toUri(),
 //            "https://picsum.photos/200/800".toUri(),
         )
-        CreateNewCardStackSelectPhotosScreen({}, emptyList(), {}, {}, {})
+        CreateNewCardStackSelectPhotosScreen({ _, _ -> }, emptyList(), {}, {}, {})
     }
 }

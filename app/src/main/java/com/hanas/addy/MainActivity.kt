@@ -16,12 +16,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.hanas.addy.home.GoBack
-import com.hanas.addy.home.Home
 import com.hanas.addy.home.NavScreen
 import com.hanas.addy.home.NavigationHandler
 import com.hanas.addy.home.cardStackListComposable
 import com.hanas.addy.home.createNewCardStackNavigation
 import com.hanas.addy.home.homeComposable
+import com.hanas.addy.login.Login
+import com.hanas.addy.login.loginComposable
 import com.hanas.addy.ui.AppTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,29 +30,30 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            AppTheme {
-                val navController = rememberNavController()
-                val navigate = NavigationHandler { action ->
-                    when (action) {
-                        is NavScreen -> navController.navigate(action)
-                        is GoBack -> navController.popBackStack()
+                AppTheme {
+                    val navController = rememberNavController()
+                    val navigate = NavigationHandler { action, _ ->
+                        when (action) {
+                            is NavScreen -> navController.navigate(action)
+                            is GoBack -> navController.popBackStack()
+                        }
+                    }
+                    Surface(color = Color.Black) {
+                        NavHost(
+                            navController,
+                            Login,
+                            enterTransition = { slideIntoContainer(Start, tween(300)) },
+                            exitTransition = { fadeOut(tween(300, 100, easing = FastOutSlowInEasing), 0.5f) },
+                            popExitTransition = { slideOutOfContainer(End, tween(300)) },
+                            popEnterTransition = { fadeIn(tween(300, easing = LinearEasing), 0.5f) },
+                        ) {
+                            loginComposable(navigate)
+                            homeComposable(navigate)
+                            cardStackListComposable(navigate)
+                            createNewCardStackNavigation(navigate, navController)
+                        }
                     }
                 }
-                Surface(color = Color.Black) {
-                    NavHost(
-                        navController,
-                        Home,
-                        enterTransition = { slideIntoContainer(Start, tween(300)) },
-                        exitTransition = { fadeOut(tween(300, 100, easing = FastOutSlowInEasing), 0.5f) },
-                        popExitTransition = { slideOutOfContainer(End, tween(300)) },
-                        popEnterTransition = { fadeIn(tween(300, easing = LinearEasing), 0.5f) },
-                    ) {
-                        homeComposable(navigate)
-                        cardStackListComposable(navigate)
-                        createNewCardStackNavigation(navigate, navController)
-                    }
-                }
-            }
         }
     }
 }
