@@ -218,7 +218,7 @@ private fun GenerateStackCard(generateStack: () -> Unit) {
 @Composable
 fun GenerateStackCardPreview() {
     AppTheme {
-        GenerateStackCard({})
+        GenerateStackCard {}
     }
 }
 

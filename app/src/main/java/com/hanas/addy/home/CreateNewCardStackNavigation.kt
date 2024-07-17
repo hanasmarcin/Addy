@@ -19,6 +19,6 @@ object CreateNewCardStack : NavScreen {
 fun NavGraphBuilder.createNewCardStackNavigation(navHandler: NavigationHandler, navController: NavController) {
     navigation<CreateNewCardStack>(CreateNewCardStack.SelectPhotos) {
         createNewCardStackSelectPhotosComposable(navHandler, navController)
-        previewNewCardStackComposable(navHandler, navController)
+        viewNewCardStackComposable(navHandler, navController)
     }
 }
