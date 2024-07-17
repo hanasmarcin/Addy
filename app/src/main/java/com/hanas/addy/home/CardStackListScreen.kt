@@ -92,7 +92,7 @@ private fun CardStackListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navHandler.navigate(CreateNewCardStack, true) },
-                shape = BlobShape(),
+                shape = BlobShape(30f),
                 elevation = FloatingActionButtonDefaults.loweredElevation(),
                 containerColor = MaterialTheme.colorScheme.secondaryContainer
             ) {
@@ -156,11 +156,11 @@ class BlobCardShape : Shape {
     override fun createOutline(
         size: Size, layoutDirection: LayoutDirection, density: Density
     ): Outline {
-        return Outline.Generic(path.transformToFitBounds(size))
+        return Outline.Generic(path.transformToFitBounds(size, 0f))
     }
 }
 
-class BlobShape : Shape {
+class BlobShape(val rotationDegrees: Float = 0f) : Shape {
     val path = Path().apply {
         moveTo(140.1f, 44.3f)
         cubicTo(153.2f, 54.3f, 165.8f, 64.4f, 170.1f, 77.3f)
@@ -179,18 +179,28 @@ class BlobShape : Shape {
     override fun createOutline(
         size: Size, layoutDirection: LayoutDirection, density: Density
     ): Outline {
-        return Outline.Generic(path.transformToFitBounds(size))
+        return Outline.Generic(path.transformToFitBounds(size, rotationDegrees))
     }
 }
 
-fun Path.transformToFitBounds(size: Size): Path {
-    val pathBounds = getBounds()
+fun Path.transformToFitBounds(size: Size, rotationDegrees: Float): Path {
+    val path = Path().apply {
+        addPath(this@transformToFitBounds)
+        transform(
+            Matrix().apply {
+                if (rotationDegrees != 0f) {
+                    rotateZ(rotationDegrees)
+                }
+            }
+        )
+    }
+    val pathBounds = path.getBounds()
 
     val scaleX = size.width / pathBounds.width
     val scaleY = size.height / pathBounds.height
 
     return Path().apply {
-        addPath(this@transformToFitBounds) // Add the original path
+        addPath(path) // Add the original path
         transform(Matrix().apply { scale(scaleX, scaleY) })
         translate(Offset(-pathBounds.left * scaleX, -pathBounds.top * scaleY)) // Translate
     }
