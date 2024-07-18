@@ -3,7 +3,7 @@ package com.hanas.addy.home
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
@@ -24,21 +24,25 @@ class CardStackListViewModel(
 }
 
 class FirestoreRepository {
-    private val database = Firebase.firestore
+    private val database by lazy { Firebase.firestore }
+    private val auth by lazy { Firebase.auth }
 
     fun savePlayingCardStack(cardStack: PlayingCardStack) {
         database.collection(CARD_STACKS_COLLECTION_PATH)
-            .add(cardStack).addOnSuccessListener {
-                Log.d("HANASSS", "DocumentSnapshot added with ID: ${it.id}")
-            }.addOnFailureListener {
-                Log.e("HANASSS", "Error adding document", it)
-            }.addOnCanceledListener {
-                Log.e("HANASSS", "Canceled adding document")
+            .add(cardStack)
+            .addOnSuccessListener {
+                Log.d(TAG, "DocumentSnapshot added with ID: ${it.id}")
+            }
+            .addOnFailureListener {
+                Log.e(TAG, "Error adding document", it)
+            }
+            .addOnCanceledListener {
+                Log.e(TAG, "Canceled adding document")
             }
     }
 
     suspend fun getPlayingCardStacksForUser(): List<PlayingCardStack> {
-        val userId = FirebaseAuth.getInstance().uid ?: throw Exception("User not authenticated")
+        val userId = auth.uid ?: throw Exception("User not authenticated")
 
         return try {
             val snapshot = database.collection(CARD_STACKS_COLLECTION_PATH)
@@ -46,17 +50,15 @@ class FirestoreRepository {
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull { document ->
-                document.toObject<PlayingCardStack>()
-            }
+            snapshot.documents.mapNotNull { it.toObject<PlayingCardStack>() }
         } catch (e: Exception) {
-            // Handle error, e.g. log it or rethrow
+            Log.e(TAG, "Error getting documents", e)
             emptyList()
         }
     }
 
     fun observePlayingCardStacksForUser(): Flow<List<PlayingCardStack>> = callbackFlow {
-        val userId = FirebaseAuth.getInstance().uid ?: run {
+        val userId = auth.uid ?: run {
             close(Exception("User not authenticated"))
             return@callbackFlow
         }
@@ -69,9 +71,8 @@ class FirestoreRepository {
                     return@addSnapshotListener
                 }
 
-                val cardStacks = snapshot?.documents?.mapNotNull { document ->
-                    document.toObject<PlayingCardStack>()
-                } ?: emptyList()
+                val cardStacks = snapshot?.documents?.mapNotNull { it.toObject<PlayingCardStack>() }
+                    ?: emptyList()
                 trySend(cardStacks)
             }
 
@@ -79,6 +80,7 @@ class FirestoreRepository {
     }
 
     companion object {
-        const val CARD_STACKS_COLLECTION_PATH = "cardStacks"
+        private const val CARD_STACKS_COLLECTION_PATH = "cardStacks"
+        private const val TAG = "FirestoreRepository"
     }
 }
