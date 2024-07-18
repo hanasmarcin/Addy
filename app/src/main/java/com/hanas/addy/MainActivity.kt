@@ -17,17 +17,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.hanas.addy.home.GoBack
-import com.hanas.addy.home.Home
-import com.hanas.addy.home.NavScreen
-import com.hanas.addy.home.NavigationHandler
-import com.hanas.addy.home.cardStackDetailComposable
-import com.hanas.addy.home.cardStackListComposable
-import com.hanas.addy.home.createNewCardStackNavigation
-import com.hanas.addy.home.homeComposable
-import com.hanas.addy.login.Login
-import com.hanas.addy.login.loginComposable
+import com.hanas.addy.ui.GoBack
+import com.hanas.addy.view.home.Home
+import com.hanas.addy.ui.NavScreen
+import com.hanas.addy.view.home.NavigationHandler
+import com.hanas.addy.view.cardStackDetail.cardStackDetailComposable
+import com.hanas.addy.view.createNewCardStack.createNewCardStackNavigation
+import com.hanas.addy.view.home.homeComposable
+import com.hanas.addy.view.login.Login
+import com.hanas.addy.view.login.loginComposable
 import com.hanas.addy.ui.AppTheme
+import com.hanas.addy.view.cardStackList.cardStackListComposable
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,4 +1,4 @@
-package com.hanas.addy.home
+package com.hanas.addy.view.createNewCardStack
 
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -34,9 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,6 +46,8 @@ import com.hanas.addy.ui.AppTheme
 import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.shapes.BlobShape
+import com.hanas.addy.ui.drawPattern
+import com.hanas.addy.view.home.NavigationHandler
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
 fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: NavigationHandler, navController: NavController) {
@@ -205,13 +204,6 @@ fun GenerateStackCardPreview() {
         GenerateStackCard {}
     }
 }
-
-fun Modifier.drawInvertedColors(color: Color) = drawBehind {
-    drawRect(Color.White, blendMode = BlendMode.Difference)
-    drawRect(color, blendMode = BlendMode.Plus)
-    drawRect(color, blendMode = BlendMode.Color)
-}
-
 
 @Preview
 @Composable

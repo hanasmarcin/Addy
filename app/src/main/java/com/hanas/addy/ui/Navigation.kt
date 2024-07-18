@@ -1,4 +1,4 @@
-package com.hanas.addy.home
+package com.hanas.addy.ui
 
 interface NavScreen: NavAction
 interface NavAction

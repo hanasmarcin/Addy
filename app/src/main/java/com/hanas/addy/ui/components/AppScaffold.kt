@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import com.hanas.addy.R
-import com.hanas.addy.home.NavigationHandler
-import com.hanas.addy.home.drawPattern
+import com.hanas.addy.ui.drawPattern
+import com.hanas.addy.view.home.NavigationHandler
 
 @Composable
 fun AppScaffold(

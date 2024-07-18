@@ -1,4 +1,4 @@
-package com.hanas.addy.home
+package com.hanas.addy.view.home
 
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth

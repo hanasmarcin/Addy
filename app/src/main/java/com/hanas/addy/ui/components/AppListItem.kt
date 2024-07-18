@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import com.hanas.addy.home.drawPattern
+import com.hanas.addy.ui.drawPattern
 
 @Composable
 fun AppListItem(

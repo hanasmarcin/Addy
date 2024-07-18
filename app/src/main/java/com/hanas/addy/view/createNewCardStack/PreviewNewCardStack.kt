@@ -1,4 +1,4 @@
-package com.hanas.addy.home
+package com.hanas.addy.view.createNewCardStack
 
 import android.annotation.SuppressLint
 import androidx.compose.material3.Text
@@ -9,6 +9,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.hanas.addy.ui.CardStackPager
+import com.hanas.addy.view.home.NavigationHandler
+import com.hanas.addy.model.PlayingCard
+import com.hanas.addy.ui.samplePlayingCard
 import com.hanas.addy.ui.AppTheme
 import com.hanas.addy.ui.components.AppScaffold
 import org.koin.androidx.compose.navigation.koinNavViewModel

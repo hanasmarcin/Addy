@@ -1,4 +1,4 @@
-package com.hanas.addy.login
+package com.hanas.addy.view.login
 
 import android.content.Context
 import android.util.Log
@@ -21,9 +21,9 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialResponse
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.hanas.addy.home.Home
-import com.hanas.addy.home.NavScreen
-import com.hanas.addy.home.NavigationHandler
+import com.hanas.addy.view.home.Home
+import com.hanas.addy.ui.NavScreen
+import com.hanas.addy.view.home.NavigationHandler
 import com.hanas.addy.ui.AppTheme
 import com.hanas.addy.ui.components.AppButton
 import kotlinx.coroutines.CoroutineExceptionHandler

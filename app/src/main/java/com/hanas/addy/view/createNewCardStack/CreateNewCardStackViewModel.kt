@@ -1,4 +1,4 @@
-package com.hanas.addy.home
+package com.hanas.addy.view.createNewCardStack
 
 import android.graphics.drawable.Drawable
 import android.util.Log
@@ -6,6 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.hanas.addy.repository.GeminiRepository
+import com.hanas.addy.model.PlayingCardStack
+import com.hanas.addy.ui.samplePlayingCard
+import com.hanas.addy.view.cardStackList.FirestoreRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

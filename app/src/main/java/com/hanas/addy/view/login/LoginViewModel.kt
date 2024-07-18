@@ -1,4 +1,4 @@
-package com.hanas.addy.login
+package com.hanas.addy.view.login
 
 import android.util.Log
 import androidx.credentials.CustomCredential

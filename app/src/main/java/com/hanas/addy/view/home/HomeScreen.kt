@@ -1,4 +1,4 @@
-package com.hanas.addy.home
+package com.hanas.addy.view.home
 
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -26,7 +26,10 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
 import com.hanas.addy.R
+import com.hanas.addy.view.cardStackList.CardStackList
 import com.hanas.addy.ui.AppTheme
+import com.hanas.addy.ui.NavAction
+import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.ui.components.AppScaffold
 import kotlinx.serialization.Serializable

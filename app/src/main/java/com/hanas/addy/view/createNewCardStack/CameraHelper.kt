@@ -1,4 +1,4 @@
-package com.hanas.addy.home
+package com.hanas.addy.view.createNewCardStack
 
 import android.Manifest
 import android.content.Context

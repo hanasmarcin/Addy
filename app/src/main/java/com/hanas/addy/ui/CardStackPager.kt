@@ -1,4 +1,4 @@
-package com.hanas.addy.home
+package com.hanas.addy.ui
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -35,6 +35,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.dp
 import com.hanas.addy.R
+import com.hanas.addy.model.Attribute
+import com.hanas.addy.model.Attributes
+import com.hanas.addy.model.PlayingCard
 import com.hanas.addy.ui.components.shapes.BlobShape
 
 @Composable
