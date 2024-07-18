@@ -21,11 +21,11 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialResponse
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.hanas.addy.view.home.Home
-import com.hanas.addy.ui.NavScreen
-import com.hanas.addy.view.home.NavigationHandler
 import com.hanas.addy.ui.AppTheme
+import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppButton
+import com.hanas.addy.view.home.Home
+import com.hanas.addy.view.home.NavigationHandler
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -79,7 +79,7 @@ fun LoginScreen(
     LaunchedEffect(loginState) {
         when (loginState) {
             is LoginState.Success -> {
-                navHandler.navigate(Home, closeCurrent = true)
+                navHandler.navigate(Home)
             }
             is LoginState.Error -> {
                 Toast.makeText(context, loginState.message, Toast.LENGTH_SHORT).show()
@@ -114,7 +114,7 @@ fun LoginScreen(
 @Composable
 fun LoginScreenPreview() {
     AppTheme {
-        LoginScreen({ _, _ -> }, LoginState.NotLoggedIn, {})
+        LoginScreen({ }, LoginState.NotLoggedIn, {})
     }
 }
 

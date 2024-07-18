@@ -26,12 +26,12 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
 import com.hanas.addy.R
-import com.hanas.addy.view.cardStackList.CardStackList
 import com.hanas.addy.ui.AppTheme
 import com.hanas.addy.ui.NavAction
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.ui.components.AppScaffold
+import com.hanas.addy.view.cardStackList.CardStackList
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -52,7 +52,7 @@ fun NavGraphBuilder.homeComposable(navigate: NavigationHandler) {
 }
 
 fun interface NavigationHandler {
-    fun navigate(action: NavAction, closeCurrent: Boolean)
+    fun navigate(action: NavAction)
 }
 
 @Composable
@@ -74,7 +74,7 @@ fun HomeScreen(
             DropdownMenu(menuExpanded, onDismissRequest = { menuExpanded = !menuExpanded }) {
                 DropdownMenuItem({ Text("Logout") }, {
                     logout()
-                    navHandler.navigate(Home, true)
+                    navHandler.navigate(Home)
                 })
             }
         },
@@ -102,7 +102,7 @@ fun HomeScreen(
                 Text("Play")
             }
             AppButton(
-                onClick = { navHandler.navigate(CardStackList, true) },
+                onClick = { navHandler.navigate(CardStackList) },
                 color = MaterialTheme.colorScheme.tertiaryContainer
             ) {
                 Text("Your card stacks")
@@ -115,6 +115,6 @@ fun HomeScreen(
 @Composable
 fun HomeScreenPreview() {
     AppTheme {
-        HomeScreen({ _, _ -> }, "Marcin", null, {})
+        HomeScreen({ }, "Marcin", null, {})
     }
 }

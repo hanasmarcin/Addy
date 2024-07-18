@@ -1,27 +1,64 @@
 package com.hanas.addy.model
 
+import androidx.annotation.IntRange
 import kotlinx.serialization.Serializable
+
+@Serializable
+data class PlayingCardStackGeminiResponse(
+    val title: String,
+    val cards: List<PlayingCardGeminiResponse>,
+)
+
+@Serializable
+data class PlayingCardGeminiResponse(
+    val question: String,
+    val a: String,
+    val b: String,
+    val c: String,
+    val d: String,
+    val answer: String,
+    val title: String,
+    val description: String,
+    val greenName: String,
+    val greenValue: Int,
+    val redName: String,
+    val redValue: Int,
+    val blueName: String,
+    val blueValue: Int,
+)
+
 
 @Serializable
 data class PlayingCardStack(
     val title: String = "",
     val cards: List<PlayingCard> = emptyList(),
-    val createdBy: String = "",
+    val createdBy: String? = null,
+    val creationTimestamp: Long = System.currentTimeMillis(),
     val id: String? = null,
 )
 
 @Serializable
 data class PlayingCard(
-    val question: String = "",
-    val A: String = "",
-    val B: String = "",
-    val C: String = "",
-    val D: String = "",
-    val answer: String = "",
+    val question: Question = Question(),
     val title: String = "",
     val description: String = "",
     val attributes: Attributes = Attributes(Attribute(), Attribute(), Attribute())
 )
+
+@Serializable
+data class Question(
+    val text: String = "",
+    val a: String = "",
+    val b: String = "",
+    val c: String = "",
+    val d: String = "",
+    val answer: Answer = Answer.A
+)
+
+@Serializable
+enum class Answer(val value: String) {
+    A("a"), B("b"), C("c"), D("d")
+}
 
 @Serializable
 data class Attributes(
@@ -33,5 +70,5 @@ data class Attributes(
 @Serializable
 data class Attribute(
     val name: String = "",
-    val value: Int = 0
+    @IntRange(from = 1, to = 10) val value: Int = 1
 )

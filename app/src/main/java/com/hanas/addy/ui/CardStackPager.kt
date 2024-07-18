@@ -35,9 +35,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.dp
 import com.hanas.addy.R
+import com.hanas.addy.model.Answer
 import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.Attributes
 import com.hanas.addy.model.PlayingCard
+import com.hanas.addy.model.Question
 import com.hanas.addy.ui.components.shapes.BlobShape
 
 @Composable
@@ -94,15 +96,15 @@ private fun PlayingCardBack(card: PlayingCard, modifier: Modifier = Modifier) {
     {
         Text(card.title, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.padding(4.dp))
-        Text(card.question, style = MaterialTheme.typography.titleMedium)
+        Text(card.question.text, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.padding(4.dp))
-        AnswerRow("A", MaterialTheme.colorScheme.primary, card.A)
+        AnswerRow("A", MaterialTheme.colorScheme.primary, card.question.a)
         Spacer(Modifier.padding(4.dp))
-        AnswerRow("B", MaterialTheme.colorScheme.secondary, card.B)
+        AnswerRow("B", MaterialTheme.colorScheme.secondary, card.question.b)
         Spacer(Modifier.padding(4.dp))
-        AnswerRow("C", MaterialTheme.colorScheme.tertiary, card.C)
+        AnswerRow("C", MaterialTheme.colorScheme.tertiary, card.question.c)
         Spacer(Modifier.padding(4.dp))
-        AnswerRow("D", MaterialTheme.colorScheme.primary, card.D)
+        AnswerRow("D", MaterialTheme.colorScheme.primary, card.question.d)
 
     }
 }
@@ -202,12 +204,14 @@ private fun AnswerRow(it: String, color: Color, description: String) {
 }
 
 val samplePlayingCard = PlayingCard(
-    question = "Which of these factors is NOT a significant reason why the monsoon climate is ideal for rice production in Southeast Asia?",
-    A = "Heavy rainfall during the monsoon season.",
-    B = "Warm temperatures throughout the year.",
-    C = "A long growing season with sufficient sunlight.",
-    D = "Arid conditions that allow for efficient water management.",
-    answer = "D",
+    question = Question(
+        text = "Which of these factors is NOT a significant reason why the monsoon climate is ideal for rice production in Southeast Asia?",
+        a = "Heavy rainfall during the monsoon season.",
+        b = "Warm temperatures throughout the year.",
+        c = "A long growing season with sufficient sunlight.",
+        d = "Arid conditions that allow for efficient water management.",
+        answer = Answer.D,
+    ),
     title = "The Monsoon Whisperer",
     description = "This wise character knows the secrets of the monsoon winds and their influence on Southeast Asia's agricultural bounty.",
     attributes = Attributes(

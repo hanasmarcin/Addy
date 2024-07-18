@@ -55,22 +55,23 @@ fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: Navigat
         val parent = navController.getBackStackEntry<CreateNewCardStack>()
         val viewModel: CreateNewCardStackViewModel = koinNavViewModel(viewModelStoreOwner = parent)
         val photoDrawables by viewModel.photoUrisFlow.collectAsState()
-        val outputContent by viewModel.outputContentFlow.collectAsState()
+        val cardStackFlow by viewModel.cardStackFlow.collectAsState()
         val cameraHelper = rememberCameraHelper {
             viewModel.addPhoto(it)
         }
         val photoPickerHelper = rememberPhotoPickerHelper {
             viewModel.addAllPhotos(it)
         }
-        LaunchedEffect(outputContent) {
-            if (outputContent.cards.isNotEmpty()) {
-                navHandler.navigate(CreateNewCardStack.PreviewNewStack, true)
+        LaunchedEffect(cardStackFlow) {
+            if (cardStackFlow.data?.cards.isNullOrEmpty().not()) {
+                navHandler.navigate(CreateNewCardStack.PreviewNewStack)
             }
         }
 
         CreateNewCardStackSelectPhotosScreen(
             navHandler = navHandler,
             photoDrawables = photoDrawables,
+            isLoading = cardStackFlow is DataHolder.Loading,
             pickImages = photoPickerHelper::pickPhotos,
             takePhoto = cameraHelper::takePhoto,
             generateStack = viewModel::generateStack
@@ -83,6 +84,7 @@ fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: Navigat
 private fun CreateNewCardStackSelectPhotosScreen(
     navHandler: NavigationHandler,
     photoDrawables: List<Drawable>,
+    isLoading: Boolean,
     pickImages: () -> Unit,
     takePhoto: () -> Unit,
     generateStack: () -> Unit
@@ -99,7 +101,7 @@ private fun CreateNewCardStackSelectPhotosScreen(
         },
         bottomBar = {
             AnimatedVisibility(photoDrawables.isNotEmpty()) {
-                GenerateStackCard(generateStack)
+                GenerateStackCard(isLoading, generateStack)
             }
         },
         actions = {},
@@ -127,6 +129,7 @@ private fun CreateNewCardStackSelectPhotosScreen(
                                 AppButton(
                                     modifier = Modifier.fillMaxWidth(),
                                     onClick = pickImages,
+                                    isLoading = isLoading,
                                     color = MaterialTheme.colorScheme.primaryContainer,
                                 ) {
                                     Text("Choose from gallery")
@@ -135,6 +138,7 @@ private fun CreateNewCardStackSelectPhotosScreen(
                                 AppButton(
                                     modifier = Modifier.fillMaxWidth(),
                                     onClick = takePhoto,
+                                    isLoading = isLoading,
                                     color = MaterialTheme.colorScheme.secondaryContainer
                                 ) {
                                     Text("Take a photo")
@@ -170,7 +174,7 @@ private fun CreateNewCardStackSelectPhotosScreen(
 }
 
 @Composable
-private fun GenerateStackCard(generateStack: () -> Unit) {
+private fun GenerateStackCard(isLoading: Boolean, generateStack: () -> Unit) {
     Card(
         Modifier
             .fillMaxWidth()
@@ -187,6 +191,7 @@ private fun GenerateStackCard(generateStack: () -> Unit) {
             AppButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = generateStack,
+                isLoading = isLoading,
                 color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Icon(painter = painterResource(R.drawable.auto_fix), null)
@@ -201,7 +206,7 @@ private fun GenerateStackCard(generateStack: () -> Unit) {
 @Composable
 fun GenerateStackCardPreview() {
     AppTheme {
-        GenerateStackCard {}
+        GenerateStackCard(false) {}
     }
 }
 
@@ -213,6 +218,6 @@ fun AddNewCardStackScreenPreview() {
 //            "https://picsum.photos/200/800".toUri(),
 //            "https://picsum.photos/200/800".toUri(),
         )
-        CreateNewCardStackSelectPhotosScreen({ _, _ -> }, emptyList(), {}, {}, {})
+        CreateNewCardStackSelectPhotosScreen({ }, emptyList(), false, {}, {}, {})
     }
 }

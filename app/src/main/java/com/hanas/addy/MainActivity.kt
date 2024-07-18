@@ -17,17 +17,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.hanas.addy.ui.AppTheme
 import com.hanas.addy.ui.GoBack
-import com.hanas.addy.view.home.Home
 import com.hanas.addy.ui.NavScreen
-import com.hanas.addy.view.home.NavigationHandler
 import com.hanas.addy.view.cardStackDetail.cardStackDetailComposable
+import com.hanas.addy.view.cardStackList.cardStackListComposable
 import com.hanas.addy.view.createNewCardStack.createNewCardStackNavigation
+import com.hanas.addy.view.home.Home
+import com.hanas.addy.view.home.NavigationHandler
 import com.hanas.addy.view.home.homeComposable
 import com.hanas.addy.view.login.Login
 import com.hanas.addy.view.login.loginComposable
-import com.hanas.addy.ui.AppTheme
-import com.hanas.addy.view.cardStackList.cardStackListComposable
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,10 +36,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 val navController = rememberNavController()
-                val navigate = NavigationHandler { action, closeCurrent ->
+                val navigate = NavigationHandler { action ->
                     when (action) {
                         is NavScreen -> navController.navigate(action)
-                        is GoBack -> {}//navController.popBackStack()
+                        is GoBack -> navController.popBackStack()
                     }
                 }
                 Surface(color = Color.Black) {

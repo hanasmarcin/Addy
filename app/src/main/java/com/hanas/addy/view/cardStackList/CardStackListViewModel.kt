@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
@@ -51,7 +52,7 @@ class FirestoreRepository {
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull { it.toObject<PlayingCardStack>() }
+            snapshot.documents.mapNotNull(::mapDocumentToPlayingCardStack)
         } catch (e: Exception) {
             Log.e(TAG, "Error getting documents", e)
             emptyList()
@@ -72,9 +73,7 @@ class FirestoreRepository {
                     return@addSnapshotListener
                 }
 
-                val cardStacks = snapshot?.documents?.mapNotNull {
-                    it.toObject<PlayingCardStack>()?.copy(id = it.id)
-                } ?: emptyList()
+                val cardStacks = snapshot?.documents?.mapNotNull(::mapDocumentToPlayingCardStack) ?: emptyList()
                 trySend(cardStacks)
             }
 
@@ -83,7 +82,7 @@ class FirestoreRepository {
 
     suspend fun getPlayingCardStackById(id: String): PlayingCardStack {
         val response = database.collection(CARD_STACKS_COLLECTION_PATH).document(id).get().await()
-        return response.toObject<PlayingCardStack>()?.copy(id = response.id) ?: throw Exception("Card stack not found")
+        return mapDocumentToPlayingCardStack(response) ?: throw Exception("Card stack not found")
     }
 
     companion object {
@@ -91,3 +90,7 @@ class FirestoreRepository {
         private const val TAG = "FirestoreRepository"
     }
 }
+
+private fun mapDocumentToPlayingCardStack(document: DocumentSnapshot) = runCatching {
+    document.toObject<PlayingCardStack>()?.copy(id = document.id)
+}.getOrNull()
