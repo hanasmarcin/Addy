@@ -3,6 +3,7 @@ package com.hanas.addy.di
 import android.content.Context
 import androidx.credentials.CredentialManager
 import coil.ImageLoader
+import com.hanas.addy.home.CardStackDetailViewModel
 import com.hanas.addy.home.CardStackListViewModel
 import com.hanas.addy.home.CreateNewCardStackViewModel
 import com.hanas.addy.home.FirestoreRepository
@@ -28,6 +29,7 @@ val appModule = module {
     viewModelOf(::CreateNewCardStackViewModel)
     viewModelOf(::LoginViewModel)
     viewModelOf(::CardStackListViewModel)
+    viewModelOf(::CardStackDetailViewModel)
 }
 
 fun provideImageLoader(context: Context): ImageLoader {

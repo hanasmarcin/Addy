@@ -7,6 +7,7 @@ data class PlayingCardStack(
     val title: String = "",
     val cards: List<PlayingCard> = emptyList(),
     val createdBy: String = "",
+    val id: String? = null,
 )
 
 @Serializable

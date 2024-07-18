@@ -15,7 +15,7 @@ class CreateNewCardStackViewModel(
     private val geminiRepository: GeminiRepository,
     private val firestoreRepository: FirestoreRepository,
 ) : ViewModel() {
-    val outputContentFlow = MutableStateFlow(PlayingCardStack("", emptyList(), ""))
+    val outputContentFlow = MutableStateFlow(PlayingCardStack("", emptyList(), "",))
     val photoUrisFlow: StateFlow<List<Drawable>>
         get() = _photoUrisFlow
 
@@ -43,7 +43,7 @@ class CreateNewCardStackViewModel(
                     outputContentFlow.value = PlayingCardStack(
                         title = "Abc",
                         cards = List(5) { samplePlayingCard.copy(title = it.toString()) },
-                        createdBy = it.uid
+                        createdBy = it.uid,
                     )
                 }
                 firestoreRepository.savePlayingCardStack(outputContentFlow.value)

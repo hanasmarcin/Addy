@@ -21,6 +21,7 @@ import com.hanas.addy.home.GoBack
 import com.hanas.addy.home.Home
 import com.hanas.addy.home.NavScreen
 import com.hanas.addy.home.NavigationHandler
+import com.hanas.addy.home.cardStackDetailComposable
 import com.hanas.addy.home.cardStackListComposable
 import com.hanas.addy.home.createNewCardStackNavigation
 import com.hanas.addy.home.homeComposable
@@ -38,7 +39,7 @@ class MainActivity : ComponentActivity() {
                 val navigate = NavigationHandler { action, closeCurrent ->
                     when (action) {
                         is NavScreen -> navController.navigate(action)
-                        is GoBack -> navController.popBackStack()
+                        is GoBack -> {}//navController.popBackStack()
                     }
                 }
                 Surface(color = Color.Black) {
@@ -53,6 +54,7 @@ class MainActivity : ComponentActivity() {
                         loginComposable(navigate)
                         homeComposable(navigate)
                         cardStackListComposable(navigate)
+                        cardStackDetailComposable()
                         createNewCardStackNavigation(navigate, navController)
                     }
                 }

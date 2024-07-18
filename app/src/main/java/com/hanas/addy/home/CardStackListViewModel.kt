@@ -71,12 +71,18 @@ class FirestoreRepository {
                     return@addSnapshotListener
                 }
 
-                val cardStacks = snapshot?.documents?.mapNotNull { it.toObject<PlayingCardStack>() }
-                    ?: emptyList()
+                val cardStacks = snapshot?.documents?.mapNotNull {
+                    it.toObject<PlayingCardStack>()?.copy(id = it.id)
+                } ?: emptyList()
                 trySend(cardStacks)
             }
 
         awaitClose { listenerRegistration.remove() }
+    }
+
+    suspend fun getPlayingCardStackById(id: String): PlayingCardStack {
+        val response = database.collection(CARD_STACKS_COLLECTION_PATH).document(id).get().await()
+        return response.toObject<PlayingCardStack>()?.copy(id = response.id) ?: throw Exception("Card stack not found")
     }
 
     companion object {
