@@ -12,9 +12,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import com.hanas.addy.home.BlobShape
 import com.hanas.addy.home.GoBack
 import com.hanas.addy.home.NavigationHandler
+import com.hanas.addy.ui.components.shapes.BlobShape
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

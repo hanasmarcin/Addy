@@ -48,11 +48,11 @@ import com.hanas.addy.R
 import com.hanas.addy.ui.AppTheme
 import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.ui.components.AppScaffold
+import com.hanas.addy.ui.components.shapes.BlobShape
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
 fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: NavigationHandler, navController: NavController) {
     composable<CreateNewCardStack.SelectPhotos> {
-
         val parent = navController.getBackStackEntry<CreateNewCardStack>()
         val viewModel: CreateNewCardStackViewModel = koinNavViewModel(viewModelStoreOwner = parent)
         val photoDrawables by viewModel.photoUrisFlow.collectAsState()

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -42,6 +43,7 @@ import androidx.navigation.compose.composable
 import com.hanas.addy.R
 import com.hanas.addy.ui.AppTheme
 import com.hanas.addy.ui.components.AppScaffold
+import com.hanas.addy.ui.components.shapes.BlobShape
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
 fun NavGraphBuilder.viewNewCardStackComposable(navHandler: NavigationHandler, navController: NavController) {
@@ -62,36 +64,43 @@ private fun ViewNewCardStack(navHandler: NavigationHandler, playingCards: List<P
             Text("View New Card Stack")
         }
     ) {
-        val pagerState = rememberPagerState { playingCards.size }
-        HorizontalPager(pagerState, contentPadding = PaddingValues(horizontal = 32.dp), pageSpacing = 16.dp) { page ->
-            val card = playingCards[page]
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                var rotated by remember { mutableStateOf(true) }
-                val rotation by animateFloatAsState(
-                    targetValue = if (rotated) 180f else 0f,
-                    animationSpec = tween(500), label = ""
-                )
-                val isFrontVisible by remember {
-                    derivedStateOf {
-                        rotation < 90f
-                    }
+        CardStackPager(playingCards)
+    }
+}
+
+@Composable
+fun CardStackPager(
+    playingCards: List<PlayingCard>,
+    pagerState: PagerState = rememberPagerState { playingCards.size },
+) {
+    HorizontalPager(pagerState, contentPadding = PaddingValues(horizontal = 32.dp), pageSpacing = 16.dp) { page ->
+        val card = playingCards[page]
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            var rotated by remember { mutableStateOf(true) }
+            val rotation by animateFloatAsState(
+                targetValue = if (rotated) 180f else 0f,
+                animationSpec = tween(500), label = ""
+            )
+            val isFrontVisible by remember {
+                derivedStateOf {
+                    rotation < 90f
                 }
-                Card(
-                    Modifier
-                        .graphicsLayer {
-                            rotationY = rotation
-                            cameraDistance = 8 * density
-                        }
-                        .clickable { rotated = !rotated },
-                    shape = RoundedCornerShape(24.dp)
-                ) {
-                    if (isFrontVisible) {
-                        PlayingCardFront(card)
-                    } else {
-                        PlayingCardBack(card, Modifier.graphicsLayer {
-                            rotationY = 180f
-                        })
+            }
+            Card(
+                Modifier
+                    .graphicsLayer {
+                        rotationY = rotation
+                        cameraDistance = 8 * density
                     }
+                    .clickable { rotated = !rotated },
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                if (isFrontVisible) {
+                    PlayingCardFront(card)
+                } else {
+                    PlayingCardBack(card, Modifier.graphicsLayer {
+                        rotationY = 180f
+                    })
                 }
             }
         }
@@ -229,7 +238,7 @@ fun ViewNewCardStackScreenPreview() {
             samplePlayingCard,
             samplePlayingCard
         )
-        ViewNewCardStack({_, _ ->}, list)
+        ViewNewCardStack({ _, _ -> }, list)
     }
 }
 
