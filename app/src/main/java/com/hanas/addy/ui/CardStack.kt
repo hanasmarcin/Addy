@@ -194,7 +194,7 @@ fun NeatCardStack(
         LaunchedEffect(Unit) {
             list.indices.reversed().onEach { index ->
                 delay(1000)
-                list[index] = CardState.InHand(cardCount - index - 1, cardCount)
+                list[index] = CardState.InTopOpponentHand(cardCount - index - 1, cardCount)
             }
             delay(1000)
             list.indices.onEachIndexed { index, cardState ->
@@ -204,14 +204,14 @@ fun NeatCardStack(
             }
             delay(1000)
             list[3] = CardState.OnCloseup(cardCount - 3)
-            list[cardCount-1] = CardState.InHand(0, cardCount)
+            list[cardCount - 1] = CardState.InHand(0, cardCount)
             delay(1000)
             list[3] = CardState.OnPlayStack(0)
             (0..2).onEach {
-                list[it] = CardState.InHand(cardCount-it-2, cardCount-1)
+                list[it] = CardState.InHand(cardCount - it - 2, cardCount - 1)
             }
             (4..<cardCount).onEach {
-                list[it] = CardState.InHand(cardCount-it-1, cardCount-1)
+                list[it] = CardState.InHand(cardCount - it - 1, cardCount - 1)
             }
 
         }

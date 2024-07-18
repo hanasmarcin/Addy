@@ -70,9 +70,29 @@ sealed class CardState(open val position: Int, open val amountInState: Int) {
                 x = (screenSizeInDp.width - cardWidth) / (amountInState - 1) * position,
                 y = (screenSizeInDp.height - unscaledCardSizeInDp.height) / 2 + 150.dp
             )
+
         override fun targetRotationZ() = (position - amountInState / 2f) / amountInState * 5f
         override fun targetWidth() = Width(cardWidth)
         override fun targetRotationX() = 0f
         override fun targetTransformOrigin() = Offset(0f, 1f)
     }
+
+    data class InTopOpponentHand(
+        override val position: Int,
+        override val amountInState: Int,
+    ) : CardState(position, amountInState) {
+        override fun targetIndexZ() = 1000.5f + (amountInState - position - 1)
+        private val cardWidth = 150.dp
+        override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize) =
+            DpOffset(
+                x = (screenSizeInDp.width - cardWidth) / (amountInState - 1) * position,
+                y = -(screenSizeInDp.height - unscaledCardSizeInDp.height) / 2 + 50.dp
+            )
+
+        override fun targetRotationZ() = (position - amountInState / 2f) / amountInState * 5f
+        override fun targetWidth() = Width(cardWidth)
+        override fun targetRotationX() = -180f
+        override fun targetTransformOrigin() = Offset(0f, 0f)
+    }
+
 }
