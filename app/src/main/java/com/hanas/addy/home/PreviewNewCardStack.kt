@@ -49,7 +49,7 @@ fun NavGraphBuilder.viewNewCardStackComposable(navHandler: NavigationHandler, na
         val parent = navController.getBackStackEntry<CreateNewCardStack>()
         val viewModel: CreateNewCardStackViewModel = koinNavViewModel(viewModelStoreOwner = parent)
         val cards by viewModel.outputContentFlow.collectAsState()
-        ViewNewCardStack(navHandler, cards)
+        ViewNewCardStack(navHandler, cards.cards)
     }
 }
 

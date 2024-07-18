@@ -66,7 +66,7 @@ fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: Navigat
             viewModel.addAllPhotos(it)
         }
         LaunchedEffect(outputContent) {
-            if (outputContent.isNotEmpty()) {
+            if (outputContent.cards.isNotEmpty()) {
                 navHandler.navigate(CreateNewCardStack.PreviewNewStack, true)
             }
         }
