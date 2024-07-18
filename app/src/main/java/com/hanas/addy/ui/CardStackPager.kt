@@ -82,7 +82,7 @@ fun CardStackPager(
 }
 
 @Composable
-private fun PlayingCardBack(card: PlayingCard, modifier: Modifier = Modifier) {
+fun PlayingCardBack(card: PlayingCard, modifier: Modifier = Modifier) {
     Column(
         modifier
             .background(MaterialTheme.colorScheme.primary)
@@ -110,16 +110,16 @@ private fun PlayingCardBack(card: PlayingCard, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PlayingCardFront(card: PlayingCard) {
+fun PlayingCardFront(card: PlayingCard) {
     Column(
         Modifier
+            .aspectRatio(0.6f)
             .background(MaterialTheme.colorScheme.primary)
             .drawPattern(R.drawable.melt, MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
             .padding(16.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(8.dp)
-            .aspectRatio(0.6f)
     )
     {
         Text(card.title, style = MaterialTheme.typography.titleLarge)
