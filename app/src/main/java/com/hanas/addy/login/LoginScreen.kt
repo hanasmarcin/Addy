@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +25,7 @@ import com.hanas.addy.home.Home
 import com.hanas.addy.home.NavScreen
 import com.hanas.addy.home.NavigationHandler
 import com.hanas.addy.ui.AppTheme
+import com.hanas.addy.ui.components.AppButton
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -96,11 +96,14 @@ fun LoginScreen(
                 .padding(it), contentAlignment = Alignment.Center
         )
         {
-            Button(onClick = {
-                coroutineScope.launch(errorHandler) {
-                    login()
-                }
-            }, enabled = loginState !is LoginState.LoggingIn) {
+            AppButton(
+                onClick = {
+                    coroutineScope.launch(errorHandler) {
+                        login()
+                    }
+                },
+                isLoading = loginState is LoginState.LoggingIn
+            ) {
                 Text("Login")
             }
         }

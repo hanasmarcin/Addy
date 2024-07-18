@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -21,8 +20,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledIconButton
@@ -49,6 +46,7 @@ import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
 import com.hanas.addy.R
 import com.hanas.addy.ui.AppTheme
+import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.ui.components.AppScaffold
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -127,30 +125,20 @@ private fun CreateNewCardStackSelectPhotosScreen(
                                     .fillMaxWidth()
                                     .padding(16.dp),
                             ) {
-                                Button(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .heightIn(min = 48.dp),
+                                AppButton(
+                                    modifier = Modifier.fillMaxWidth(),
                                     onClick = pickImages,
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
+                                    color = MaterialTheme.colorScheme.primaryContainer,
                                 ) {
                                     Text("Choose from gallery")
                                 }
                                 Spacer(Modifier.size(8.dp))
-                                Button(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .heightIn(min = 48.dp),
+                                AppButton(
+                                    modifier = Modifier.fillMaxWidth(),
                                     onClick = takePhoto,
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
+                                    color = MaterialTheme.colorScheme.secondaryContainer
                                 ) {
-                                    Text("Take a new photo")
+                                    Text("Take a photo")
                                 }
                             }
                         }
@@ -197,15 +185,10 @@ private fun GenerateStackCard(generateStack: () -> Unit) {
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 48.dp),
+            AppButton(
+                modifier = Modifier.fillMaxWidth(),
                 onClick = generateStack,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
+                color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Icon(painter = painterResource(R.drawable.auto_fix), null)
                 Spacer(Modifier.size(8.dp))

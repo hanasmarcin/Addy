@@ -8,15 +8,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -52,6 +49,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
 import com.hanas.addy.ui.AppTheme
+import com.hanas.addy.ui.components.AppButton
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -120,13 +118,9 @@ private fun CardStackListScreen(
                         painter = painterResource(R.drawable.stacks_of_cards), contentDescription = null
                     )
                     Text(stringResource(R.string.card_stack_list_screen_empty_state_description))
-                    Button(
-                        modifier = Modifier.heightIn(min = 48.dp),
+                    AppButton(
                         onClick = { navHandler.navigate(CreateNewCardStack, true) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        color = MaterialTheme.colorScheme.primaryContainer,
                     ) {
                         Text(stringResource(R.string.card_stack_list_screen_empty_state_button_label))
                     }
