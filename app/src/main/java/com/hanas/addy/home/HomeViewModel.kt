@@ -3,17 +3,18 @@ package com.hanas.addy.home
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class HomeViewModel(
-    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
     fun logout() {
-        firebaseAuth.signOut()
+        Firebase.auth.signOut()
     }
 
     init {
-        firebaseAuth.addIdTokenListener { auth: FirebaseAuth ->
+        Firebase.auth.addAuthStateListener { auth: FirebaseAuth ->
             userFlow.value = auth.currentUser
         }
     }

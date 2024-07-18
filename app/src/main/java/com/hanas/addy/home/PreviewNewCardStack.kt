@@ -58,7 +58,7 @@ fun NavGraphBuilder.viewNewCardStackComposable(navHandler: NavigationHandler, na
 private fun ViewNewCardStack(navHandler: NavigationHandler, playingCards: List<PlayingCard>) {
     AppScaffold(
         navHandler = navHandler,
-        topBarTitleContent = {
+        topBarTitle = {
             Text("View New Card Stack")
         }
     ) {
@@ -229,7 +229,7 @@ fun ViewNewCardStackScreenPreview() {
             samplePlayingCard,
             samplePlayingCard
         )
-        ViewNewCardStack({}, list)
+        ViewNewCardStack({_, _ ->}, list)
     }
 }
 

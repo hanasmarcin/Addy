@@ -24,7 +24,7 @@ fun AppScaffold(
     hasBackButton: Boolean = true,
     topBarTitle: @Composable () -> Unit,
     bottomBar: @Composable () -> Unit = {},
-    actions: @Composable() (RowScope.() -> Unit),
+    actions: @Composable() (RowScope.() -> Unit) = {},
     content: @Composable() (BoxScope.() -> Unit),
 ) {
     val color = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f).compositeOver(MaterialTheme.colorScheme.background)

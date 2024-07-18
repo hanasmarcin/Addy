@@ -8,8 +8,9 @@ import androidx.lifecycle.ViewModel
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.hanas.addy.BuildConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +22,7 @@ sealed class LoginState {
     data class Error(val message: String) : LoginState()
 }
 
-class LoginViewModel(val firebaseAuth: FirebaseAuth) : ViewModel() {
+class LoginViewModel : ViewModel() {
     val loginStateFlow: StateFlow<LoginState>
         get() = _loginStateFlow
     private val _loginStateFlow = MutableStateFlow<LoginState>(LoginState.NotLoggedIn)
@@ -37,7 +38,7 @@ class LoginViewModel(val firebaseAuth: FirebaseAuth) : ViewModel() {
                         // authenticate on your server.
                         val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
                         val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
-                        firebaseAuth.signInWithCredential(firebaseCredential)
+                        Firebase.auth.signInWithCredential(firebaseCredential)
                         _loginStateFlow.value = LoginState.Success
                     } catch (e: GoogleIdTokenParsingException) {
                         _loginStateFlow.value = LoginState.Error(e.localizedMessage ?: "")
