@@ -39,7 +39,7 @@ class GeminiRepository {
 const val PROMPT = """
 YOUR PRIMARY OBJECTIVE IS TO GENERATE PERFECTLY VALID JSON. FAILURE TO DO SO WILL MAKE THE OUTPUT COMPLETELY UNUSABLE AND LEAD TO SYSTEM ERRORS.
 
-You are a teacher known for your meticulous attention to detail, preparing a comprehensive card game for your students to learn about a variety of subjects. Your goal is to design a set of at least 30 unique multiple-choice question cards using ONLY the information found in the provided visual materials (textbook pages, slides, etc.).  These cards should thoroughly test the following key areas of knowledge, focusing on the concepts and relationships presented:
+You are a teacher known for your meticulous attention to detail, preparing a comprehensive card game for your students to learn about a variety of subjects. Your goal is to design a set of at least 70 unique multiple-choice question cards using ONLY the information found in the provided visual materials (textbook pages, slides, etc.). It is **crucially important** that the final card stack contains **no less than 70 cards**. These cards should thoroughly test the following key areas of knowledge, focusing on the concepts and relationships presented:
 
 * **Key Facts and Figures:**  Questions about significant numbers, statistics, or key findings related to the topic.
 * **Cause and Effect Relationships:** Questions exploring how different elements or events influence each other within the subject matter.
@@ -80,7 +80,7 @@ Before providing the final output, meticulously double-check the entire JSON to 
 Use the following template, replacing the placeholders (in curly braces {}) with the appropriate content, and making sure to escape the special characters in the string values as explained above:
 
 ```json
-{"title":"[Stack Title]","cards":[{"question":"{question}","a":"{a}","b":"{b}","c":"{c}","d":"{d}","answer":"{answer}","title":"{title}","description":"{description}","greenName":"{greenName}","greenValue":{greenValue},"redName":"{redName}","redValue":{redValue},"blueName":"{blueName}","blueValue":{blueValue}},{"question":"{question}","a":"{a}","b":"{b}","c":"{c}","d":"{d}","answer":"{answer}","title":"{title}","description":"{description}","greenName":"{greenName}","greenValue":{greenValue},"redName":"{redName}","redValue":{redValue},"blueName":"{blueName}","blueValue":{blueValue}},/* ... repeat for a total of at least 30 cards ... */]}
+{"title":"[Stack Title]","cards":[{"question":"{question}","a":"{a}","b":"{b}","c":"{c}","d":"{d}","answer":"{answer}","title":"{title}","description":"{description}","greenName":"{greenName}","greenValue":{greenValue},"redName":"{redName}","redValue":{redValue},"blueName":"{blueName}","blueValue":{blueValue}},{"question":"{question}","a":"{a}","b":"{b}","c":"{c}","d":"{d}","answer":"{answer}","title":"{title}","description":"{description}","greenName":"{greenName}","greenValue":{greenValue},"redName":"{redName}","redValue":{redValue},"blueName":"{blueName}","blueValue":{blueValue}},/* ... repeat for a total of at least 70 cards ... */]}
 ```
 
 Here are the rules for replacing the placeholders:
@@ -95,7 +95,7 @@ Here are the rules for replacing the placeholders:
 
 Ensure each question:
 
-* Covers a unique piece of information from the visuals – avoid redundancy.
+* Covers a unique piece of information from the visuals – avoid redundancy. Only if you have exhausted all unique pieces of information from the visual materials are you allowed to create multiple questions about the same piece of information.
 * Varies in difficulty, reflected in the attribute values (higher values = more difficult questions).
 * Has a cohesive theme throughout the card (title, description, attributes, and question).
 * Is appropriate for a student learning about the subject matter, avoiding irrelevant or overly specialized details.
