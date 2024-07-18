@@ -15,6 +15,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.hanas.addy.home.GoBack
 import com.hanas.addy.home.Home
 import com.hanas.addy.home.NavScreen
@@ -22,6 +24,8 @@ import com.hanas.addy.home.NavigationHandler
 import com.hanas.addy.home.cardStackListComposable
 import com.hanas.addy.home.createNewCardStackNavigation
 import com.hanas.addy.home.homeComposable
+import com.hanas.addy.login.Login
+import com.hanas.addy.login.loginComposable
 import com.hanas.addy.ui.AppTheme
 
 class MainActivity : ComponentActivity() {
@@ -31,21 +35,42 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 val navController = rememberNavController()
-                val navigate = NavigationHandler { action ->
+                val navigate = NavigationHandler { action, closeCurrent ->
                     when (action) {
-                        is NavScreen -> navController.navigate(action)
-                        is GoBack -> navController.popBackStack()
+                        is NavScreen -> navController.navigate(action) {
+                            if (closeCurrent) {
+                                navController.currentDestination?.id?.let {
+                                    popUpTo(it) {
+                                        inclusive = true
+                                    }
+                                }
+                            }
+                        }
+                        is GoBack -> {
+                            if (navController.previousBackStackEntry != null) {
+                                navController.popBackStack()
+                            } else {
+                                navController.navigate(Home) {
+                                    navController.currentDestination?.id?.let {
+                                        popUpTo(it) {
+                                            inclusive = true
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 Surface(color = Color.Black) {
                     NavHost(
                         navController,
-                        Home,
+                        if (Firebase.auth.currentUser == null) Login else Home,
                         enterTransition = { slideIntoContainer(Start, tween(300)) },
                         exitTransition = { fadeOut(tween(300, 100, easing = FastOutSlowInEasing), 0.5f) },
                         popExitTransition = { slideOutOfContainer(End, tween(300)) },
                         popEnterTransition = { fadeIn(tween(300, easing = LinearEasing), 0.5f) },
                     ) {
+                        loginComposable(navigate)
                         homeComposable(navigate)
                         cardStackListComposable(navigate)
                         createNewCardStackNavigation(navigate, navController)
