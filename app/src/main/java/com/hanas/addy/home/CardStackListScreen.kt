@@ -2,7 +2,6 @@
 
 package com.hanas.addy.home
 
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,11 +10,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
@@ -29,8 +31,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -51,6 +53,7 @@ import androidx.navigation.compose.composable
 import com.hanas.addy.R
 import com.hanas.addy.ui.AppTheme
 import kotlinx.serialization.Serializable
+import org.koin.androidx.compose.navigation.koinNavViewModel
 
 @Serializable
 object CardStackList : NavScreen
@@ -58,18 +61,19 @@ object CardStackList : NavScreen
 
 fun NavGraphBuilder.cardStackListComposable(navHandler: NavigationHandler) {
     composable<CardStackList> {
-        val photoUris = remember { mutableStateListOf<Uri>() }
+        val viewModel: CardStackListViewModel = koinNavViewModel()
+        val cardStacks by viewModel.cardStacksFlow.collectAsState()
         CardStackListScreen(
+            cardStacks = cardStacks,
             navHandler = navHandler,
-            photoUris = photoUris,
         )
     }
 }
 
 @Composable
 private fun CardStackListScreen(
+    cardStacks: List<PlayingCardStack>,
     navHandler: NavigationHandler,
-    photoUris: List<Uri>,
 ) {
     Scaffold(
         modifier = Modifier
@@ -104,27 +108,39 @@ private fun CardStackListScreen(
                 .padding(it)
                 .fillMaxSize()
         ) {
-            Column(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(photoUris.joinToString("/n"))
-                Image(
-                    painter = painterResource(R.drawable.stacks_of_cards), contentDescription = null
-                )
-                Text(stringResource(R.string.card_stack_list_screen_empty_state_description))
-                Button(
-                    modifier = Modifier.heightIn(min = 48.dp),
-                    onClick = { navHandler.navigate(CreateNewCardStack, true) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+            if (cardStacks.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(stringResource(R.string.card_stack_list_screen_empty_state_button_label))
+                    Image(
+                        painter = painterResource(R.drawable.stacks_of_cards), contentDescription = null
+                    )
+                    Text(stringResource(R.string.card_stack_list_screen_empty_state_description))
+                    Button(
+                        modifier = Modifier.heightIn(min = 48.dp),
+                        onClick = { navHandler.navigate(CreateNewCardStack, true) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    ) {
+                        Text(stringResource(R.string.card_stack_list_screen_empty_state_button_label))
+                    }
+                }
+            } else {
+                LazyColumn(Modifier.fillMaxSize()) {
+                    items(cardStacks) { cardStack ->
+                        Card {
+                            Text(cardStack.title)
+                            cardStack.cards.forEach {
+                                Text(it.title)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -210,6 +226,6 @@ fun Path.transformToFitBounds(size: Size, rotationDegrees: Float): Path {
 @Composable
 fun CardStackListScreenPreview() {
     AppTheme {
-        CardStackListScreen({ _, _ -> }, emptyList())
+        CardStackListScreen(emptyList(), { _, _ -> })
     }
 }

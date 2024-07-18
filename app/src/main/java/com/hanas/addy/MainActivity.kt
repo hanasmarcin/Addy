@@ -37,27 +37,27 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navigate = NavigationHandler { action, closeCurrent ->
                     when (action) {
-                        is NavScreen -> navController.navigate(action) {
-                            if (closeCurrent) {
-                                navController.currentDestination?.id?.let {
-                                    popUpTo(it) {
-                                        inclusive = true
-                                    }
-                                }
-                            }
-                        }
+                        is NavScreen -> navController.navigate(action) //{
+//                            if (closeCurrent) {
+//                                navController.currentDestination?.id?.let {
+//                                    popUpTo(it) {
+//                                        inclusive = true
+//                                    }
+//                                }
+//                            }
+//                        }
                         is GoBack -> {
-                            if (navController.previousBackStackEntry != null) {
-                                navController.popBackStack()
-                            } else {
-                                navController.navigate(Home) {
-                                    navController.currentDestination?.id?.let {
-                                        popUpTo(it) {
-                                            inclusive = true
-                                        }
-                                    }
-                                }
-                            }
+//                            if (navController.previousBackStackEntry != null) {
+                            navController.popBackStack()
+//                            } else {
+//                                navController.navigate(Home) {
+//                                    navController.currentDestination?.id?.let {
+//                                        popUpTo(it) {
+//                                            inclusive = true
+//                                        }
+//                                    }
+//                                }
+//                            }
                         }
                     }
                 }
