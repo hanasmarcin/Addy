@@ -91,7 +91,7 @@ private fun CardStackListScreen(
                 FilledIconButton(
                     shape = BlobShape(),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                    onClick = { navHandler.navigate(GoBack, true) },
+                    onClick = { navHandler.navigate(GoBack) },
                 ) {
                     Icon(Icons.AutoMirrored.Default.ArrowBack, null)
                 }
@@ -100,7 +100,7 @@ private fun CardStackListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navHandler.navigate(CreateNewCardStack, true) },
+                onClick = { navHandler.navigate(CreateNewCardStack) },
                 shape = BlobShape(30f),
                 elevation = FloatingActionButtonDefaults.loweredElevation(),
                 containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -139,7 +139,7 @@ private fun CardStacksListContent(navHandler: NavigationHandler, cardStacks: Lis
                 pattern = if (index % 2 == 0) R.drawable.hideout else R.drawable.charlie_brown,
                 onClick = {
                     cardStack.id?.let {
-                        navHandler.navigate(CardStackDetail(it), false)
+                        navHandler.navigate(CardStackDetail(it))
                     }
                 }
             ) {
@@ -174,7 +174,7 @@ private fun NoCardStacksContent(navHandler: NavigationHandler) {
             )
             Text(stringResource(R.string.card_stack_list_screen_empty_state_description))
             AppButton(
-                onClick = { navHandler.navigate(CreateNewCardStack, true) },
+                onClick = { navHandler.navigate(CreateNewCardStack) },
                 color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Text(stringResource(R.string.card_stack_list_screen_empty_state_button_label))
@@ -200,6 +200,6 @@ class SamplePlayingCardStackListProvider : PreviewParameterProvider<List<Playing
 @Composable
 fun CardStackListScreenPreview(@PreviewParameter(SamplePlayingCardStackListProvider::class) cardStacks: List<PlayingCardStack>) {
     AppTheme {
-        CardStackListScreen(cardStacks) { _, _ -> }
+        CardStackListScreen(cardStacks) {  }
     }
 }

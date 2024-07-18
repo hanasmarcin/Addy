@@ -32,7 +32,7 @@ fun AppTopBar(
                 FilledIconButton(
                     shape = BlobShape(),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                    onClick = { navHandler.navigate(GoBack, true) },
+                    onClick = { navHandler.navigate(GoBack) },
                 ) {
                     Icon(Icons.AutoMirrored.Default.ArrowBack, null)
                 }
