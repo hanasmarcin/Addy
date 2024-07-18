@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "127019653016",
+    "project_id": "addy-7f8ed236",
+    "storage_bucket": "addy-7f8ed236.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:127019653016:android:3a690278a8c06bcd1bfded",
+        "android_client_info": {
+          "package_name": "com.hanas.addy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTxdByu6rvAZXRJsHvQc96yDBL3t5jXSY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
