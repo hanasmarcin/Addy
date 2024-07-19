@@ -39,13 +39,13 @@ import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.Attributes
-import com.hanas.addy.model.PlayingCard
+import com.hanas.addy.model.PlayingCardData
 import com.hanas.addy.model.Question
 import com.hanas.addy.ui.components.shapes.BlobShape
 
 @Composable
 fun CardStackPager(
-    playingCards: List<PlayingCard>,
+    playingCards: List<PlayingCardData>,
     pagerState: PagerState = rememberPagerState { playingCards.size },
 ) {
     HorizontalPager(pagerState, contentPadding = PaddingValues(horizontal = 32.dp), pageSpacing = 16.dp) { page ->
@@ -83,7 +83,7 @@ fun CardStackPager(
 }
 
 @Composable
-fun PlayingCardBack(card: PlayingCard, modifier: Modifier = Modifier) {
+fun PlayingCardBack(card: PlayingCardData, modifier: Modifier = Modifier) {
     Column(
         modifier
             .background(MaterialTheme.colorScheme.primary)
@@ -111,9 +111,9 @@ fun PlayingCardBack(card: PlayingCard, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun PlayingCardFront(card: PlayingCard) {
+fun PlayingCardFront(card: PlayingCardData, modifier: Modifier = Modifier) {
     Column(
-        Modifier
+        modifier
             .aspectRatio(0.6f)
             .background(MaterialTheme.colorScheme.primary)
             .drawPattern(R.drawable.melt, MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
@@ -203,7 +203,7 @@ private fun AnswerRow(it: String, color: Color, description: String) {
     }
 }
 
-val samplePlayingCard = PlayingCard(
+val samplePlayingCard = PlayingCardData(
     question = Question(
         text = "Which of these factors is NOT a significant reason why the monsoon climate is ideal for rice production in Southeast Asia?",
         a = "Heavy rainfall during the monsoon season.",

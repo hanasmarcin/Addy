@@ -32,14 +32,14 @@ data class PlayingCardGeminiResponse(
 @Serializable
 data class PlayingCardStack(
     val title: String = "",
-    val cards: List<PlayingCard> = emptyList(),
+    val cards: List<PlayingCardData> = emptyList(),
     val createdBy: String? = null,
     val creationTimestamp: Long = System.currentTimeMillis(),
     val id: String? = null,
 )
 
 @Serializable
-data class PlayingCard(
+data class PlayingCardData(
     val question: Question = Question(),
     val title: String = "",
     val description: String = "",

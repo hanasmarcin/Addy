@@ -1,12 +1,16 @@
 package com.hanas.addy.view.playTable
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
@@ -19,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,35 +31,37 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hanas.addy.R
-import com.hanas.addy.model.PlayingCard
+import com.hanas.addy.model.PlayingCardData
 import com.hanas.addy.ui.AppTheme
+import com.hanas.addy.ui.PlayingCardBack
 import com.hanas.addy.ui.PlayingCardFront
-import com.hanas.addy.ui.drawPattern
 import com.hanas.addy.ui.samplePlayingCardStack
 import kotlin.random.Random
 
 @Composable
-fun BoxWithConstraintsScope.PlayingCardCover(
-    data: PlayingCard,
-    state: CardState,
+fun BoxWithConstraintsScope.CardOnTable(
+    data: PlayingCardData,
+    state: PlayingCardState,
     modifier: Modifier = Modifier,
-    randomGenerator: Random = Random,
-    maxRotateDegree: Int = 0
+    onClickUpdateState: (PlayingCardState) -> Unit
 ) {
     val screenSizeInDp = with(LocalDensity.current) {
         DpSize(constraints.maxWidth.toDp(), constraints.maxHeight.toDp())
@@ -95,29 +100,44 @@ fun BoxWithConstraintsScope.PlayingCardCover(
                 .copy(alpha = 0.3f)
                 .compositeOver(MaterialTheme.colorScheme.tertiary)
         )
-        .padding(start = 2.dp, bottom = 2.dp)
+        .padding(start = 2.dp, top = 2.dp)
         .clip(RoundedCornerShape(24.dp))) {
-        if (rotation > -90) PlayingCardFront(data)
-        else CardBack()
+        val cardModifier = Modifier.clickable {
+            transition.currentState.takeIf { it == transition.targetState }?.let(onClickUpdateState)
+        }
+        var frontState by remember { mutableStateOf(true) }
+        if (rotation > -90) AnimatedContent(frontState, label = "") {
+            if (it) {
+                PlayingCardFront(data, cardModifier)
+            } else {
+                PlayingCardBack(data, cardModifier)
+            }
+        }
+        else CardBack(cardModifier)
     }
 }
 
 @Composable
-private fun CardBack() {
-    Box(
-        Modifier
+private fun CardBack(modifier: Modifier = Modifier) {
+    Image(
+        painterResource(R.drawable.repeating_pattern_of_animated_textbooks_flying_aro),
+        null,
+        modifier
+            .rotate(180f)
             .aspectRatio(0.6f)
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.tertiary)
-            .padding(16.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .drawPattern(R.drawable.melt, MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
+            .border(16.dp, MaterialTheme.colorScheme.tertiary, RoundedCornerShape(24.dp)),
+        contentScale = ContentScale.Inside
+
+//            .background(MaterialTheme.colorScheme.tertiary)
+//            .padding(16.dp)
+//            .clip(RoundedCornerShape(8.dp))
     )
 }
 
 @Composable
 private fun animateOffset(
-    transition: Transition<CardState>, screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize
+    transition: Transition<PlayingCardState>, screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize
 ): State<Offset> {
     return transition.animateOffset(transitionSpec = { spec() }, label = "ccc") {
         val dpOffset = it.targetOffset(screenSizeInDp, unscaledCardSizeInDp)
@@ -129,7 +149,7 @@ fun <T : Any> spec() = tween<T>(500)
 
 @Composable
 private fun animateWidth(
-    transition: Transition<CardState>, screenSizeInDp: DpSize
+    transition: Transition<PlayingCardState>, screenSizeInDp: DpSize
 ) = transition.animateDp(transitionSpec = { spec() }, label = "bbb") {
     when (val cardWidth = it.targetWidth()) {
         ScreenWidth -> screenSizeInDp.width
@@ -138,21 +158,21 @@ private fun animateWidth(
 }
 
 @Composable
-private fun animateRotationZ(transition: Transition<CardState>) = transition.animateFloat(
+private fun animateRotationZ(transition: Transition<PlayingCardState>) = transition.animateFloat(
     transitionSpec = { spec() }, label = "aaa"
 ) {
     it.targetRotationZ()
 }
 
 @Composable
-private fun animateRotationX(transition: Transition<CardState>) = transition.animateFloat(
+private fun animateRotationX(transition: Transition<PlayingCardState>) = transition.animateFloat(
     transitionSpec = { spec() }, label = "aaa"
 ) {
     it.targetRotationX()
 }
 
 @Composable
-private fun animateTransformOrigin(transition: Transition<CardState>) = transition.animateOffset(
+private fun animateTransformOrigin(transition: Transition<PlayingCardState>) = transition.animateOffset(
     transitionSpec = { spec() }, label = "aaa"
 ) {
     it.targetTransformOrigin()
@@ -182,19 +202,22 @@ private fun rememberScreenSizeInDp(): DpSize {
 }
 
 @Composable
-fun PlayTable(data: PlayTableState, modifier: Modifier = Modifier) {
+fun PlayTable(
+    data: PlayTableState,
+    modifier: Modifier = Modifier,
+    onClickUpdateState: (PlayingCardState) -> Unit
+) {
     val seed = rememberSaveable { Random.nextInt() }
-    val randomGenerator by remember { derivedStateOf { Random(seed) } }
     val cards = data.toCardStateMap()
     BoxWithConstraints(modifier.fillMaxSize()) {
         cards.toSortedMap(compareBy { it.hashCode() }).forEach { (data, state) ->
-            PlayingCardCover(
+            CardOnTable(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .layoutId(data.hashCode()),
                 state = state,
                 data = data,
-                randomGenerator = randomGenerator,
+                onClickUpdateState = onClickUpdateState
             )
         }
     }
@@ -229,64 +252,8 @@ fun PlayTablePreview() {
                 playTableState,
                 Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-            )
+                    .padding(horizontal = 16.dp),
+            ) {}
         }
     }
 }
-
-//@Composable
-//fun NeatCardStack(
-//    modifier: Modifier = Modifier, maxRotateDegree: Int = 2, cardCount: Int = 9
-//) {
-//    BoxWithConstraints(modifier.fillMaxSize()) {
-//        val seed = rememberSaveable { Random.nextInt() }
-//        val list = remember {
-//            val x = List(cardCount) { CardState.OnUnusedStack(it, cardCount) }
-//            mutableStateListOf<CardState>(*x.toTypedArray())
-//        }
-//        val randomGenerator by remember { derivedStateOf { Random(seed) } }
-//        list.forEach {
-//            PlayingCardCover(
-//                state = it,
-//                randomGenerator = randomGenerator,
-//            )
-//        }
-//
-//
-//        LaunchedEffect(Unit) {
-//            list.indices.reversed().onEach { index ->
-//                delay(1000)
-//                list[index] = CardState.InTopOpponentHand(cardCount - index - 1, cardCount)
-//            }
-//            delay(1000)
-//            list.indices.onEachIndexed { index, cardState ->
-//                delay(1000)
-//                list[index] = CardState.OnCloseup(cardCount - index)
-//                if (index - 1 >= 0) list[index - 1] = CardState.InHand(cardCount - index, cardCount)
-//            }
-//            delay(1000)
-//            list[3] = CardState.OnCloseup(cardCount - 3)
-//            list[cardCount - 1] = CardState.InHand(0, cardCount)
-//            delay(1000)
-//            list[3] = CardState.OnPlayStack(0)
-//            (0..2).onEach {
-//                list[it] = CardState.InHand(cardCount - it - 2, cardCount - 1)
-//            }
-//            (4..<cardCount).onEach {
-//                list[it] = CardState.InHand(cardCount - it - 1, cardCount - 1)
-//            }
-//
-//        }
-//    }
-//}
-//
-//@Preview
-//@Composable
-//fun NeatCardStackPreview() {
-//    AppTheme {
-//        Surface {
-//            NeatCardStack(Modifier.padding(32.dp))
-//        }
-//    }
-//}

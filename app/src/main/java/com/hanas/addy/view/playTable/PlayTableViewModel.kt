@@ -52,33 +52,48 @@ class PlayTableViewModel : ViewModel() {
         }
     }
 
-    fun onClickBox(clickBoxPosition: ClickBoxPosition) {
+    fun onClickCard(cardState: PlayingCardState) {
         lockInputFlow.value = true
         viewModelScope.launch {
-            when (clickBoxPosition) {
-                is ClickBoxPosition.Bottom -> {
-                    closeUpTheCardFromPlayerHand(clickBoxPosition)
+            when (cardState) {
+//                is ClickBoxPosition.Bottom -> {
+//                }
+//                ClickBoxPosition.End -> {
+//                    if (tableState.closeUp != null) {
+//                        val result = moveCloseUpToNextCardInPlayerHand()
+//                        if (result.not()) clearCloseUp()
+//                    } else {
+//
+//                    }
+//                }
+//                ClickBoxPosition.Start -> {
+//                    if (tableState.closeUp != null) {
+//                        val result = moveCloseUpToPreviousCardInPlayerHand()
+//                        if (result.not()) clearCloseUp()
+//                    } else {
+//                        closeUpTheCardFromPlayStack()
+//                    }
+//                }
+//                ClickBoxPosition.Top -> {
+//                    if (tableState.closeUp != null) {
+//                        tableState = tableState.copy(closeUp = null)
+//                    }
+//                }
+                is PlayingCardState.InHand -> {
+                    closeUpTheCardFromPlayerHand(cardState.position)
+
                 }
-                ClickBoxPosition.End -> {
-                    if (tableState.closeUp != null) {
-                        val result = moveCloseUpToNextCardInPlayerHand()
-                        if (result.not()) clearCloseUp()
-                    } else {
-                        giveCardFromUnusedToPlayer()
-                    }
+                is PlayingCardState.InTopOpponentHand -> {
+                    /* Do nothing */
                 }
-                ClickBoxPosition.Start -> {
-                    if (tableState.closeUp != null) {
-                        val result = moveCloseUpToPreviousCardInPlayerHand()
-                        if (result.not()) clearCloseUp()
-                    } else {
-                        closeUpTheCardFromPlayStack()
-                    }
+                is PlayingCardState.OnCloseup -> {
+                    clearCloseUp()
                 }
-                ClickBoxPosition.Top -> {
-                    if (tableState.closeUp != null) {
-                        tableState = tableState.copy(closeUp = null)
-                    }
+                is PlayingCardState.OnPlayStack -> {
+                    closeUpTheCardFromPlayStack(cardState.position)
+                }
+                is PlayingCardState.OnUnusedStack -> {
+                    giveCardFromUnusedToPlayer(cardState.position)
                 }
             }
             lockInputFlow.value = false
@@ -89,18 +104,17 @@ class PlayTableViewModel : ViewModel() {
         tableState = tableState.copy(closeUp = null)
     }
 
-    private fun closeUpTheCardFromPlayStack(): Boolean {
-        val (card, index) = tableState.playStack.cards.lastWithIndexOrNull() ?: return false
+    private fun closeUpTheCardFromPlayStack(position: Int): Boolean {
+        val card = tableState.playStack.cards[position]
         tableState = tableState.copy(
-            closeUp = CloseUpCard(card, PLAY_STACK, index)
+            closeUp = CloseUpCard(card, PLAY_STACK, position)
         )
         return true
     }
 
-    private fun closeUpTheCardFromPlayerHand(clickBoxPosition: ClickBoxPosition.Bottom) {
-        val index = clickBoxPosition.index
-        val card = tableState.playerHand.cards[index]
-        tableState = tableState.copy(closeUp = CloseUpCard(card, PLAYER_HAND, index))
+    private fun closeUpTheCardFromPlayerHand(position: Int) {
+        val card = tableState.playerHand.cards[position]
+        tableState = tableState.copy(closeUp = CloseUpCard(card, PLAYER_HAND, position))
     }
 
     private fun moveCloseUpToNextCardInPlayerHand(): Boolean {
@@ -121,17 +135,16 @@ class PlayTableViewModel : ViewModel() {
         } ?: return false
     }
 
-    private suspend fun giveCardFromUnusedToPlayer(): Boolean {
-        if (tableState.unusedStack.cards.isEmpty()) return false
+    private suspend fun giveCardFromUnusedToPlayer(position: Int = tableState.unusedStack.cards.lastIndex) {
+        val targetCard = tableState.unusedStack.cards[position]
         tableState = tableState.copy(
             playerHand = PlayTableSegment(tableState.playerHand.cards, tableState.playerHand.availableSlots + 1)
         )
         delay(550)
         tableState = tableState.copy(
-            unusedStack = PlayTableSegment(tableState.unusedStack.cards.dropLast(1), tableState.unusedStack.availableSlots - 1),
-            playerHand = PlayTableSegment(tableState.playerHand.cards + tableState.unusedStack.cards.last(), tableState.playerHand.availableSlots)
+            unusedStack = PlayTableSegment(tableState.unusedStack.cards.dropAt(position), tableState.unusedStack.availableSlots - 1),
+            playerHand = PlayTableSegment(tableState.playerHand.cards + targetCard, tableState.playerHand.availableSlots)
         )
-        return true
     }
 
     private suspend fun giveCardFromUnusedToOpponent(): Boolean {
@@ -151,4 +164,5 @@ class PlayTableViewModel : ViewModel() {
     }
 }
 
+private fun <E> List<E>.dropAt(position: Int) = take(position) + drop(position + 1)
 

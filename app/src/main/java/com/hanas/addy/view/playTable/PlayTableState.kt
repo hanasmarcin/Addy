@@ -1,6 +1,6 @@
 package com.hanas.addy.view.playTable
 
-import com.hanas.addy.model.PlayingCard
+import com.hanas.addy.model.PlayingCardData
 
 enum class PlayTableSegmentType {
     UNUSED_STACK,
@@ -10,12 +10,12 @@ enum class PlayTableSegmentType {
 }
 
 data class PlayTableSegment(
-    val cards: List<PlayingCard>,
+    val cards: List<PlayingCardData>,
     val availableSlots: Int = cards.size,
 )
 
 data class CloseUpCard(
-    val card: PlayingCard,
+    val card: PlayingCardData,
     val originSegment: PlayTableSegmentType,
     val positionWithinOriginSegment: Int
 )
@@ -27,25 +27,25 @@ data class PlayTableState(
     val topOpponentHand: PlayTableSegment,
     val closeUp: CloseUpCard? = null
 ) {
-    fun toCardStateMap() = mutableMapOf<PlayingCard, CardState>().apply {
+    fun toCardStateMap() = mutableMapOf<PlayingCardData, PlayingCardState>().apply {
         if (closeUp != null) {
-            set(closeUp.card, CardState.OnCloseup(closeUp.positionWithinOriginSegment))
+            set(closeUp.card, PlayingCardState.OnCloseup(closeUp.positionWithinOriginSegment))
         }
         unusedStack.cards.onEachIndexed { index, card ->
-            if (card.isNotCloseUp()) set(card, CardState.OnUnusedStack(index, unusedStack.availableSlots))
+            if (card.isNotCloseUp()) set(card, PlayingCardState.OnUnusedStack(index, unusedStack.availableSlots))
         }
         playStack.cards.onEachIndexed { index, card ->
-            if (card.isNotCloseUp()) set(card, CardState.OnPlayStack(index, playStack.availableSlots))
+            if (card.isNotCloseUp()) set(card, PlayingCardState.OnPlayStack(index, playStack.availableSlots))
         }
         playerHand.cards.onEachIndexed { index, card ->
-            if (card.isNotCloseUp()) set(card, CardState.InHand(index, playerHand.availableSlots))
+            if (card.isNotCloseUp()) set(card, PlayingCardState.InHand(index, playerHand.availableSlots))
         }
         topOpponentHand.cards.onEachIndexed { index, card ->
-            if (card.isNotCloseUp()) set(card, CardState.InTopOpponentHand(index, topOpponentHand.availableSlots))
+            if (card.isNotCloseUp()) set(card, PlayingCardState.InTopOpponentHand(index, topOpponentHand.availableSlots))
         }
     }
 
-    private fun PlayingCard.isNotCloseUp() = this != closeUp?.card
+    private fun PlayingCardData.isNotCloseUp() = this != closeUp?.card
 }
 
 
