@@ -5,14 +5,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import com.hanas.addy.model.PlayingCard
 
 sealed class CardWidth
 data object ScreenWidth : CardWidth()
 data class Width(val value: Dp) : CardWidth()
 
 
-sealed class CardState(open val position: Int, open val amountInState: Int, open val cardData: PlayingCard) {
+sealed class CardState(open val position: Int, open val amountInState: Int) {
     //    abstract fun targetOffset(): DpOffset
     abstract fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize): DpOffset
     abstract fun targetRotationZ(): Float
@@ -24,8 +23,7 @@ sealed class CardState(open val position: Int, open val amountInState: Int, open
     data class OnUnusedStack(
         override val position: Int,
         override val amountInState: Int = position,
-        override val cardData: PlayingCard,
-    ) : CardState(position, amountInState, cardData) {
+    ) : CardState(position, amountInState) {
         override fun targetIndexZ() = position.toFloat()
         override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize) = DpOffset(x = position.dp * 2, y = position.dp * -2)
         override fun targetRotationZ() = 0f
@@ -36,8 +34,7 @@ sealed class CardState(open val position: Int, open val amountInState: Int, open
 
     data class OnCloseup(
         override val position: Int = Int.MAX_VALUE,
-        override val cardData: PlayingCard,
-    ) : CardState(position, 1, cardData) {
+    ) : CardState(position, 1) {
         override fun targetIndexZ() = 1000f + position
         override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize): DpOffset = DpOffset.Zero
         override fun targetRotationZ() = 0f
@@ -50,8 +47,7 @@ sealed class CardState(open val position: Int, open val amountInState: Int, open
     data class OnPlayStack(
         override val position: Int,
         override val amountInState: Int = position,
-        override val cardData: PlayingCard,
-    ) : CardState(position, amountInState, cardData) {
+    ) : CardState(position, amountInState) {
         override fun targetIndexZ() = position.toFloat()
         override fun targetOffset(
             screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize
@@ -66,8 +62,7 @@ sealed class CardState(open val position: Int, open val amountInState: Int, open
     data class InHand(
         override val position: Int,
         override val amountInState: Int,
-        override val cardData: PlayingCard,
-    ) : CardState(position, amountInState, cardData) {
+    ) : CardState(position, amountInState) {
         override fun targetIndexZ() = 1000.5f + position
         private val cardWidth = 100.dp
         override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize) =
@@ -85,8 +80,7 @@ sealed class CardState(open val position: Int, open val amountInState: Int, open
     data class InTopOpponentHand(
         override val position: Int,
         override val amountInState: Int,
-        override val cardData: PlayingCard,
-    ) : CardState(position, amountInState, cardData) {
+    ) : CardState(position, amountInState) {
         override fun targetIndexZ() = 1000.5f + (amountInState - position - 1)
         private val cardWidth = 100.dp
         override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize) =

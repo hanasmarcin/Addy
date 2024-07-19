@@ -3,18 +3,26 @@ package com.hanas.addy.view.playTable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hanas.addy.ui.samplePlayingCardStack
+import com.hanas.addy.view.playTable.PlayTableSegmentType.PLAYER_HAND
+import com.hanas.addy.view.playTable.PlayTableSegmentType.PLAY_STACK
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
+private fun <T> List<T>.lastWithIndexOrNull(): Pair<T, Int>? {
+    val last = lastOrNull() ?: return null
+    return last to lastIndex
+}
+
 class PlayTableViewModel : ViewModel() {
-    val playingCards = samplePlayingCardStack.cards.take(15).shuffled()
+    val lockInputFlow = MutableStateFlow(false)
+    private val playingCards = samplePlayingCardStack.cards.take(15).shuffled()
     val playTableStateFlow = MutableStateFlow(
         PlayTableState(
-            unusedStack = playingCards.take(15),
-            playStack = emptyList(),
-            playerHand = emptyList(),
-            topOpponentHand = emptyList()
+            unusedStack = PlayTableSegment(playingCards.take(15)),
+            playStack = PlayTableSegment(emptyList()),
+            playerHand = PlayTableSegment(emptyList()),
+            topOpponentHand = PlayTableSegment(emptyList()),
         )
     )
 
@@ -30,6 +38,7 @@ class PlayTableViewModel : ViewModel() {
     }
 
     fun dealCardsAtStart() {
+        lockInputFlow.value = true
         viewModelScope.launch {
             (1..5).forEach { _ ->
                 delay(550)
@@ -39,10 +48,12 @@ class PlayTableViewModel : ViewModel() {
                 delay(550)
                 giveCardFromUnusedToOpponent()
             }
+            lockInputFlow.value = false
         }
     }
 
     fun onClickBox(clickBoxPosition: ClickBoxPosition) {
+        lockInputFlow.value = true
         viewModelScope.launch {
             when (clickBoxPosition) {
                 is ClickBoxPosition.Bottom -> {
@@ -50,14 +61,16 @@ class PlayTableViewModel : ViewModel() {
                 }
                 ClickBoxPosition.End -> {
                     if (tableState.closeUp != null) {
-                        moveCloseUpToNextCard()
+                        val result = moveCloseUpToNextCardInPlayerHand()
+                        if (result) clearCloseUp()
                     } else {
                         giveCardFromUnusedToPlayer()
                     }
                 }
                 ClickBoxPosition.Start -> {
                     if (tableState.closeUp != null) {
-                        moveCloseUpToPreviousCardInPlayerHand()
+                        val result = moveCloseUpToPreviousCardInPlayerHand()
+                        if (result) clearCloseUp()
                     } else {
                         closeUpTheCardFromPlayStack()
                     }
@@ -68,53 +81,73 @@ class PlayTableViewModel : ViewModel() {
                     }
                 }
             }
+            lockInputFlow.value = false
         }
     }
 
+    private fun clearCloseUp() {
+        tableState = tableState.copy(closeUp = null)
+    }
+
     private fun closeUpTheCardFromPlayStack(): Boolean {
-        val card = tableState.playStack.lastOrNull() ?: return false
-        tableState = tableState.copy(closeUp = card)
+        val (card, index) = tableState.playStack.cards.lastWithIndexOrNull() ?: return false
+        tableState = tableState.copy(
+            closeUp = CloseUpCard(card, PLAY_STACK, index)
+        )
         return true
     }
 
     private fun closeUpTheCardFromPlayerHand(clickBoxPosition: ClickBoxPosition.Bottom) {
         val index = clickBoxPosition.index
-        val card = tableState.playerHand[index]
-        tableState = tableState.copy(closeUp = card)
+        val card = tableState.playerHand.cards[index]
+        tableState = tableState.copy(closeUp = CloseUpCard(card, PLAYER_HAND, index))
     }
 
-    private fun moveCloseUpToNextCard(): Boolean {
-        val closeUpIndex = tableState.playerHand.indexOf(tableState.closeUp)
-        if (closeUpIndex == -1 || closeUpIndex == tableState.playerHand.lastIndex) return false
-        tableState = tableState.copy(closeUp = tableState.playerHand[closeUpIndex + 1])
-        return true
+    private fun moveCloseUpToNextCardInPlayerHand(): Boolean {
+        tableState.closeUp?.let { closeUp ->
+            if (closeUp.originSegment != PLAYER_HAND || closeUp.positionWithinOriginSegment == tableState.playerHand.availableSlots) return false
+            val newPosition = closeUp.positionWithinOriginSegment + 1
+            tableState = tableState.copy(closeUp = CloseUpCard(tableState.playerHand.cards[newPosition], PLAYER_HAND, newPosition))
+            return true
+        } ?: return false
     }
 
     private fun moveCloseUpToPreviousCardInPlayerHand(): Boolean {
-        val closeUpIndex = tableState.playerHand.indexOf(tableState.closeUp)
-        if (closeUpIndex == -1 || closeUpIndex == 0) return false
-        tableState = tableState.copy(closeUp = tableState.playerHand[closeUpIndex - 1])
+        tableState.closeUp?.let { closeUp ->
+            if (closeUp.originSegment != PLAYER_HAND || closeUp.positionWithinOriginSegment == 0) return false
+            val newPosition = closeUp.positionWithinOriginSegment + 1
+            tableState = tableState.copy(closeUp = CloseUpCard(tableState.playerHand.cards[newPosition], PLAYER_HAND, newPosition))
+            return true
+        } ?: return false
+    }
+
+    private suspend fun giveCardFromUnusedToPlayer(): Boolean {
+        if (tableState.unusedStack.cards.isEmpty()) return false
+        tableState = tableState.copy(
+            playerHand = PlayTableSegment(tableState.playerHand.cards, tableState.playerHand.availableSlots + 1)
+        )
+        delay(550)
+        tableState = tableState.copy(
+            unusedStack = PlayTableSegment(tableState.unusedStack.cards.dropLast(1), tableState.unusedStack.availableSlots - 1),
+            playerHand = PlayTableSegment(tableState.playerHand.cards + tableState.unusedStack.cards.last(), tableState.playerHand.availableSlots)
+        )
         return true
     }
 
-    private fun giveCardFromUnusedToPlayer() {
-        if (tableState.unusedStack.isEmpty()) return
-        tableState = tableState.let {
-            it.copy(
-                unusedStack = it.unusedStack.dropLast(1),
-                playerHand = it.playerHand + it.unusedStack.last()
+    private suspend fun giveCardFromUnusedToOpponent(): Boolean {
+        if (tableState.unusedStack.cards.isEmpty()) return false
+        tableState = tableState.copy(
+            topOpponentHand = PlayTableSegment(tableState.topOpponentHand.cards, tableState.topOpponentHand.availableSlots + 1)
+        )
+        delay(550)
+        tableState = tableState.copy(
+            unusedStack = PlayTableSegment(tableState.unusedStack.cards.dropLast(1), tableState.unusedStack.availableSlots - 1),
+            topOpponentHand = PlayTableSegment(
+                tableState.topOpponentHand.cards + tableState.unusedStack.cards.last(),
+                tableState.topOpponentHand.availableSlots
             )
-        }
-    }
-
-    private fun giveCardFromUnusedToOpponent() {
-        if (tableState.unusedStack.isEmpty()) return
-        tableState = tableState.let {
-            it.copy(
-                unusedStack = it.unusedStack.dropLast(1),
-                topOpponentHand = it.topOpponentHand + it.unusedStack.last()
-            )
-        }
+        )
+        return true
     }
 }
 

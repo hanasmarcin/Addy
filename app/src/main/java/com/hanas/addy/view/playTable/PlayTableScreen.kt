@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,7 +25,6 @@ import androidx.navigation.compose.composable
 import com.hanas.addy.ui.AppTheme
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.samplePlayingCardStack
-import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -37,12 +35,13 @@ fun NavGraphBuilder.playTableComposable() {
     composable<PlayTable> {
         val viewModel = koinNavViewModel<PlayTableViewModel>()
         val state by viewModel.playTableStateFlow.collectAsState()
-        PlayTableScreen(state, viewModel::onClickBox)
+        val lockInput by viewModel.lockInputFlow.collectAsState()
+        PlayTableScreen(state, lockInput, viewModel::onClickBox)
     }
 }
 
 @Composable
-fun PlayTableScreen(state: PlayTableState, onClickBox: (ClickBoxPosition) -> Unit) {
+fun PlayTableScreen(state: PlayTableState, lockInput: Boolean, onClickBox: (ClickBoxPosition) -> Unit) {
     Surface {
         PlayTable(
             state,
@@ -53,7 +52,8 @@ fun PlayTableScreen(state: PlayTableState, onClickBox: (ClickBoxPosition) -> Uni
 //        if (state.closeUp == null) {
         ClickBox(
             onClick = onClickBox,
-            cardsInHandAmount = state.playerHand.size
+            enabled = lockInput.not(),
+            cardsInHandAmount = state.playerHand.availableSlots
         )
 //        }
     }
@@ -69,6 +69,7 @@ sealed class ClickBoxPosition {
 @Composable
 private fun ClickBox(
     cardsInHandAmount: Int,
+    enabled: Boolean,
     onClick: (ClickBoxPosition) -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
@@ -77,7 +78,7 @@ private fun ClickBox(
                 .fillMaxSize()
                 .background(Color.Red.copy(alpha = 0.2f))
                 .weight(1f)
-                .clickable { onClick(ClickBoxPosition.Top) }
+                .clickable(enabled = enabled) { onClick(ClickBoxPosition.Top) }
         )
         Row(
             Modifier
@@ -89,14 +90,14 @@ private fun ClickBox(
                     .fillMaxSize()
                     .background(Color.Yellow.copy(alpha = 0.2f))
                     .weight(1f)
-                    .clickable { onClick(ClickBoxPosition.Start) }
+                    .clickable(enabled = enabled) { onClick(ClickBoxPosition.Start) }
             )
             Box(
                 Modifier
                     .fillMaxSize()
                     .background(Color.Magenta.copy(alpha = 0.2f))
                     .weight(1f)
-                    .clickable { onClick(ClickBoxPosition.End) }
+                    .clickable(enabled = enabled) { onClick(ClickBoxPosition.End) }
             )
         }
         Row(
@@ -109,7 +110,7 @@ private fun ClickBox(
                     .fillMaxHeight()
                     .width(32.dp)
                     .background(Color.Red.copy(alpha = 0.5f / cardsInHandAmount))
-                    .clickable { onClick(ClickBoxPosition.Bottom(0)) }
+                    .clickable(enabled = enabled) { onClick(ClickBoxPosition.Bottom(0)) }
             )
             (0 until cardsInHandAmount).forEach {
                 Box(
@@ -117,7 +118,7 @@ private fun ClickBox(
                         .fillMaxSize()
                         .background(Color.Red.copy(alpha = (it + 1f) / 2f / cardsInHandAmount))
                         .weight(if (it == cardsInHandAmount - 1) 2f else 1f)
-                        .clickable { onClick(ClickBoxPosition.Bottom(it)) }
+                        .clickable(enabled = enabled) { onClick(ClickBoxPosition.Bottom(it)) }
                 )
             }
             Box(
@@ -125,7 +126,7 @@ private fun ClickBox(
                     .fillMaxHeight()
                     .width(32.dp)
                     .background(Color.Red.copy(alpha = 0.5f))
-                    .clickable { onClick(ClickBoxPosition.Bottom(cardsInHandAmount - 1)) }
+                    .clickable(enabled = enabled) { onClick(ClickBoxPosition.Bottom(cardsInHandAmount - 1)) }
             )
         }
     }
@@ -139,22 +140,22 @@ fun PlayTableScreenPreview() {
         var playTableState by remember {
             mutableStateOf(
                 PlayTableState(
-                    List(12) { cardStack[it] },
-                    List(3) { cardStack[it + 12] },
-                    List(5) { cardStack[it + 12 + 3] },
-                    List(7) { cardStack[it + 12 + 3 + 5 + 7] },
+                    PlayTableSegment(List(12) { cardStack[it] }),
+                    PlayTableSegment(List(3) { cardStack[it + 12] }),
+                    PlayTableSegment(List(5) { cardStack[it + 12 + 3] }),
+                    PlayTableSegment(List(7) { cardStack[it + 12 + 3 + 5 + 7] }),
                 )
             )
         }
-        LaunchedEffect(Unit) {
-            delay(500)
-            playTableState = PlayTableState(
-                List(10) { cardStack[it] },
-                List(3) { cardStack[1 + it + 11] },
-                List(5) { cardStack[it + 12 + 3] } + cardStack[11] + cardStack[12],
-                List(7) { cardStack[it + 12 + 3 + 5 + 7] } + cardStack[10],
-            )
-        }
-        PlayTableScreen(playTableState, {})
+//        LaunchedEffect(Unit) {
+//            delay(500)
+//            playTableState = PlayTableState(
+//                List(10) { cardStack[it] },
+//                List(3) { cardStack[1 + it + 11] },
+//                List(5) { cardStack[it + 12 + 3] } + cardStack[11] + cardStack[12],
+//                List(7) { cardStack[it + 12 + 3 + 5 + 7] } + cardStack[10],
+//            )
+//        }
+        PlayTableScreen(playTableState, false) {}
     }
 }

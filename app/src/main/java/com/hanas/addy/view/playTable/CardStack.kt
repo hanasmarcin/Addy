@@ -1,6 +1,5 @@
 package com.hanas.addy.view.playTable
 
-import android.util.Log
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
@@ -19,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -45,16 +43,20 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hanas.addy.R
+import com.hanas.addy.model.PlayingCard
 import com.hanas.addy.ui.AppTheme
 import com.hanas.addy.ui.PlayingCardFront
 import com.hanas.addy.ui.drawPattern
 import com.hanas.addy.ui.samplePlayingCardStack
-import kotlinx.coroutines.delay
 import kotlin.random.Random
 
 @Composable
 fun BoxWithConstraintsScope.PlayingCardCover(
-    state: CardState, modifier: Modifier = Modifier, randomGenerator: Random = Random, maxRotateDegree: Int = 0
+    data: PlayingCard,
+    state: CardState,
+    modifier: Modifier = Modifier,
+    randomGenerator: Random = Random,
+    maxRotateDegree: Int = 0
 ) {
     val screenSizeInDp = with(LocalDensity.current) {
         DpSize(constraints.maxWidth.toDp(), constraints.maxHeight.toDp())
@@ -95,7 +97,7 @@ fun BoxWithConstraintsScope.PlayingCardCover(
         )
         .padding(start = 2.dp, bottom = 2.dp)
         .clip(RoundedCornerShape(24.dp))) {
-        if (rotation > -90) PlayingCardFront(state.cardData)
+        if (rotation > -90) PlayingCardFront(data)
         else CardBack()
     }
 }
@@ -184,16 +186,14 @@ fun PlayTable(data: PlayTableState, modifier: Modifier = Modifier) {
     val seed = rememberSaveable { Random.nextInt() }
     val randomGenerator by remember { derivedStateOf { Random(seed) } }
     val cards = data.toCardStateMap()
-    LaunchedEffect(cards) {
-        Log.d("Hanasss", "cards: ${cards.values.joinToString { "${it.cardData.title} to ${it::class}" }}")
-    }
     BoxWithConstraints(modifier.fillMaxSize()) {
-        cards.toList().sortedBy { it.first }.forEach { (index, cardState) ->
+        cards.toSortedMap(compareBy { it.hashCode() }).forEach { (data, state) ->
             PlayingCardCover(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .layoutId(cardState.cardData.title),
-                state = cardState,
+                    .layoutId(data.hashCode()),
+                state = state,
+                data = data,
                 randomGenerator = randomGenerator,
             )
         }
@@ -208,22 +208,22 @@ fun PlayTablePreview() {
         var playTableState by remember {
             mutableStateOf(
                 PlayTableState(
-                    List(12) { cardStack[it] },
-                    List(3) { cardStack[it + 12] },
-                    List(5) { cardStack[it + 12 + 3] },
-                    List(7) { cardStack[it + 12 + 3 + 5 + 7] },
+                    PlayTableSegment(List(12) { cardStack[it] }),
+                    PlayTableSegment(List(3) { cardStack[it + 12] }),
+                    PlayTableSegment(List(5) { cardStack[it + 12 + 3] }),
+                    PlayTableSegment(List(7) { cardStack[it + 12 + 3 + 5 + 7] }),
                 )
             )
         }
-        LaunchedEffect(Unit) {
-            delay(500)
-            playTableState = PlayTableState(
-                List(10) { cardStack[it] },
-                List(3) { cardStack[1 + it + 11] },
-                List(5) { cardStack[it + 12 + 3] } + cardStack[11] + cardStack[12],
-                List(7) { cardStack[it + 12 + 3 + 5 + 7] } + cardStack[10],
-            )
-        }
+//        LaunchedEffect(Unit) {
+//            delay(500)
+//            playTableState = PlayTableState(
+//                List(10) { cardStack[it] },
+//                List(3) { cardStack[1 + it + 11] },
+//                List(5) { cardStack[it + 12 + 3] } + cardStack[11] + cardStack[12],
+//                List(7) { cardStack[it + 12 + 3 + 5 + 7] } + cardStack[10],
+//            )
+//        }
         Surface {
             PlayTable(
                 playTableState,
