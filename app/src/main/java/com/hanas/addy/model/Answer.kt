@@ -1,6 +1,7 @@
 package com.hanas.addy.model
 
 import androidx.annotation.IntRange
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -57,7 +58,10 @@ data class Question(
 
 @Serializable
 enum class Answer(val value: String) {
-    A("a"), B("b"), C("c"), D("d")
+    @SerialName("a") A("a"),
+    @SerialName("b") B("b"),
+    @SerialName("c") C("c"),
+    @SerialName("d") D("d")
 }
 
 @Serializable

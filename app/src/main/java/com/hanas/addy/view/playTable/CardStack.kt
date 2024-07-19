@@ -1,5 +1,6 @@
-package com.hanas.addy.ui
+package com.hanas.addy.view.playTable
 
+import android.util.Log
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
@@ -22,9 +23,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,6 +45,10 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hanas.addy.R
+import com.hanas.addy.ui.AppTheme
+import com.hanas.addy.ui.PlayingCardFront
+import com.hanas.addy.ui.drawPattern
+import com.hanas.addy.ui.samplePlayingCardStack
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -88,7 +95,7 @@ fun BoxWithConstraintsScope.PlayingCardCover(
         )
         .padding(start = 2.dp, bottom = 2.dp)
         .clip(RoundedCornerShape(24.dp))) {
-        if (rotation > -90) PlayingCardFront(samplePlayingCard)
+        if (rotation > -90) PlayingCardFront(state.cardData)
         else CardBack()
     }
 }
@@ -173,57 +180,113 @@ private fun rememberScreenSizeInDp(): DpSize {
 }
 
 @Composable
-fun NeatCardStack(
-    modifier: Modifier = Modifier, maxRotateDegree: Int = 2, cardCount: Int = 9
-) {
+fun PlayTable(data: PlayTableState, modifier: Modifier = Modifier) {
+    val seed = rememberSaveable { Random.nextInt() }
+    val randomGenerator by remember { derivedStateOf { Random(seed) } }
+    val cards = data.toCardStateMap()
+    LaunchedEffect(cards) {
+        Log.d("Hanasss", "cards: ${cards.values.joinToString { "${it.cardData.title} to ${it::class}" }}")
+    }
     BoxWithConstraints(modifier.fillMaxSize()) {
-        val seed = rememberSaveable { Random.nextInt() }
-        val list = remember {
-            val x = List(cardCount) { CardState.OnUnusedStack(it, cardCount) }
-            mutableStateListOf<CardState>(*x.toTypedArray())
-        }
-        val randomGenerator by remember { derivedStateOf { Random(seed) } }
-        list.forEach {
+        cards.toList().sortedBy { it.first }.forEach { (index, cardState) ->
             PlayingCardCover(
-                state = it,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .layoutId(cardState.cardData.title),
+                state = cardState,
                 randomGenerator = randomGenerator,
             )
-        }
-
-
-        LaunchedEffect(Unit) {
-            list.indices.reversed().onEach { index ->
-                delay(1000)
-                list[index] = CardState.InTopOpponentHand(cardCount - index - 1, cardCount)
-            }
-            delay(1000)
-            list.indices.onEachIndexed { index, cardState ->
-                delay(1000)
-                list[index] = CardState.OnCloseup(cardCount - index)
-                if (index - 1 >= 0) list[index - 1] = CardState.InHand(cardCount - index, cardCount)
-            }
-            delay(1000)
-            list[3] = CardState.OnCloseup(cardCount - 3)
-            list[cardCount - 1] = CardState.InHand(0, cardCount)
-            delay(1000)
-            list[3] = CardState.OnPlayStack(0)
-            (0..2).onEach {
-                list[it] = CardState.InHand(cardCount - it - 2, cardCount - 1)
-            }
-            (4..<cardCount).onEach {
-                list[it] = CardState.InHand(cardCount - it - 1, cardCount - 1)
-            }
-
         }
     }
 }
 
 @Preview
 @Composable
-fun NeatCardStackPreview() {
+fun PlayTablePreview() {
     AppTheme {
+        val cardStack = samplePlayingCardStack.cards
+        var playTableState by remember {
+            mutableStateOf(
+                PlayTableState(
+                    List(12) { cardStack[it] },
+                    List(3) { cardStack[it + 12] },
+                    List(5) { cardStack[it + 12 + 3] },
+                    List(7) { cardStack[it + 12 + 3 + 5 + 7] },
+                )
+            )
+        }
+        LaunchedEffect(Unit) {
+            delay(500)
+            playTableState = PlayTableState(
+                List(10) { cardStack[it] },
+                List(3) { cardStack[1 + it + 11] },
+                List(5) { cardStack[it + 12 + 3] } + cardStack[11] + cardStack[12],
+                List(7) { cardStack[it + 12 + 3 + 5 + 7] } + cardStack[10],
+            )
+        }
         Surface {
-            NeatCardStack(Modifier.padding(32.dp))
+            PlayTable(
+                playTableState,
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+            )
         }
     }
 }
+
+//@Composable
+//fun NeatCardStack(
+//    modifier: Modifier = Modifier, maxRotateDegree: Int = 2, cardCount: Int = 9
+//) {
+//    BoxWithConstraints(modifier.fillMaxSize()) {
+//        val seed = rememberSaveable { Random.nextInt() }
+//        val list = remember {
+//            val x = List(cardCount) { CardState.OnUnusedStack(it, cardCount) }
+//            mutableStateListOf<CardState>(*x.toTypedArray())
+//        }
+//        val randomGenerator by remember { derivedStateOf { Random(seed) } }
+//        list.forEach {
+//            PlayingCardCover(
+//                state = it,
+//                randomGenerator = randomGenerator,
+//            )
+//        }
+//
+//
+//        LaunchedEffect(Unit) {
+//            list.indices.reversed().onEach { index ->
+//                delay(1000)
+//                list[index] = CardState.InTopOpponentHand(cardCount - index - 1, cardCount)
+//            }
+//            delay(1000)
+//            list.indices.onEachIndexed { index, cardState ->
+//                delay(1000)
+//                list[index] = CardState.OnCloseup(cardCount - index)
+//                if (index - 1 >= 0) list[index - 1] = CardState.InHand(cardCount - index, cardCount)
+//            }
+//            delay(1000)
+//            list[3] = CardState.OnCloseup(cardCount - 3)
+//            list[cardCount - 1] = CardState.InHand(0, cardCount)
+//            delay(1000)
+//            list[3] = CardState.OnPlayStack(0)
+//            (0..2).onEach {
+//                list[it] = CardState.InHand(cardCount - it - 2, cardCount - 1)
+//            }
+//            (4..<cardCount).onEach {
+//                list[it] = CardState.InHand(cardCount - it - 1, cardCount - 1)
+//            }
+//
+//        }
+//    }
+//}
+//
+//@Preview
+//@Composable
+//fun NeatCardStackPreview() {
+//    AppTheme {
+//        Surface {
+//            NeatCardStack(Modifier.padding(32.dp))
+//        }
+//    }
+//}

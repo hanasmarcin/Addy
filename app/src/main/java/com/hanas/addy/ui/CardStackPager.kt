@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hanas.addy.R
 import com.hanas.addy.model.Answer
@@ -171,7 +172,6 @@ private fun AttributeRow(it: Attribute, color: Color) {
 @Composable
 private fun AnswerRow(it: String, color: Color, description: String) {
     Row(verticalAlignment = CenterVertically) {
-
         Text(
             text = it,
             color = contentColorFor(color),
@@ -229,3 +229,11 @@ val samplePlayingCard = PlayingCard(
         )
     )
 )
+
+@Preview
+@Composable
+fun CardStackPagerPreview() {
+    AppTheme {
+        CardStackPager(samplePlayingCardStack.cards)
+    }
+}

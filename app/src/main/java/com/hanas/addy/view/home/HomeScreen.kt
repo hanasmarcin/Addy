@@ -32,6 +32,7 @@ import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.view.cardStackList.CardStackList
+import com.hanas.addy.view.playTable.PlayTable
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -96,7 +97,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             AppButton(
-                onClick = {},
+                onClick = { navHandler.navigate(PlayTable) },
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Text("Play")
