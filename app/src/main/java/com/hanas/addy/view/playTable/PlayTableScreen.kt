@@ -27,14 +27,19 @@ fun NavGraphBuilder.playTableComposable() {
     composable<PlayTable> {
         val viewModel = koinNavViewModel<PlayTableViewModel>()
         val state by viewModel.playTableStateFlow.collectAsState()
-        PlayTableScreen(state, viewModel::onClickCard)
+        PlayTableScreen(
+            state,
+            viewModel::onClickAwayFromCloseUp,
+            viewModel::onClickCard
+        )
     }
 }
 
 @Composable
 fun PlayTableScreen(
     state: PlayTableState,
-    onClickCard: (PlayingCardState) -> Unit
+    onClickAwayFromCloseUp: () -> Unit,
+    onClickCard: (PlayingCardState) -> Unit,
 ) {
     Surface {
         PlayTable(
@@ -44,6 +49,7 @@ fun PlayTableScreen(
                 .padding(horizontal = 32.dp)
                 .systemBarsPadding()
                 .background(Color.Red),
+            onClickAwayFromCloseUp = onClickAwayFromCloseUp,
             onClickUpdateState = onClickCard
         )
     }
@@ -60,6 +66,6 @@ fun PlayTableScreenPreview() {
             PlayTableSegment(List(5) { cardStack[it + 12 + 3] }),
             PlayTableSegment(List(7) { cardStack[it + 12 + 3 + 5 + 7] }),
         )
-        PlayTableScreen(playTableState) {}
+        PlayTableScreen(playTableState, {}, {})
     }
 }

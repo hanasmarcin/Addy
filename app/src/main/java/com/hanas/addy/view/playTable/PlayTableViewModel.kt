@@ -162,6 +162,10 @@ class PlayTableViewModel : ViewModel() {
         )
         return true
     }
+
+    fun onClickAwayFromCloseUp() {
+        clearCloseUp()
+    }
 }
 
 private fun <E> List<E>.dropAt(position: Int) = take(position) + drop(position + 1)

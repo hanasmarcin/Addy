@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -26,7 +27,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,7 +54,6 @@ import com.hanas.addy.ui.AppTheme
 import com.hanas.addy.ui.PlayingCardBack
 import com.hanas.addy.ui.PlayingCardFront
 import com.hanas.addy.ui.samplePlayingCardStack
-import kotlin.random.Random
 
 @Composable
 fun BoxWithConstraintsScope.CardOnTable(
@@ -205,11 +204,20 @@ private fun rememberScreenSizeInDp(): DpSize {
 fun PlayTable(
     data: PlayTableState,
     modifier: Modifier = Modifier,
+    onClickAwayFromCloseUp: () -> Unit,
     onClickUpdateState: (PlayingCardState) -> Unit
 ) {
-    val seed = rememberSaveable { Random.nextInt() }
     val cards = data.toCardStateMap()
     BoxWithConstraints(modifier.fillMaxSize()) {
+        if (data.closeUp != null) {
+            Box(
+                Modifier
+                    .background(DrawerDefaults.scrimColor)
+                    .zIndex(700f)
+                    .fillMaxSize()
+                    .clickable { onClickAwayFromCloseUp() }
+            )
+        }
         cards.toSortedMap(compareBy { it.hashCode() }).forEach { (data, state) ->
             CardOnTable(
                 modifier = Modifier
@@ -253,6 +261,7 @@ fun PlayTablePreview() {
                 Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
+                {}
             ) {}
         }
     }
