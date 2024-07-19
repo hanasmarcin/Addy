@@ -9,11 +9,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-private fun <T> List<T>.lastWithIndexOrNull(): Pair<T, Int>? {
-    val last = lastOrNull() ?: return null
-    return last to lastIndex
-}
-
 class PlayTableViewModel : ViewModel() {
     val lockInputFlow = MutableStateFlow(false)
     private val playingCards = samplePlayingCardStack.cards.take(15).shuffled()
@@ -161,6 +156,17 @@ class PlayTableViewModel : ViewModel() {
             )
         )
         return true
+    }
+
+    fun onSwipe(isStartToEnd: Boolean) {
+        val handled = if (isStartToEnd) {
+            moveCloseUpToNextCardInPlayerHand()
+        } else {
+            moveCloseUpToPreviousCardInPlayerHand()
+        }
+        if (handled.not()) {
+            clearCloseUp()
+        }
     }
 }
 

@@ -11,8 +11,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,41 +22,33 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.layoutId
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hanas.addy.R
 import com.hanas.addy.model.PlayingCardData
-import com.hanas.addy.ui.AppTheme
 import com.hanas.addy.ui.PlayingCardBack
 import com.hanas.addy.ui.PlayingCardFront
-import com.hanas.addy.ui.samplePlayingCardStack
-import kotlin.random.Random
 
 @Composable
 fun BoxWithConstraintsScope.CardOnTable(
@@ -73,6 +67,8 @@ fun BoxWithConstraintsScope.CardOnTable(
     val width by animateWidth(transition, screenSizeInDp)
     val offset by animateOffset(transition, screenSizeInDp, unscaledCardSizeInDp)
     val animTransformOrigin by animateTransformOrigin(transition)
+    var horizontalOffsetFromDraggable by remember { mutableFloatStateOf(0f) }
+    val draggableState = rememberDraggableState { horizontalOffsetFromDraggable += it }
     Box(modifier = modifier
         .align(Alignment.Center)
         .zIndex(
@@ -94,6 +90,14 @@ fun BoxWithConstraintsScope.CardOnTable(
             cameraDistance = (8 + 20 * (1 - scale)) * density
 
         }
+        .offset {
+            IntOffset(horizontalOffsetFromDraggable.toInt(), 0)
+        }
+        .draggable(draggableState, orientation = Orientation.Horizontal, onDragStopped = {
+            horizontalOffsetFromDraggable
+            horizontalOffsetFromDraggable = 0f
+//            draggableState.reset()
+        })
         .clip(RoundedCornerShape(26.dp))
         .background(
             Color.Companion.Black
@@ -101,7 +105,8 @@ fun BoxWithConstraintsScope.CardOnTable(
                 .compositeOver(MaterialTheme.colorScheme.tertiary)
         )
         .padding(start = 2.dp, top = 2.dp)
-        .clip(RoundedCornerShape(24.dp))) {
+        .clip(RoundedCornerShape(24.dp))
+    ) {
         val cardModifier = Modifier.clickable {
             transition.currentState.takeIf { it == transition.targetState }?.let(onClickUpdateState)
         }
@@ -128,10 +133,6 @@ private fun CardBack(modifier: Modifier = Modifier) {
             .fillMaxSize()
             .border(16.dp, MaterialTheme.colorScheme.tertiary, RoundedCornerShape(24.dp)),
         contentScale = ContentScale.Inside
-
-//            .background(MaterialTheme.colorScheme.tertiary)
-//            .padding(16.dp)
-//            .clip(RoundedCornerShape(8.dp))
     )
 }
 
@@ -176,84 +177,4 @@ private fun animateTransformOrigin(transition: Transition<PlayingCardState>) = t
     transitionSpec = { spec() }, label = "aaa"
 ) {
     it.targetTransformOrigin()
-}
-
-@Composable
-private fun rememberScreenSizeInPx(): Size {
-    val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
-    return remember(density, configuration) {
-        with(density) {
-            Size(
-                configuration.screenWidthDp.dp.toPx(), configuration.screenHeightDp.dp.toPx()
-            )
-        }
-    }
-}
-
-@Composable
-private fun rememberScreenSizeInDp(): DpSize {
-    val configuration = LocalConfiguration.current
-    return remember(configuration) {
-        DpSize(
-            configuration.screenWidthDp.dp, configuration.screenHeightDp.dp
-        )
-    }
-}
-
-@Composable
-fun PlayTable(
-    data: PlayTableState,
-    modifier: Modifier = Modifier,
-    onClickUpdateState: (PlayingCardState) -> Unit
-) {
-    val seed = rememberSaveable { Random.nextInt() }
-    val cards = data.toCardStateMap()
-    BoxWithConstraints(modifier.fillMaxSize()) {
-        cards.toSortedMap(compareBy { it.hashCode() }).forEach { (data, state) ->
-            CardOnTable(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .layoutId(data.hashCode()),
-                state = state,
-                data = data,
-                onClickUpdateState = onClickUpdateState
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-fun PlayTablePreview() {
-    AppTheme {
-        val cardStack = samplePlayingCardStack.cards
-        var playTableState by remember {
-            mutableStateOf(
-                PlayTableState(
-                    PlayTableSegment(List(12) { cardStack[it] }),
-                    PlayTableSegment(List(3) { cardStack[it + 12] }),
-                    PlayTableSegment(List(5) { cardStack[it + 12 + 3] }),
-                    PlayTableSegment(List(7) { cardStack[it + 12 + 3 + 5 + 7] }),
-                )
-            )
-        }
-//        LaunchedEffect(Unit) {
-//            delay(500)
-//            playTableState = PlayTableState(
-//                List(10) { cardStack[it] },
-//                List(3) { cardStack[1 + it + 11] },
-//                List(5) { cardStack[it + 12 + 3] } + cardStack[11] + cardStack[12],
-//                List(7) { cardStack[it + 12 + 3 + 5 + 7] } + cardStack[10],
-//            )
-//        }
-        Surface {
-            PlayTable(
-                playTableState,
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-            ) {}
-        }
-    }
 }
