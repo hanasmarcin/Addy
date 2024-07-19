@@ -62,7 +62,7 @@ class PlayTableViewModel : ViewModel() {
                 ClickBoxPosition.End -> {
                     if (tableState.closeUp != null) {
                         val result = moveCloseUpToNextCardInPlayerHand()
-                        if (result) clearCloseUp()
+                        if (result.not()) clearCloseUp()
                     } else {
                         giveCardFromUnusedToPlayer()
                     }
@@ -70,7 +70,7 @@ class PlayTableViewModel : ViewModel() {
                 ClickBoxPosition.Start -> {
                     if (tableState.closeUp != null) {
                         val result = moveCloseUpToPreviousCardInPlayerHand()
-                        if (result) clearCloseUp()
+                        if (result.not()) clearCloseUp()
                     } else {
                         closeUpTheCardFromPlayStack()
                     }
@@ -105,7 +105,7 @@ class PlayTableViewModel : ViewModel() {
 
     private fun moveCloseUpToNextCardInPlayerHand(): Boolean {
         tableState.closeUp?.let { closeUp ->
-            if (closeUp.originSegment != PLAYER_HAND || closeUp.positionWithinOriginSegment == tableState.playerHand.availableSlots) return false
+            if (closeUp.originSegment != PLAYER_HAND || closeUp.positionWithinOriginSegment == tableState.playerHand.availableSlots - 1) return false
             val newPosition = closeUp.positionWithinOriginSegment + 1
             tableState = tableState.copy(closeUp = CloseUpCard(tableState.playerHand.cards[newPosition], PLAYER_HAND, newPosition))
             return true
@@ -115,7 +115,7 @@ class PlayTableViewModel : ViewModel() {
     private fun moveCloseUpToPreviousCardInPlayerHand(): Boolean {
         tableState.closeUp?.let { closeUp ->
             if (closeUp.originSegment != PLAYER_HAND || closeUp.positionWithinOriginSegment == 0) return false
-            val newPosition = closeUp.positionWithinOriginSegment + 1
+            val newPosition = closeUp.positionWithinOriginSegment - 1
             tableState = tableState.copy(closeUp = CloseUpCard(tableState.playerHand.cards[newPosition], PLAYER_HAND, newPosition))
             return true
         } ?: return false
