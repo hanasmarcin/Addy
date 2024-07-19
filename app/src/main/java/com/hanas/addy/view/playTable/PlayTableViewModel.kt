@@ -18,6 +18,13 @@ class PlayTableViewModel : ViewModel() {
         )
     )
 
+    private var tableState: PlayTableState
+        get() = playTableStateFlow.value
+        set(value) {
+            playTableStateFlow.value = value
+        }
+
+
     init {
         dealCardsAtStart()
     }
@@ -25,18 +32,74 @@ class PlayTableViewModel : ViewModel() {
     fun dealCardsAtStart() {
         viewModelScope.launch {
             (1..5).forEach { _ ->
-                delay(1100)
+                delay(550)
                 giveCardFromUnusedToPlayer()
             }
             (1..5).forEach { _ ->
-                delay(1100)
+                delay(550)
                 giveCardFromUnusedToOpponent()
             }
         }
     }
 
+    fun onClickBox(clickBoxPosition: ClickBoxPosition) {
+        viewModelScope.launch {
+            when (clickBoxPosition) {
+                is ClickBoxPosition.Bottom -> {
+                    closeUpTheCardFromPlayerHand(clickBoxPosition)
+                }
+                ClickBoxPosition.End -> {
+                    if (tableState.closeUp != null) {
+                        moveCloseUpToNextCard()
+                    } else {
+                        giveCardFromUnusedToPlayer()
+                    }
+                }
+                ClickBoxPosition.Start -> {
+                    if (tableState.closeUp != null) {
+                        moveCloseUpToPreviousCardInPlayerHand()
+                    } else {
+                        closeUpTheCardFromPlayStack()
+                    }
+                }
+                ClickBoxPosition.Top -> {
+                    if (tableState.closeUp != null) {
+                        tableState = tableState.copy(closeUp = null)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun closeUpTheCardFromPlayStack(): Boolean {
+        val card = tableState.playStack.lastOrNull() ?: return false
+        tableState = tableState.copy(closeUp = card)
+        return true
+    }
+
+    private fun closeUpTheCardFromPlayerHand(clickBoxPosition: ClickBoxPosition.Bottom) {
+        val index = clickBoxPosition.index
+        val card = tableState.playerHand[index]
+        tableState = tableState.copy(closeUp = card)
+    }
+
+    private fun moveCloseUpToNextCard(): Boolean {
+        val closeUpIndex = tableState.playerHand.indexOf(tableState.closeUp)
+        if (closeUpIndex == -1 || closeUpIndex == tableState.playerHand.lastIndex) return false
+        tableState = tableState.copy(closeUp = tableState.playerHand[closeUpIndex + 1])
+        return true
+    }
+
+    private fun moveCloseUpToPreviousCardInPlayerHand(): Boolean {
+        val closeUpIndex = tableState.playerHand.indexOf(tableState.closeUp)
+        if (closeUpIndex == -1 || closeUpIndex == 0) return false
+        tableState = tableState.copy(closeUp = tableState.playerHand[closeUpIndex - 1])
+        return true
+    }
+
     private fun giveCardFromUnusedToPlayer() {
-        playTableStateFlow.value = playTableStateFlow.value.let {
+        if (tableState.unusedStack.isEmpty()) return
+        tableState = tableState.let {
             it.copy(
                 unusedStack = it.unusedStack.dropLast(1),
                 playerHand = it.playerHand + it.unusedStack.last()
@@ -45,29 +108,12 @@ class PlayTableViewModel : ViewModel() {
     }
 
     private fun giveCardFromUnusedToOpponent() {
-        playTableStateFlow.value = playTableStateFlow.value.let {
+        if (tableState.unusedStack.isEmpty()) return
+        tableState = tableState.let {
             it.copy(
                 unusedStack = it.unusedStack.dropLast(1),
                 topOpponentHand = it.topOpponentHand + it.unusedStack.last()
             )
-        }
-    }
-
-    fun onClickBox(clickBoxPosition: ClickBoxPosition) {
-        viewModelScope.launch {
-            when (clickBoxPosition) {
-                is ClickBoxPosition.Bottom -> {
-                    val index = clickBoxPosition.index
-                    val card = playTableStateFlow.value.playerHand[index]
-                    delay(500)
-                    playTableStateFlow.value = playTableStateFlow.value.copy(closeUp = card)
-                }
-                ClickBoxPosition.End -> {
-                    giveCardFromUnusedToPlayer()
-                }
-                ClickBoxPosition.Start -> {}
-                ClickBoxPosition.Top -> {}
-            }
         }
     }
 }

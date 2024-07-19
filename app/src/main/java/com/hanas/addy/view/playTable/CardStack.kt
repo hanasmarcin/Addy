@@ -123,7 +123,7 @@ private fun animateOffset(
     }
 }
 
-fun <T : Any> spec() = tween<T>(1000)
+fun <T : Any> spec() = tween<T>(500)
 
 @Composable
 private fun animateWidth(
