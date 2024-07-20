@@ -2,6 +2,7 @@ package com.hanas.addy.view.playTable
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hanas.addy.model.Answer
 import com.hanas.addy.ui.samplePlayingCardStack
 import com.hanas.addy.view.playTable.PlayTableSegmentType.PLAYER_HAND
 import com.hanas.addy.view.playTable.PlayTableSegmentType.PLAY_STACK
@@ -165,6 +166,10 @@ class PlayTableViewModel : ViewModel() {
 
     fun onClickAwayFromCloseUp() {
         clearCloseUp()
+    }
+
+    fun onSelectAnswer(playingCardState: PlayingCardState, answer: Answer) {
+
     }
 }
 

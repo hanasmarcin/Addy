@@ -1,6 +1,5 @@
 package com.hanas.addy.view.playTable
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
@@ -9,7 +8,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -49,17 +47,17 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hanas.addy.R
+import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayingCardData
-import com.hanas.addy.ui.AppTheme
-import com.hanas.addy.ui.PlayingCardBack
-import com.hanas.addy.ui.PlayingCardFront
 import com.hanas.addy.ui.samplePlayingCardStack
+import com.hanas.addy.ui.theme.AppTheme
 
 @Composable
 fun BoxWithConstraintsScope.CardOnTable(
     data: PlayingCardData,
     state: PlayingCardState,
     modifier: Modifier = Modifier,
+    onSelectAnswer: (Answer) -> Unit,
     onClickUpdateState: (PlayingCardState) -> Unit
 ) {
     val screenSizeInDp = with(LocalDensity.current) {
@@ -104,34 +102,42 @@ fun BoxWithConstraintsScope.CardOnTable(
         val cardModifier = Modifier.clickable {
             transition.currentState.takeIf { it == transition.targetState }?.let(onClickUpdateState)
         }
-        var frontState by remember { mutableStateOf(true) }
-        if (rotation > -90) AnimatedContent(frontState, label = "") {
-            if (it) {
-                PlayingCardFront(data, cardModifier)
-            } else {
-                PlayingCardBack(data, cardModifier)
-            }
-        }
+//        var frontState by remember { mutableStateOf(true) }
+        if (rotation > -90) //AnimatedContent(frontState, label = "") {
+//            if (it) {
+            PlayingCardQuestion(data, cardModifier, onSelectAnswer)
+//                PlayingCardFront(data, cardModifier)
+//            } else {
+//                PlayingCardBack(data, cardModifier)
+//            }
+//        }
         else CardBack(cardModifier)
     }
 }
 
 @Composable
 private fun CardBack(modifier: Modifier = Modifier) {
-    Image(
-        painterResource(R.drawable.repeating_pattern_of_animated_textbooks_flying_aro),
-        null,
+    Box(
         modifier
             .rotate(180f)
             .aspectRatio(0.6f)
             .fillMaxSize()
-            .border(16.dp, MaterialTheme.colorScheme.tertiary, RoundedCornerShape(24.dp)),
-        contentScale = ContentScale.Inside
+            .paperBackground(rememberPaperBrush(), MaterialTheme.colorScheme.primary)
+            .padding(16.dp)
+            .clip(RoundedCornerShape(16.dp))
+    ) {
+        Image(
+            painterResource(R.drawable.book_pattern_bauhaus_imagen),
+            null,
+//            .border(16.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(24.dp)),
+            contentScale = ContentScale.Inside,
+            modifier = Modifier.fillMaxSize()
 
 //            .background(MaterialTheme.colorScheme.tertiary)
 //            .padding(16.dp)
 //            .clip(RoundedCornerShape(8.dp))
-    )
+        )
+    }
 }
 
 @Composable
@@ -205,6 +211,7 @@ fun PlayTable(
     data: PlayTableState,
     modifier: Modifier = Modifier,
     onClickAwayFromCloseUp: () -> Unit,
+    onSelectAnswer: (PlayingCardState, Answer) -> Unit,
     onClickUpdateState: (PlayingCardState) -> Unit
 ) {
     val cards = data.toCardStateMap()
@@ -220,11 +227,12 @@ fun PlayTable(
         }
         cards.toSortedMap(compareBy { it.hashCode() }).forEach { (data, state) ->
             CardOnTable(
+                data = data,
+                state = state,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .layoutId(data.hashCode()),
-                state = state,
-                data = data,
+                onSelectAnswer = { onSelectAnswer(state, it) },
                 onClickUpdateState = onClickUpdateState
             )
         }
@@ -261,8 +269,7 @@ fun PlayTablePreview() {
                 Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
-                {}
-            ) {}
+                {}, { _, _ -> }) {}
         }
     }
 }

@@ -14,9 +14,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.hanas.addy.ui.AppTheme
+import com.hanas.addy.model.Answer
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.samplePlayingCardStack
+import com.hanas.addy.ui.theme.AppTheme
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -30,7 +31,8 @@ fun NavGraphBuilder.playTableComposable() {
         PlayTableScreen(
             state,
             viewModel::onClickAwayFromCloseUp,
-            viewModel::onClickCard
+            viewModel::onClickCard,
+            viewModel::onSelectAnswer
         )
     }
 }
@@ -40,6 +42,7 @@ fun PlayTableScreen(
     state: PlayTableState,
     onClickAwayFromCloseUp: () -> Unit,
     onClickCard: (PlayingCardState) -> Unit,
+    onSelectAnswer: (PlayingCardState, Answer) -> Unit,
 ) {
     Surface {
         PlayTable(
@@ -50,6 +53,7 @@ fun PlayTableScreen(
                 .systemBarsPadding()
                 .background(Color.Red),
             onClickAwayFromCloseUp = onClickAwayFromCloseUp,
+            onSelectAnswer = onSelectAnswer,
             onClickUpdateState = onClickCard
         )
     }
@@ -66,6 +70,6 @@ fun PlayTableScreenPreview() {
             PlayTableSegment(List(5) { cardStack[it + 12 + 3] }),
             PlayTableSegment(List(7) { cardStack[it + 12 + 3 + 5 + 7] }),
         )
-        PlayTableScreen(playTableState, {}, {})
+        PlayTableScreen(playTableState, {}, {}, { _, _ -> })
     }
 }
