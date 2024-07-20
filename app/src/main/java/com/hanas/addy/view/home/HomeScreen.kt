@@ -26,7 +26,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
 import com.hanas.addy.R
-import com.hanas.addy.ui.AppTheme
+import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.ui.NavAction
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppButton
