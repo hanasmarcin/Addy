@@ -24,7 +24,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialResponse
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.hanas.addy.ui.AppTheme
+import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.view.home.Home
