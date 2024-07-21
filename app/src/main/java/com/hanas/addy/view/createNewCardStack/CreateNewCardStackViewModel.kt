@@ -97,7 +97,7 @@ class CreateNewCardStackViewModel(
     }
 }
 
-private fun PlayingCardStackGeminiResponse.mapToPlayingCardStack(createdBy: String?) = PlayingCardStack(
+fun PlayingCardStackGeminiResponse.mapToPlayingCardStack(createdBy: String?) = PlayingCardStack(
     title = title,
     createdBy = createdBy,
     creationTimestamp = System.currentTimeMillis(),
@@ -120,9 +120,9 @@ private fun PlayingCardStackGeminiResponse.mapToPlayingCardStack(createdBy: Stri
                 }
             ),
             attributes = Attributes(
-                green = Attribute(it.greenName, it.greenValue),
-                red = Attribute(it.redName, it.redValue),
-                blue = Attribute(it.blueName, it.blueValue)
+                green = Attribute(greenName, it.greenValue),
+                red = Attribute(redName, it.redValue),
+                blue = Attribute(blueName, it.blueValue)
             )
         )
     }

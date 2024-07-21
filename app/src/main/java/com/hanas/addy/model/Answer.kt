@@ -7,6 +7,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PlayingCardStackGeminiResponse(
     val title: String,
+    val greenName: String,
+    val redName: String,
+    val blueName: String,
     val cards: List<PlayingCardGeminiResponse>,
 )
 
@@ -20,12 +23,10 @@ data class PlayingCardGeminiResponse(
     val answer: String,
     val title: String,
     val description: String,
-    val greenName: String,
     val greenValue: Int,
-    val redName: String,
     val redValue: Int,
-    val blueName: String,
     val blueValue: Int,
+    val imagePrompt: String,
 )
 
 
