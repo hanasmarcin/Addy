@@ -50,6 +50,7 @@ import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayingCardData
 import com.hanas.addy.repository.samplePlayingCardStack
+import com.hanas.addy.ui.PlayingCardFront
 import com.hanas.addy.ui.theme.AppTheme
 
 @Composable
@@ -105,8 +106,8 @@ fun BoxWithConstraintsScope.CardOnTable(
 //        var frontState by remember { mutableStateOf(true) }
         if (rotation > -90) //AnimatedContent(frontState, label = "") {
 //            if (it) {
-            PlayingCardQuestion(data, cardModifier, onSelectAnswer)
-//                PlayingCardFront(data, cardModifier)
+//            PlayingCardQuestion(data, cardModifier, onSelectAnswer)
+            PlayingCardFront(data, cardModifier)
 //            } else {
 //                PlayingCardBack(data, cardModifier)
 //            }
