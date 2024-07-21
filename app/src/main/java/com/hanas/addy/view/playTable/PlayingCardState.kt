@@ -27,7 +27,7 @@ sealed class PlayingCardState(open val position: Int, open val amountInState: In
         override fun targetIndexZ() = position.toFloat()
         override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize) = DpOffset(x = position.dp * 2, y = position.dp * -2)
         override fun targetRotationZ() = 0f
-        override fun targetWidth() = Width(((1f + position * 0.005f) * 150).dp)
+        override fun targetWidth() = Width(((1f + position * 0.005f) * 100).dp)
         override fun targetRotationX() = -180f
         override fun targetTransformOrigin() = Offset(1f, 0.5f)
     }
@@ -44,7 +44,7 @@ sealed class PlayingCardState(open val position: Int, open val amountInState: In
 
     }
 
-    data class OnPlayStack(
+    data class OnBattleSlotForPlayer(
         override val position: Int,
         override val amountInState: Int = position,
     ) : PlayingCardState(position, amountInState) {
@@ -54,9 +54,24 @@ sealed class PlayingCardState(open val position: Int, open val amountInState: In
         ): DpOffset = DpOffset(x = position.dp * 2, y = position.dp * -2)
 
         override fun targetRotationZ() = 0f
-        override fun targetWidth() = Width(((1f + position * 0.005f) * 150).dp)
+        override fun targetWidth() = Width(((1f + position * 0.005f) * 100).dp)
         override fun targetRotationX() = 0f
-        override fun targetTransformOrigin() = Offset(0f, 0.5f)
+        override fun targetTransformOrigin() = Offset(0f, 0.2f)
+    }
+
+    data class OnBattleSlotForOpponent(
+        override val position: Int,
+        override val amountInState: Int = position,
+    ) : PlayingCardState(position, amountInState) {
+        override fun targetIndexZ() = position.toFloat()
+        override fun targetOffset(
+            screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize
+        ): DpOffset = DpOffset(x = position.dp * 2, y = position.dp * -2)
+
+        override fun targetRotationZ() = 0f
+        override fun targetWidth() = Width(((1f + position * 0.005f) * 100).dp)
+        override fun targetRotationX() = 0f
+        override fun targetTransformOrigin() = Offset(0f, 0.8f)
     }
 
     data class InHand(

@@ -45,7 +45,7 @@ import com.hanas.addy.ui.theme.AppTheme
 fun PlayingCardQuestion(
     card: PlayingCardData,
     modifier: Modifier = Modifier,
-    onSelectAnswer: (Boolean) -> Unit,
+    onSelectAnswer: (Answer) -> Unit,
 ) {
     val brush = rememberPaperBrush()
     val color = MaterialTheme.colorScheme.primary
@@ -68,7 +68,7 @@ fun PlayingCardQuestion(
                             .copy(alpha = 0.2f)
                             .compositeOver(MaterialTheme.colorScheme.primary)
                     )
-                    .padding(end = 16.dp, top = 16.dp, start = 8.dp, bottom = 8.dp)
+                    .padding(horizontal = 8.dp, vertical = 16.dp)
                     .clip(RoundedCornerShape(12.dp)),
                 painter = painterResource(R.drawable.sample_card_image_bauhaus_imagen),
                 contentDescription = null
@@ -93,7 +93,7 @@ fun PlayingCardQuestion(
                         .copy(alpha = 0.2f)
                         .compositeOver(MaterialTheme.colorScheme.primary)
                 )
-                .padding(start = 16.dp, top = 8.dp, end = 8.dp, bottom = 16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
                 .clip(RoundedCornerShape(12.dp))
         ) {
             Column(
@@ -113,7 +113,7 @@ fun PlayingCardQuestion(
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .padding(end = 16.dp, bottom = 8.dp, start = 8.dp, top = 0.dp)
+                        .padding(end = 8.dp, bottom = 8.dp, start = 8.dp, top = 0.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .drawBehind {
                             drawRect(Color(0xFFC8C8C8), blendMode = BlendMode.Overlay)
@@ -168,7 +168,7 @@ fun PlayingCardQuestion(
                             AnswerBox(
                                 color1,
                                 PaddingValues(end = 4.dp, bottom = 4.dp, start = 8.dp, top = 8.dp),
-                                { onSelectAnswer(Answer.D == card.question.answer) }
+                                { onSelectAnswer(Answer.D) }
                             ) {
                                 Text(
                                     card.question.d,
@@ -183,7 +183,6 @@ fun PlayingCardQuestion(
 
                 }
             }
-//        Text(card.description, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }

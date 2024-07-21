@@ -41,6 +41,7 @@ import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.Attributes
 import com.hanas.addy.model.PlayingCardData
 import com.hanas.addy.model.Question
+import com.hanas.addy.repository.samplePlayingCardStack
 import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.theme.AppTheme
 

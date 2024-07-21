@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.model.Answer
+import com.hanas.addy.repository.samplePlayingCardStack
 import com.hanas.addy.ui.NavScreen
-import com.hanas.addy.ui.samplePlayingCardStack
 import com.hanas.addy.ui.theme.AppTheme
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
@@ -65,10 +65,9 @@ fun PlayTableScreenPreview() {
     AppTheme {
         val cardStack = samplePlayingCardStack.cards
         val playTableState = PlayTableState(
-            PlayTableSegment(List(12) { cardStack[it] }),
-            PlayTableSegment(List(3) { cardStack[it + 12] }),
-            PlayTableSegment(List(5) { cardStack[it + 12 + 3] }),
-            PlayTableSegment(List(7) { cardStack[it + 12 + 3 + 5 + 7] }),
+            PlayTableState.Segment(List(6) { cardStack[it] }),
+            PlayTableState.Segment(List(3) { cardStack[it + 6] }),
+            PlayTableState.Segment(List(2) { cardStack[it + 6 + 3] }),
         )
         PlayTableScreen(playTableState, {}, {}, { _, _ -> })
     }

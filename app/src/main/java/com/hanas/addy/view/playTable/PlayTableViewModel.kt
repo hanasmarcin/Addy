@@ -3,9 +3,10 @@ package com.hanas.addy.view.playTable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hanas.addy.model.Answer
-import com.hanas.addy.ui.samplePlayingCardStack
+import com.hanas.addy.repository.samplePlayingCardStack
 import com.hanas.addy.view.playTable.PlayTableSegmentType.PLAYER_HAND
-import com.hanas.addy.view.playTable.PlayTableSegmentType.PLAY_STACK
+import com.hanas.addy.view.playTable.PlayTableState.CardSlot
+import com.hanas.addy.view.playTable.PlayTableState.Segment
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -20,10 +21,9 @@ class PlayTableViewModel : ViewModel() {
     private val playingCards = samplePlayingCardStack.cards.take(15).shuffled()
     val playTableStateFlow = MutableStateFlow(
         PlayTableState(
-            unusedStack = PlayTableSegment(playingCards.take(15)),
-            playStack = PlayTableSegment(emptyList()),
-            playerHand = PlayTableSegment(emptyList()),
-            topOpponentHand = PlayTableSegment(emptyList()),
+            unusedStack = Segment(playingCards.take(15)),
+            playerHand = Segment(emptyList()),
+            opponentHand = Segment(emptyList()),
         )
     )
 
@@ -90,8 +90,10 @@ class PlayTableViewModel : ViewModel() {
                 is PlayingCardState.OnCloseup -> {
                     clearCloseUp()
                 }
-                is PlayingCardState.OnPlayStack -> {
-                    closeUpTheCardFromPlayStack(cardState.position)
+                is PlayingCardState.OnBattleSlotForPlayer -> {
+                    closeUpTheCardFromBattleSlot()
+                }
+                is PlayingCardState.OnBattleSlotForOpponent -> {
                 }
                 is PlayingCardState.OnUnusedStack -> {
                     giveCardFromUnusedToPlayer(cardState.position)
@@ -105,24 +107,24 @@ class PlayTableViewModel : ViewModel() {
         tableState = tableState.copy(closeUp = null)
     }
 
-    private fun closeUpTheCardFromPlayStack(position: Int): Boolean {
-        val card = tableState.playStack.cards[position]
+    private fun closeUpTheCardFromBattleSlot(): Boolean {
+        val card = tableState.playerBattleSlot ?: return false
         tableState = tableState.copy(
-            closeUp = CloseUpCard(card, PLAY_STACK, position)
+            closeUp = card
         )
         return true
     }
 
     private fun closeUpTheCardFromPlayerHand(position: Int) {
         val card = tableState.playerHand.cards[position]
-        tableState = tableState.copy(closeUp = CloseUpCard(card, PLAYER_HAND, position))
+        tableState = tableState.copy(closeUp = CardSlot(card, PLAYER_HAND, position))
     }
 
     private fun moveCloseUpToNextCardInPlayerHand(): Boolean {
         tableState.closeUp?.let { closeUp ->
             if (closeUp.originSegment != PLAYER_HAND || closeUp.positionWithinOriginSegment == tableState.playerHand.availableSlots - 1) return false
             val newPosition = closeUp.positionWithinOriginSegment + 1
-            tableState = tableState.copy(closeUp = CloseUpCard(tableState.playerHand.cards[newPosition], PLAYER_HAND, newPosition))
+            tableState = tableState.copy(closeUp = CardSlot(tableState.playerHand.cards[newPosition], PLAYER_HAND, newPosition))
             return true
         } ?: return false
     }
@@ -131,7 +133,7 @@ class PlayTableViewModel : ViewModel() {
         tableState.closeUp?.let { closeUp ->
             if (closeUp.originSegment != PLAYER_HAND || closeUp.positionWithinOriginSegment == 0) return false
             val newPosition = closeUp.positionWithinOriginSegment - 1
-            tableState = tableState.copy(closeUp = CloseUpCard(tableState.playerHand.cards[newPosition], PLAYER_HAND, newPosition))
+            tableState = tableState.copy(closeUp = CardSlot(tableState.playerHand.cards[newPosition], PLAYER_HAND, newPosition))
             return true
         } ?: return false
     }
@@ -139,26 +141,26 @@ class PlayTableViewModel : ViewModel() {
     private suspend fun giveCardFromUnusedToPlayer(position: Int = tableState.unusedStack.cards.lastIndex) {
         val targetCard = tableState.unusedStack.cards[position]
         tableState = tableState.copy(
-            playerHand = PlayTableSegment(tableState.playerHand.cards, tableState.playerHand.availableSlots + 1)
+            playerHand = Segment(tableState.playerHand.cards, tableState.playerHand.availableSlots + 1)
         )
         delay(550)
         tableState = tableState.copy(
-            unusedStack = PlayTableSegment(tableState.unusedStack.cards.dropAt(position), tableState.unusedStack.availableSlots - 1),
-            playerHand = PlayTableSegment(tableState.playerHand.cards + targetCard, tableState.playerHand.availableSlots)
+            unusedStack = Segment(tableState.unusedStack.cards.dropAt(position), tableState.unusedStack.availableSlots - 1),
+            playerHand = Segment(tableState.playerHand.cards + targetCard, tableState.playerHand.availableSlots)
         )
     }
 
     private suspend fun giveCardFromUnusedToOpponent(): Boolean {
         if (tableState.unusedStack.cards.isEmpty()) return false
         tableState = tableState.copy(
-            topOpponentHand = PlayTableSegment(tableState.topOpponentHand.cards, tableState.topOpponentHand.availableSlots + 1)
+            opponentHand = Segment(tableState.opponentHand.cards, tableState.opponentHand.availableSlots + 1)
         )
         delay(550)
         tableState = tableState.copy(
-            unusedStack = PlayTableSegment(tableState.unusedStack.cards.dropLast(1), tableState.unusedStack.availableSlots - 1),
-            topOpponentHand = PlayTableSegment(
-                tableState.topOpponentHand.cards + tableState.unusedStack.cards.last(),
-                tableState.topOpponentHand.availableSlots
+            unusedStack = Segment(tableState.unusedStack.cards.dropLast(1), tableState.unusedStack.availableSlots - 1),
+            opponentHand = Segment(
+                tableState.opponentHand.cards + tableState.unusedStack.cards.last(),
+                tableState.opponentHand.availableSlots
             )
         )
         return true

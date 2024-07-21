@@ -49,7 +49,7 @@ import androidx.compose.ui.zIndex
 import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayingCardData
-import com.hanas.addy.ui.samplePlayingCardStack
+import com.hanas.addy.repository.samplePlayingCardStack
 import com.hanas.addy.ui.theme.AppTheme
 
 @Composable
@@ -247,10 +247,9 @@ fun PlayTablePreview() {
         var playTableState by remember {
             mutableStateOf(
                 PlayTableState(
-                    PlayTableSegment(List(12) { cardStack[it] }),
-                    PlayTableSegment(List(3) { cardStack[it + 12] }),
-                    PlayTableSegment(List(5) { cardStack[it + 12 + 3] }),
-                    PlayTableSegment(List(7) { cardStack[it + 12 + 3 + 5 + 7] }),
+                    PlayTableState.Segment(List(12) { cardStack[it] }),
+                    PlayTableState.Segment(List(3) { cardStack[it + 12] }),
+                    PlayTableState.Segment(List(5) { cardStack[it + 12 + 3] }),
                 )
             )
         }
