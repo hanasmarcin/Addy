@@ -25,6 +25,7 @@ data class PlayingCardGeminiResponse(
     val greenValue: Int,
     val redValue: Int,
     val blueValue: Int,
+    val imagePrompt: String,
 )
 
 

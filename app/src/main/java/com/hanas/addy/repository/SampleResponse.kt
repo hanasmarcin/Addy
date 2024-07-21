@@ -22,7 +22,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Rice Paddy observes the world, noticing the flow of crops and the hands that tend them.",
         "greenValue": 8,
         "redValue": 3,
-        "blueValue": 6
+        "blueValue": 6,
+        "imagePrompt": "abc"
     },
     {
         "question": "Which two Asian countries are highlighted for their significant role in global agricultural production?",
@@ -35,7 +36,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Diligent Farmer, with calloused hands and a straw hat, knows the value of hard work and the bounty of the earth.",
         "greenValue": 9,
         "redValue": 2,
-        "blueValue": 5
+        "blueValue": 5,
+        "imagePrompt": "abc"
     },
     {
         "question": "What is a significant characteristic of the climate in many parts of Asia?",
@@ -48,7 +50,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Weather Watcher, a spirit of the sky, observes the ever-changing patterns of wind and rain.",
         "greenValue": 4,
         "redValue": 1,
-        "blueValue": 7
+        "blueValue": 7,
+        "imagePrompt": "abc"
     },
     {
         "question": "What factor has driven the need for advancements in agricultural technology in some parts of Asia?",
@@ -61,7 +64,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Ingenious Inventor, a tinkerer at heart, seeks solutions to the challenges faced by those who work the land.",
         "greenValue": 5,
         "redValue": 8,
-        "blueValue": 6
+        "blueValue": 6,
+        "imagePrompt": "abc"
     },
     {
         "question": "Which country is known for its traditional methods of agriculture, including the use of oxen for plowing?",
@@ -74,7 +78,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Oxen Team, strong and steady, represent the traditional methods passed down through generations.",
         "greenValue": 3,
         "redValue": 2,
-        "blueValue": 5
+        "blueValue": 5,
+        "imagePrompt": "abc"
     },
     {
         "question": "What is an example of how modern technology is being used in Asian agriculture?",
@@ -87,7 +92,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Tech-Savvy Scarecrow, with circuits for brains and sensors for eyes, embraces the fusion of technology and tradition.",
         "greenValue": 6,
         "redValue": 9,
-        "blueValue": 7
+        "blueValue": 7,
+        "imagePrompt": "abc"
     },
     {
         "question": "What percentage of global cotton production originates in India?",
@@ -100,7 +106,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Cotton Blossom, delicate yet resilient, symbolizes the importance of this crop to the region.",
         "greenValue": 7,
         "redValue": 3,
-        "blueValue": 4
+        "blueValue": 4,
+        "imagePrompt": "abc"
     },
     {
         "question": "Which Asian country is the leading producer of tea?",
@@ -113,7 +120,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Tea Leaf, steeped in tradition, represents the cultural significance of this beloved beverage.",
         "greenValue": 8,
         "redValue": 2,
-        "blueValue": 5
+        "blueValue": 5,
+        "imagePrompt": "abc"
     },
     {
         "question": "What percentage of the world's milk production comes from water buffalo?",
@@ -126,7 +134,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Water Buffalo, a gentle giant, provides sustenance and resources for countless communities.",
         "greenValue": 6,
         "redValue": 1,
-        "blueValue": 4
+        "blueValue": 4,
+        "imagePrompt": "abc"
     },
     {
         "question": "What is a 'plon' in the context of agricultural production?",
@@ -139,7 +148,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Land Surveyor, with their maps and instruments, measures the earth's bounty and the efforts of those who cultivate it.",
         "greenValue": 2,
         "redValue": 1,
-        "blueValue": 3
+        "blueValue": 3,
+        "imagePrompt": "abc"
     },
     {
         "question": "What does the term 'zbiory' refer to in the context of agriculture?",
@@ -152,7 +162,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Harvest Moon, full and bright, illuminates the culmination of a season's hard work.",
         "greenValue": 4,
         "redValue": 2,
-        "blueValue": 3
+        "blueValue": 3,
+        "imagePrompt": "abc"
     },
     {
         "question": "According to the provided materials, which of the following is NOT a major agricultural product of Asia?",
@@ -165,7 +176,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Crop Field, a patchwork of colors and textures, represents the diversity of Asia's agricultural landscape.",
         "greenValue": 5,
         "redValue": 1,
-        "blueValue": 7
+        "blueValue": 7,
+        "imagePrompt": "abc"
     },
     {
         "question": "What factor has significantly influenced the development of specialized agricultural practices in different parts of Asia?",
@@ -178,7 +190,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Mountain Range, a majestic barrier, shapes the land and influences the lives of those who call it home.",
         "greenValue": 3,
         "redValue": 2,
-        "blueValue": 8
+        "blueValue": 8,
+        "imagePrompt": "abc"
     },
     {
         "question": "What challenge do farmers in some arid regions of Asia face?",
@@ -191,7 +204,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Desert Oasis, a precious source of life, highlights the challenges of arid environments.",
         "greenValue": 4,
         "redValue": 3,
-        "blueValue": 6
+        "blueValue": 6,
+        "imagePrompt": "abc"
     },
     {
         "question": "What is one way that Asian countries are addressing the challenge of food security?",
@@ -204,7 +218,8 @@ const val SAMPLE_RESPONSE = """
         "description": "Seed of Innovation, small but mighty, represents the potential for growth and progress in agriculture.",
         "greenValue": 7,
         "redValue": 8,
-        "blueValue": 5
+        "blueValue": 5,
+        "imagePrompt": "abc"
     }
     ]
 }
