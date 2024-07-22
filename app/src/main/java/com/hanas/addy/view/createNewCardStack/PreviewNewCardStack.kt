@@ -9,12 +9,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.hanas.addy.model.PlayingCardStack
+import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.ui.CardStackPager
 import com.hanas.addy.ui.GoBack
 import com.hanas.addy.ui.components.AppScaffold
-import com.hanas.addy.ui.samplePlayingCard
+import com.hanas.addy.ui.samplePlayCard
 import com.hanas.addy.view.home.NavigationHandler
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -30,7 +30,7 @@ fun NavGraphBuilder.viewNewCardStackComposable(navHandler: NavigationHandler, na
 @Composable
 private fun ViewNewCardStack(
     navHandler: NavigationHandler,
-    stack: PlayingCardStack?,
+    stack: PlayCardStack?,
     deleteGeneratedStack: () -> Unit
 ) {
     BackHandler {
@@ -52,10 +52,10 @@ private fun ViewNewCardStack(
 fun ViewNewCardStackScreenPreview() {
 
     AppTheme {
-        val list = PlayingCardStack(
+        val list = PlayCardStack(
             cards = listOf(
-                samplePlayingCard,
-                samplePlayingCard
+                samplePlayCard,
+                samplePlayCard
             )
         )
         ViewNewCardStack({ }, list, {})

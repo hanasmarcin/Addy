@@ -1,7 +1,7 @@
 package com.hanas.addy.repository
 
-import com.hanas.addy.model.PlayingCardStackGeminiResponse
-import com.hanas.addy.view.createNewCardStack.mapToPlayingCardStack
+import com.hanas.addy.model.PlayCardStackGeminiResponse
+import com.hanas.addy.view.createNewCardStack.mapToPlayCardStack
 import kotlinx.serialization.json.Json
 
 const val SAMPLE_RESPONSE = """
@@ -225,5 +225,11 @@ const val SAMPLE_RESPONSE = """
 }
 """
 
-val samplePlayingCardStackJsonResponse = Json.decodeFromString<PlayingCardStackGeminiResponse>(SAMPLE_RESPONSE)
-val samplePlayingCardStack = samplePlayingCardStackJsonResponse.mapToPlayingCardStack("")
+val samplePlayCardStackJsonResponse = Json.decodeFromString<PlayCardStackGeminiResponse>(SAMPLE_RESPONSE)
+val samplePlayCardStack = samplePlayCardStackJsonResponse
+    .mapToPlayCardStack("")
+    .let {
+        it.copy(cards = it.cards.mapIndexed { id, data ->
+            data.copy(id = id)
+        })
+    }

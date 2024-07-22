@@ -44,8 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
-import com.hanas.addy.model.PlayingCardStack
-import com.hanas.addy.repository.samplePlayingCardStack
+import com.hanas.addy.model.PlayCardStack
+import com.hanas.addy.repository.samplePlayCardStack
 import com.hanas.addy.ui.GoBack
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppButton
@@ -53,7 +53,7 @@ import com.hanas.addy.ui.components.AppListItem
 import com.hanas.addy.ui.components.itemsWithPosition
 import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.drawPattern
-import com.hanas.addy.ui.samplePlayingCard
+import com.hanas.addy.ui.samplePlayCard
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.cardStackDetail.CardStackDetail
 import com.hanas.addy.view.createNewCardStack.CreateNewCardStack
@@ -78,7 +78,7 @@ fun NavGraphBuilder.cardStackListComposable(navHandler: NavigationHandler) {
 
 @Composable
 private fun CardStackListScreen(
-    cardStacks: List<PlayingCardStack>,
+    cardStacks: List<PlayCardStack>,
     navHandler: NavigationHandler,
 ) {
     Scaffold(
@@ -126,7 +126,7 @@ private fun CardStackListScreen(
 }
 
 @Composable
-private fun CardStacksListContent(navHandler: NavigationHandler, cardStacks: List<PlayingCardStack>) {
+private fun CardStacksListContent(navHandler: NavigationHandler, cardStacks: List<PlayCardStack>) {
     LazyColumn(
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp)
@@ -184,23 +184,23 @@ private fun NoCardStacksContent(navHandler: NavigationHandler) {
     }
 }
 
-class SamplePlayingCardStackListProvider : PreviewParameterProvider<List<PlayingCardStack>> {
+class SamplePlayCardStackListProvider : PreviewParameterProvider<List<PlayCardStack>> {
     override val values = sequenceOf(
         emptyList(), listOf(
-            PlayingCardStack(
-                "ABC", listOf(samplePlayingCard, samplePlayingCard, samplePlayingCard),
+            PlayCardStack(
+                "ABC", listOf(samplePlayCard, samplePlayCard, samplePlayCard),
             ),
-            PlayingCardStack(
-                "DEF", listOf(samplePlayingCard, samplePlayingCard),
+            PlayCardStack(
+                "DEF", listOf(samplePlayCard, samplePlayCard),
             ),
-            samplePlayingCardStack
+            samplePlayCardStack
         )
     )
 }
 
 @Preview
 @Composable
-fun CardStackListScreenPreview(@PreviewParameter(SamplePlayingCardStackListProvider::class) cardStacks: List<PlayingCardStack>) {
+fun CardStackListScreenPreview(@PreviewParameter(SamplePlayCardStackListProvider::class) cardStacks: List<PlayCardStack>) {
     AppTheme {
         CardStackListScreen(cardStacks) {  }
     }

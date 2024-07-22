@@ -8,7 +8,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
-import com.hanas.addy.model.PlayingCardStack
+import com.hanas.addy.model.PlayCardStack
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,7 +20,7 @@ class CardStackListViewModel(
     firestoreRepository: FirestoreRepository
 ) : ViewModel() {
 
-    val cardStacksFlow = firestoreRepository.observePlayingCardStacksForUser()
+    val cardStacksFlow = firestoreRepository.observePlayCardStacksForUser()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
 }
@@ -29,7 +29,7 @@ class FirestoreRepository {
     private val database by lazy { Firebase.firestore }
     private val auth by lazy { Firebase.auth }
 
-    fun savePlayingCardStack(cardStack: PlayingCardStack) {
+    fun savePlayCardStack(cardStack: PlayCardStack) {
         database.collection(CARD_STACKS_COLLECTION_PATH)
             .add(cardStack)
             .addOnSuccessListener {
@@ -43,7 +43,7 @@ class FirestoreRepository {
             }
     }
 
-    suspend fun getPlayingCardStacksForUser(): List<PlayingCardStack> {
+    suspend fun getPlayCardStacksForUser(): List<PlayCardStack> {
         val userId = auth.uid ?: throw Exception("User not authenticated")
 
         return try {
@@ -52,14 +52,14 @@ class FirestoreRepository {
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull(::mapDocumentToPlayingCardStack)
+            snapshot.documents.mapNotNull(::mapDocumentToPlayCardStack)
         } catch (e: Exception) {
             Log.e(TAG, "Error getting documents", e)
             emptyList()
         }
     }
 
-    fun observePlayingCardStacksForUser(): Flow<List<PlayingCardStack>> = callbackFlow {
+    fun observePlayCardStacksForUser(): Flow<List<PlayCardStack>> = callbackFlow {
         val userId = auth.uid ?: run {
             close(Exception("User not authenticated"))
             return@callbackFlow
@@ -73,16 +73,16 @@ class FirestoreRepository {
                     return@addSnapshotListener
                 }
 
-                val cardStacks = snapshot?.documents?.mapNotNull(::mapDocumentToPlayingCardStack) ?: emptyList()
+                val cardStacks = snapshot?.documents?.mapNotNull(::mapDocumentToPlayCardStack) ?: emptyList()
                 trySend(cardStacks)
             }
 
         awaitClose { listenerRegistration.remove() }
     }
 
-    suspend fun getPlayingCardStackById(id: String): PlayingCardStack {
+    suspend fun getPlayCardStackById(id: String): PlayCardStack {
         val response = database.collection(CARD_STACKS_COLLECTION_PATH).document(id).get().await()
-        return mapDocumentToPlayingCardStack(response) ?: throw Exception("Card stack not found")
+        return mapDocumentToPlayCardStack(response) ?: throw Exception("Card stack not found")
     }
 
     companion object {
@@ -91,6 +91,6 @@ class FirestoreRepository {
     }
 }
 
-private fun mapDocumentToPlayingCardStack(document: DocumentSnapshot) = runCatching {
-    document.toObject<PlayingCardStack>()?.copy(id = document.id)
+private fun mapDocumentToPlayCardStack(document: DocumentSnapshot) = runCatching {
+    document.toObject<PlayCardStack>()?.copy(id = document.id)
 }.getOrNull()

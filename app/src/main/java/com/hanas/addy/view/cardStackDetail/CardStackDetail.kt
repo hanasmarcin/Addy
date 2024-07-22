@@ -7,12 +7,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.hanas.addy.model.PlayingCardStack
+import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.ui.CardStackPager
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppScaffold
-import com.hanas.addy.ui.samplePlayingCard
+import com.hanas.addy.ui.samplePlayCard
 import com.hanas.addy.view.home.NavigationHandler
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
@@ -33,7 +33,7 @@ fun NavGraphBuilder.cardStackDetailComposable() {
 
 @Composable
 fun CardStackDetailScreen(
-    cardStack: PlayingCardStack?,
+    cardStack: PlayCardStack?,
     navHandler: NavigationHandler
 ) {
     AppScaffold(
@@ -50,6 +50,6 @@ fun CardStackDetailScreen(
 @Composable
 fun CardStackDetailScreenPreview() {
     AppTheme {
-        CardStackDetailScreen(PlayingCardStack("ABC", listOf(samplePlayingCard, samplePlayingCard))) {  }
+        CardStackDetailScreen(PlayCardStack("ABC", listOf(samplePlayCard, samplePlayCard))) {  }
     }
 }
