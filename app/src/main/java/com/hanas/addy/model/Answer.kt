@@ -5,16 +5,16 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class PlayingCardStackGeminiResponse(
+data class PlayCardStackGeminiResponse(
     val title: String,
     val greenName: String,
     val redName: String,
     val blueName: String,
-    val cards: List<PlayingCardGeminiResponse>,
+    val cards: List<PlayCardGeminiResponse>,
 )
 
 @Serializable
-data class PlayingCardGeminiResponse(
+data class PlayCardGeminiResponse(
     val question: String,
     val a: String,
     val b: String,
@@ -31,16 +31,17 @@ data class PlayingCardGeminiResponse(
 
 
 @Serializable
-data class PlayingCardStack(
+data class PlayCardStack(
     val title: String = "",
-    val cards: List<PlayingCardData> = emptyList(),
+    val cards: List<PlayCardData> = emptyList(),
     val createdBy: String? = null,
     val creationTimestamp: Long = System.currentTimeMillis(),
     val id: String? = null,
 )
 
 @Serializable
-data class PlayingCardData(
+data class PlayCardData(
+    val id: Int = 0,
     val question: Question = Question(),
     val title: String = "",
     val description: String = "",

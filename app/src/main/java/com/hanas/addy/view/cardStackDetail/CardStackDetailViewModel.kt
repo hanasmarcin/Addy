@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.hanas.addy.view.cardStackList.FirestoreRepository
-import com.hanas.addy.model.PlayingCardStack
+import com.hanas.addy.model.PlayCardStack
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -19,11 +19,11 @@ class CardStackDetailViewModel(
         throw IllegalArgumentException("Invalid card stack id", e)
     }
 
-    val cardStack = MutableStateFlow<PlayingCardStack?>(null)
+    val cardStack = MutableStateFlow<PlayCardStack?>(null)
 
     init {
         viewModelScope.launch {
-            val x = firestoreRepository.getPlayingCardStackById(cardStackId)
+            val x = firestoreRepository.getPlayCardStackById(cardStackId)
             cardStack.value = x
         }
     }

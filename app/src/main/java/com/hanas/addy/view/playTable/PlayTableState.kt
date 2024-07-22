@@ -1,51 +1,53 @@
 package com.hanas.addy.view.playTable
 
-import com.hanas.addy.model.PlayingCardData
+import com.hanas.addy.model.PlayCardData
 
 enum class PlayTableSegmentType {
     UNUSED_STACK,
-    PLAY_STACK,
     PLAYER_HAND,
     TOP_OPPONENT_HAND,
 }
 
-data class PlayTableSegment(
-    val cards: List<PlayingCardData>,
-    val availableSlots: Int = cards.size,
-)
-
-data class CloseUpCard(
-    val card: PlayingCardData,
-    val originSegment: PlayTableSegmentType,
-    val positionWithinOriginSegment: Int
-)
-
 data class PlayTableState(
-    val unusedStack: PlayTableSegment,
-    val playStack: PlayTableSegment,
-    val playerHand: PlayTableSegment,
-    val topOpponentHand: PlayTableSegment,
-    val closeUp: CloseUpCard? = null
+    val unusedStack: Segment,
+    val playerHand: Segment,
+    val opponentHand: Segment,
+    val closeUp: CardSlot? = null,
+    val playerBattleSlot: CardSlot? = null,
+    val opponentBattleSlot: CardSlot? = null,
 ) {
-    fun toCardStateMap() = mutableMapOf<PlayingCardData, PlayingCardState>().apply {
+    data class Segment(
+        val cards: List<PlayCardData>,
+        val availableSlots: Int = cards.size,
+    )
+
+    data class CardSlot(
+        val card: PlayCardData,
+        val originSegment: PlayTableSegmentType,
+        val positionWithinOriginSegment: Int,
+        val contentState: PlayCardContentUiState = PlayCardContentUiState.AttributesDisplay.Initial,
+    )
+
+    fun toCardStateMap() = mutableMapOf<PlayCardData, PlayCardUiState>().apply {
+        if (playerBattleSlot != null) {
+            set(playerBattleSlot.card, PlayCardUiState.OnBattleSlotForPlayer(0, 1, playerBattleSlot.contentState))
+        }
         if (closeUp != null) {
-            set(closeUp.card, PlayingCardState.OnCloseup(closeUp.positionWithinOriginSegment))
+            set(closeUp.card, PlayCardUiState.OnCloseUp(closeUp.positionWithinOriginSegment, closeUp.contentState))
         }
         unusedStack.cards.onEachIndexed { index, card ->
-            if (card.isNotCloseUp()) set(card, PlayingCardState.OnUnusedStack(index, unusedStack.availableSlots))
-        }
-        playStack.cards.onEachIndexed { index, card ->
-            if (card.isNotCloseUp()) set(card, PlayingCardState.OnPlayStack(index, playStack.availableSlots))
+            if (card.isNotInSlot()) set(card, PlayCardUiState.OnUnusedStack(index, unusedStack.availableSlots))
         }
         playerHand.cards.onEachIndexed { index, card ->
-            if (card.isNotCloseUp()) set(card, PlayingCardState.InHand(index, playerHand.availableSlots))
+            val isClickAvailable = closeUp?.contentState !is PlayCardContentUiState.QuestionRace
+            if (card.isNotInSlot()) set(card, PlayCardUiState.InHand(index, playerHand.availableSlots, isClickAvailable))
         }
-        topOpponentHand.cards.onEachIndexed { index, card ->
-            if (card.isNotCloseUp()) set(card, PlayingCardState.InTopOpponentHand(index, topOpponentHand.availableSlots))
+        opponentHand.cards.onEachIndexed { index, card ->
+            if (card.isNotInSlot()) set(card, PlayCardUiState.InTopOpponentHand(index, opponentHand.availableSlots))
         }
     }
 
-    private fun PlayingCardData.isNotCloseUp() = this != closeUp?.card
+    private fun PlayCardData.isNotInSlot() = this != closeUp?.card && this != playerBattleSlot?.card && this != opponentBattleSlot?.card
 }
 
 

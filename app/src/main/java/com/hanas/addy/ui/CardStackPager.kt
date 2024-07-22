@@ -39,18 +39,19 @@ import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.Attributes
-import com.hanas.addy.model.PlayingCardData
+import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.model.Question
+import com.hanas.addy.repository.samplePlayCardStack
 import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.theme.AppTheme
 
 @Composable
 fun CardStackPager(
-    playingCards: List<PlayingCardData>,
-    pagerState: PagerState = rememberPagerState { playingCards.size },
+    PlayCards: List<PlayCardData>,
+    pagerState: PagerState = rememberPagerState { PlayCards.size },
 ) {
     HorizontalPager(pagerState, contentPadding = PaddingValues(horizontal = 32.dp), pageSpacing = 16.dp) { page ->
-        val card = playingCards[page]
+        val card = PlayCards[page]
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             var rotated by remember { mutableStateOf(true) }
             val rotation by animateFloatAsState(
@@ -72,9 +73,9 @@ fun CardStackPager(
                 shape = RoundedCornerShape(24.dp)
             ) {
                 if (isFrontVisible) {
-                    PlayingCardFront(card)
+                    PlayCardFront(card)
                 } else {
-                    PlayingCardBack(card, Modifier.graphicsLayer {
+                    PlayCardBack(card, Modifier.graphicsLayer {
                         rotationY = 180f
                     })
                 }
@@ -84,7 +85,7 @@ fun CardStackPager(
 }
 
 @Composable
-fun PlayingCardBack(card: PlayingCardData, modifier: Modifier = Modifier) {
+fun PlayCardBack(card: PlayCardData, modifier: Modifier = Modifier) {
     Column(
         modifier
             .background(MaterialTheme.colorScheme.primary)
@@ -112,7 +113,7 @@ fun PlayingCardBack(card: PlayingCardData, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun PlayingCardFront(card: PlayingCardData, modifier: Modifier = Modifier) {
+fun PlayCardFront(card: PlayCardData, modifier: Modifier = Modifier) {
     Column(
         modifier
             .aspectRatio(0.6f)
@@ -204,7 +205,7 @@ private fun AnswerRow(it: String, color: Color, description: String) {
     }
 }
 
-val samplePlayingCard = PlayingCardData(
+val samplePlayCard = PlayCardData(
     question = Question(
         text = "Which of these factors is NOT a significant reason why the monsoon climate is ideal for rice production in Southeast Asia?",
         a = "Heavy rainfall during the monsoon season.",
@@ -235,6 +236,6 @@ val samplePlayingCard = PlayingCardData(
 @Composable
 fun CardStackPagerPreview() {
     AppTheme {
-        CardStackPager(samplePlayingCardStack.cards)
+        CardStackPager(samplePlayCardStack.cards)
     }
 }

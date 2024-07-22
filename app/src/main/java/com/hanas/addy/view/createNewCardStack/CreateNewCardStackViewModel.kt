@@ -10,9 +10,9 @@ import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.Attributes
-import com.hanas.addy.model.PlayingCardData
-import com.hanas.addy.model.PlayingCardStack
-import com.hanas.addy.model.PlayingCardStackGeminiResponse
+import com.hanas.addy.model.PlayCardData
+import com.hanas.addy.model.PlayCardStack
+import com.hanas.addy.model.PlayCardStackGeminiResponse
 import com.hanas.addy.model.Question
 import com.hanas.addy.repository.GeminiRepository
 import com.hanas.addy.view.cardStackList.FirestoreRepository
@@ -49,7 +49,7 @@ class CreateNewCardStackViewModel(
     private val geminiRepository: GeminiRepository,
     private val firestoreRepository: FirestoreRepository,
 ) : ViewModel() {
-    val cardStackFlow = MutableStateFlow<DataHolder<PlayingCardStack>>(DataHolder.Idle())
+    val cardStackFlow = MutableStateFlow<DataHolder<PlayCardStack>>(DataHolder.Idle())
     val photoUrisFlow: StateFlow<List<Drawable>>
         get() = _photoUrisFlow
 
@@ -81,28 +81,29 @@ class CreateNewCardStackViewModel(
             val cleanString =
                 generatedText.replaceFirst("```json", "").replaceFirst("```", "").replace(Regex("(?<=:\\s?)\"(.*?)(?<!\\\\)\""), "\"$1\"")
 
-            val playingCards = (try {
-                Json.decodeFromString<PlayingCardStackGeminiResponse>(cleanString)
+            val playCards = (try {
+                Json.decodeFromString<PlayCardStackGeminiResponse>(cleanString)
             } catch (e: Throwable) {
                 Log.e("HANASSS", "Failed to parse JSON", e)
                 val correctedResponse = geminiRepository.correctCardStackJsonResponse(bitmaps, cleanString, e.message ?: e.toString())
                 val generatedCorrectedText = correctedResponse.text
                 if (generatedCorrectedText.isNullOrBlank()) throw Throwable("Wrong data")
-                val cleanCorrectedString = generatedText.replaceFirst("```json", "").replaceFirst("```", "").replace(Regex("(?<=:\\s?)\"(.*?)(?<!\\\\)\""), "\"$1\"")
-                Json.decodeFromString<PlayingCardStackGeminiResponse>(cleanCorrectedString)
-            }).mapToPlayingCardStack(Firebase.auth.currentUser?.uid)
-            cardStackFlow.value = DataHolder.Success(playingCards)
-            firestoreRepository.savePlayingCardStack(playingCards)
+                val cleanCorrectedString =
+                    generatedText.replaceFirst("```json", "").replaceFirst("```", "").replace(Regex("(?<=:\\s?)\"(.*?)(?<!\\\\)\""), "\"$1\"")
+                Json.decodeFromString<PlayCardStackGeminiResponse>(cleanCorrectedString)
+            }).mapToPlayCardStack(Firebase.auth.currentUser?.uid)
+            cardStackFlow.value = DataHolder.Success(playCards)
+            firestoreRepository.savePlayCardStack(playCards)
         }
     }
 }
 
-fun PlayingCardStackGeminiResponse.mapToPlayingCardStack(createdBy: String?) = PlayingCardStack(
+fun PlayCardStackGeminiResponse.mapToPlayCardStack(createdBy: String?) = PlayCardStack(
     title = title,
     createdBy = createdBy,
     creationTimestamp = System.currentTimeMillis(),
     cards = cards.map {
-        PlayingCardData(
+        PlayCardData(
             title = it.title,
             description = it.description,
             question = Question(

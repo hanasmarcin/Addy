@@ -15,9 +15,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.model.Answer
+import com.hanas.addy.repository.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
-import com.hanas.addy.ui.samplePlayingCardStack
 import com.hanas.addy.ui.theme.AppTheme
+import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -32,7 +33,9 @@ fun NavGraphBuilder.playTableComposable() {
             state,
             viewModel::onClickAwayFromCloseUp,
             viewModel::onClickCard,
-            viewModel::onSelectAnswer
+            viewModel::onSelectAnswer,
+            viewModel::onSelectToBattle,
+            viewModel::onStartAnswer,
         )
     }
 }
@@ -41,8 +44,10 @@ fun NavGraphBuilder.playTableComposable() {
 fun PlayTableScreen(
     state: PlayTableState,
     onClickAwayFromCloseUp: () -> Unit,
-    onClickCard: (PlayingCardState) -> Unit,
-    onSelectAnswer: (PlayingCardState, Answer) -> Unit,
+    onClickCard: (Int, ClickOrigin) -> Unit,
+    onSelectAnswer: (Int, Answer) -> Unit,
+    onSelectToBattle: (Int) -> Unit,
+    onStartAnswer: (Int) -> Unit,
 ) {
     Surface {
         PlayTable(
@@ -54,7 +59,9 @@ fun PlayTableScreen(
                 .background(Color.Red),
             onClickAwayFromCloseUp = onClickAwayFromCloseUp,
             onSelectAnswer = onSelectAnswer,
-            onClickUpdateState = onClickCard
+            onSelectToBattle = onSelectToBattle,
+            onClickCard = onClickCard,
+            onStartAnswer = onStartAnswer
         )
     }
 }
@@ -63,13 +70,12 @@ fun PlayTableScreen(
 @Composable
 fun PlayTableScreenPreview() {
     AppTheme {
-        val cardStack = samplePlayingCardStack.cards
+        val cardStack = samplePlayCardStack.cards
         val playTableState = PlayTableState(
-            PlayTableSegment(List(12) { cardStack[it] }),
-            PlayTableSegment(List(3) { cardStack[it + 12] }),
-            PlayTableSegment(List(5) { cardStack[it + 12 + 3] }),
-            PlayTableSegment(List(7) { cardStack[it + 12 + 3 + 5 + 7] }),
+            PlayTableState.Segment(List(6) { cardStack[it] }),
+            PlayTableState.Segment(List(3) { cardStack[it + 6] }),
+            PlayTableState.Segment(List(2) { cardStack[it + 6 + 3] }),
         )
-        PlayTableScreen(playTableState, {}, {}, { _, _ -> })
+        PlayTableScreen(playTableState, {}, { _, _ -> }, { _, _ -> }, {}) {}
     }
 }
