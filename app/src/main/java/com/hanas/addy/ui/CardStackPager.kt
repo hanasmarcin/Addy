@@ -33,18 +33,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.Attributes
-import com.hanas.addy.model.PlayingCard
+import com.hanas.addy.model.PlayingCardData
 import com.hanas.addy.model.Question
 import com.hanas.addy.ui.components.shapes.BlobShape
+import com.hanas.addy.ui.theme.AppTheme
 
 @Composable
 fun CardStackPager(
-    playingCards: List<PlayingCard>,
+    playingCards: List<PlayingCardData>,
     pagerState: PagerState = rememberPagerState { playingCards.size },
 ) {
     HorizontalPager(pagerState, contentPadding = PaddingValues(horizontal = 32.dp), pageSpacing = 16.dp) { page ->
@@ -82,7 +84,7 @@ fun CardStackPager(
 }
 
 @Composable
-private fun PlayingCardBack(card: PlayingCard, modifier: Modifier = Modifier) {
+fun PlayingCardBack(card: PlayingCardData, modifier: Modifier = Modifier) {
     Column(
         modifier
             .background(MaterialTheme.colorScheme.primary)
@@ -110,16 +112,16 @@ private fun PlayingCardBack(card: PlayingCard, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PlayingCardFront(card: PlayingCard) {
+fun PlayingCardFront(card: PlayingCardData, modifier: Modifier = Modifier) {
     Column(
-        Modifier
+        modifier
+            .aspectRatio(0.6f)
             .background(MaterialTheme.colorScheme.primary)
             .drawPattern(R.drawable.melt, MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
             .padding(16.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(8.dp)
-            .aspectRatio(0.6f)
     )
     {
         Text(card.title, style = MaterialTheme.typography.titleLarge)
@@ -171,7 +173,6 @@ private fun AttributeRow(it: Attribute, color: Color) {
 @Composable
 private fun AnswerRow(it: String, color: Color, description: String) {
     Row(verticalAlignment = CenterVertically) {
-
         Text(
             text = it,
             color = contentColorFor(color),
@@ -203,7 +204,7 @@ private fun AnswerRow(it: String, color: Color, description: String) {
     }
 }
 
-val samplePlayingCard = PlayingCard(
+val samplePlayingCard = PlayingCardData(
     question = Question(
         text = "Which of these factors is NOT a significant reason why the monsoon climate is ideal for rice production in Southeast Asia?",
         a = "Heavy rainfall during the monsoon season.",
@@ -229,3 +230,11 @@ val samplePlayingCard = PlayingCard(
         )
     )
 )
+
+@Preview
+@Composable
+fun CardStackPagerPreview() {
+    AppTheme {
+        CardStackPager(samplePlayingCardStack.cards)
+    }
+}

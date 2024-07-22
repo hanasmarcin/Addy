@@ -1,6 +1,7 @@
 package com.hanas.addy.model
 
 import androidx.annotation.IntRange
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -32,14 +33,14 @@ data class PlayingCardGeminiResponse(
 @Serializable
 data class PlayingCardStack(
     val title: String = "",
-    val cards: List<PlayingCard> = emptyList(),
+    val cards: List<PlayingCardData> = emptyList(),
     val createdBy: String? = null,
     val creationTimestamp: Long = System.currentTimeMillis(),
     val id: String? = null,
 )
 
 @Serializable
-data class PlayingCard(
+data class PlayingCardData(
     val question: Question = Question(),
     val title: String = "",
     val description: String = "",
@@ -58,7 +59,10 @@ data class Question(
 
 @Serializable
 enum class Answer(val value: String) {
-    A("a"), B("b"), C("c"), D("d")
+    @SerialName("a") A("a"),
+    @SerialName("b") B("b"),
+    @SerialName("c") C("c"),
+    @SerialName("d") D("d")
 }
 
 @Serializable

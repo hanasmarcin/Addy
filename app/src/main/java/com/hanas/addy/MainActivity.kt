@@ -28,6 +28,7 @@ import com.hanas.addy.view.home.NavigationHandler
 import com.hanas.addy.view.home.homeComposable
 import com.hanas.addy.view.login.Login
 import com.hanas.addy.view.login.loginComposable
+import com.hanas.addy.view.playTable.playTableComposable
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +40,7 @@ class MainActivity : ComponentActivity() {
                 val navigate = NavigationHandler { action ->
                     when (action) {
                         is NavScreen -> navController.navigate(action)
-                        is GoBack -> navController.popBackStack()
+                        is GoBack -> navController.navigateUp()
                     }
                 }
                 Surface(color = Color.Black) {
@@ -56,6 +57,7 @@ class MainActivity : ComponentActivity() {
                         cardStackListComposable(navigate)
                         cardStackDetailComposable()
                         createNewCardStackNavigation(navigate, navController)
+                        playTableComposable()
                     }
                 }
             }

@@ -10,7 +10,7 @@ import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.Attributes
-import com.hanas.addy.model.PlayingCard
+import com.hanas.addy.model.PlayingCardData
 import com.hanas.addy.model.PlayingCardStack
 import com.hanas.addy.model.PlayingCardStackGeminiResponse
 import com.hanas.addy.model.Question
@@ -102,7 +102,7 @@ fun PlayingCardStackGeminiResponse.mapToPlayingCardStack(createdBy: String?) = P
     createdBy = createdBy,
     creationTimestamp = System.currentTimeMillis(),
     cards = cards.map {
-        PlayingCard(
+        PlayingCardData(
             title = it.title,
             description = it.description,
             question = Question(
