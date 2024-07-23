@@ -17,12 +17,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.ui.GoBack
 import com.hanas.addy.ui.NavScreen
+import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.cardStackDetail.cardStackDetailComposable
 import com.hanas.addy.view.cardStackList.cardStackListComposable
 import com.hanas.addy.view.createNewCardStack.createNewCardStackNavigation
+import com.hanas.addy.view.friendList.friendListComposable
 import com.hanas.addy.view.home.Home
 import com.hanas.addy.view.home.NavigationHandler
 import com.hanas.addy.view.home.homeComposable
@@ -58,6 +59,7 @@ class MainActivity : ComponentActivity() {
                         cardStackDetailComposable()
                         createNewCardStackNavigation(navigate, navController)
                         playTableComposable()
+                        friendListComposable(navigate)
                     }
                 }
             }

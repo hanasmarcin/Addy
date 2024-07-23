@@ -26,11 +26,12 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
 import com.hanas.addy.R
-import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.ui.NavAction
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.ui.components.AppScaffold
+import com.hanas.addy.ui.theme.AppTheme
+import com.hanas.addy.view.friendList.FriendList
 import com.hanas.addy.view.cardStackList.CardStackList
 import com.hanas.addy.view.playTable.PlayTable
 import kotlinx.serialization.Serializable
@@ -64,9 +65,12 @@ fun HomeScreen(
     logout: () -> Unit
 ) {
     AppScaffold(
-        modifier = Modifier.fillMaxSize(),
         navHandler = navHandler,
+        modifier = Modifier.fillMaxSize(),
         hasBackButton = false,
+        topBarTitle = {
+            Text("Hello, $username!")
+        },
         actions = {
             var menuExpanded by remember { mutableStateOf(false) }
             IconButton(onClick = { menuExpanded = !menuExpanded }) {
@@ -78,9 +82,6 @@ fun HomeScreen(
                     navHandler.navigate(Home)
                 })
             }
-        },
-        topBarTitle = {
-            Text("Hello, $username!")
         }
     ) {
         Image(
@@ -107,6 +108,12 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.tertiaryContainer
             ) {
                 Text("Your card stacks")
+            }
+            AppButton(
+                onClick = { navHandler.navigate(FriendList) },
+                color = MaterialTheme.colorScheme.secondaryContainer
+            ) {
+                Text("Friends")
             }
         }
     }

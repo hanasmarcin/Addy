@@ -17,15 +17,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.tasks.await
 
 class CardStackListViewModel(
-    firestoreRepository: FirestoreRepository
+    playCardRepository: PlayCardRepository
 ) : ViewModel() {
-
-    val cardStacksFlow = firestoreRepository.observePlayCardStacksForUser()
+    val cardStacksFlow = playCardRepository.observePlayCardStacksForUser()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
 }
 
-class FirestoreRepository {
+class PlayCardRepository {
     private val database by lazy { Firebase.firestore }
     private val auth by lazy { Firebase.auth }
 

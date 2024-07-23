@@ -10,11 +10,11 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.model.PlayCardStack
-import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.ui.CardStackPager
 import com.hanas.addy.ui.GoBack
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.samplePlayCard
+import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.home.NavigationHandler
 import org.koin.androidx.compose.navigation.koinNavViewModel
 

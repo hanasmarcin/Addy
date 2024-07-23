@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,6 +27,7 @@ fun AppScaffold(
     topBarTitle: @Composable () -> Unit,
     bottomBar: @Composable () -> Unit = {},
     actions: @Composable() (RowScope.() -> Unit) = {},
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable() (BoxScope.() -> Unit),
 ) {
     val color = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f).compositeOver(MaterialTheme.colorScheme.background)
@@ -37,7 +40,9 @@ fun AppScaffold(
         topBar = {
             AppTopBar(hasBackButton, navHandler, topBarTitle, actions)
         },
-        bottomBar = bottomBar
+        bottomBar = bottomBar,
+        floatingActionButton = floatingActionButton,
+        contentWindowInsets = WindowInsets.ime
     ) {
         Box(
             Modifier.fillMaxSize().padding(it)

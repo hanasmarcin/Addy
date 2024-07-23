@@ -4,9 +4,10 @@ import android.content.Context
 import androidx.credentials.CredentialManager
 import coil.ImageLoader
 import com.hanas.addy.repository.GeminiRepository
+import com.hanas.addy.view.friendList.FriendListViewModel
 import com.hanas.addy.view.cardStackDetail.CardStackDetailViewModel
 import com.hanas.addy.view.cardStackList.CardStackListViewModel
-import com.hanas.addy.view.cardStackList.FirestoreRepository
+import com.hanas.addy.view.cardStackList.PlayCardRepository
 import com.hanas.addy.view.createNewCardStack.CreateNewCardStackViewModel
 import com.hanas.addy.view.home.HomeViewModel
 import com.hanas.addy.view.login.LoginViewModel
@@ -25,13 +26,14 @@ val appModule = module {
         provideCredentialManager(androidContext())
     }
     factoryOf(::GeminiRepository)
-    singleOf(::FirestoreRepository)
+    singleOf(::PlayCardRepository)
     viewModelOf(::HomeViewModel)
     viewModelOf(::CreateNewCardStackViewModel)
     viewModelOf(::LoginViewModel)
     viewModelOf(::CardStackListViewModel)
     viewModelOf(::CardStackDetailViewModel)
     viewModelOf(::PlayTableViewModel)
+    viewModelOf(::FriendListViewModel)
 }
 
 fun provideImageLoader(context: Context): ImageLoader {

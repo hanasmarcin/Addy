@@ -15,7 +15,7 @@ import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.model.PlayCardStackGeminiResponse
 import com.hanas.addy.model.Question
 import com.hanas.addy.repository.GeminiRepository
-import com.hanas.addy.view.cardStackList.FirestoreRepository
+import com.hanas.addy.view.cardStackList.PlayCardRepository
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,7 +47,7 @@ sealed class DataHolder<T>(
 
 class CreateNewCardStackViewModel(
     private val geminiRepository: GeminiRepository,
-    private val firestoreRepository: FirestoreRepository,
+    private val playCardRepository: PlayCardRepository,
 ) : ViewModel() {
     val cardStackFlow = MutableStateFlow<DataHolder<PlayCardStack>>(DataHolder.Idle())
     val photoUrisFlow: StateFlow<List<Drawable>>
@@ -93,7 +93,7 @@ class CreateNewCardStackViewModel(
                 Json.decodeFromString<PlayCardStackGeminiResponse>(cleanCorrectedString)
             }).mapToPlayCardStack(Firebase.auth.currentUser?.uid)
             cardStackFlow.value = DataHolder.Success(playCards)
-            firestoreRepository.savePlayCardStack(playCards)
+            playCardRepository.savePlayCardStack(playCards)
         }
     }
 }

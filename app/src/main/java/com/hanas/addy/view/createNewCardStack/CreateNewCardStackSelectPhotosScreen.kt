@@ -42,11 +42,11 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
 import com.hanas.addy.R
-import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.drawPattern
+import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.home.NavigationHandler
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -94,7 +94,8 @@ private fun CreateNewCardStackSelectPhotosScreen(
         pagerState.scrollToPage(photoDrawables.lastIndex + 1)
         pagerState.animateScrollToPage(photoDrawables.lastIndex, animationSpec = tween(delayMillis = 100))
     }
-    AppScaffold(navHandler = navHandler,
+    AppScaffold(
+        navHandler = navHandler,
         modifier = Modifier.fillMaxSize(),
         topBarTitle = {
             Text("Add New Card Stack")
@@ -105,72 +106,71 @@ private fun CreateNewCardStackSelectPhotosScreen(
             }
         },
         actions = {},
-        content = {
-            HorizontalPager(
-                modifier = Modifier.fillMaxSize(),
-                state = pagerState,
-                contentPadding = PaddingValues(top = 0.dp, start = 32.dp, end = 32.dp),
-                pageSpacing = 16.dp
-            ) { page ->
-                if (page == photoDrawables.lastIndex + 1) {
-                    Column {
-                        Image(painterResource(R.drawable.girl_photographing_book), null)
-                        Spacer(Modifier.size(16.dp))
-                        Card(
-                            Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
+    ) {
+        HorizontalPager(
+            modifier = Modifier.fillMaxSize(),
+            state = pagerState,
+            contentPadding = PaddingValues(top = 0.dp, start = 32.dp, end = 32.dp),
+            pageSpacing = 16.dp
+        ) { page ->
+            if (page == photoDrawables.lastIndex + 1) {
+                Column {
+                    Image(painterResource(R.drawable.girl_photographing_book), null)
+                    Spacer(Modifier.size(16.dp))
+                    Card(
+                        Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                    ) {
+                        Column(
+                            Modifier
+                                .drawPattern(R.drawable.hideout, MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f))
+                                .fillMaxWidth()
+                                .padding(16.dp),
                         ) {
-                            Column(
-                                Modifier
-                                    .drawPattern(R.drawable.hideout, MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f))
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
+                            AppButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = pickImages,
+                                isLoading = isLoading,
+                                color = MaterialTheme.colorScheme.primaryContainer,
                             ) {
-                                AppButton(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    onClick = pickImages,
-                                    isLoading = isLoading,
-                                    color = MaterialTheme.colorScheme.primaryContainer,
-                                ) {
-                                    Text("Choose from gallery")
-                                }
-                                Spacer(Modifier.size(8.dp))
-                                AppButton(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    onClick = takePhoto,
-                                    isLoading = isLoading,
-                                    color = MaterialTheme.colorScheme.secondaryContainer
-                                ) {
-                                    Text("Take a photo")
-                                }
+                                Text("Choose from gallery")
+                            }
+                            Spacer(Modifier.size(8.dp))
+                            AppButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = takePhoto,
+                                isLoading = isLoading,
+                                color = MaterialTheme.colorScheme.secondaryContainer
+                            ) {
+                                Text("Take a photo")
                             }
                         }
                     }
-                } else {
-                    Box(Modifier.fillMaxSize()) {
-                        val photoUri = photoDrawables[page]
-                        Box(Modifier.align(Alignment.Center)) {
-                            AsyncImage(
-                                modifier = Modifier.clip(RoundedCornerShape(16.dp)),
-                                model = photoUri,
-                                contentDescription = null
-                            )
-                            FilledIconButton(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .offset(8.dp, (-8).dp),
-                                shape = BlobShape(),
-                                onClick = {},
-                                colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                            ) {
-                                Icon(Icons.Default.Clear, "")
-                            }
+                }
+            } else {
+                Box(Modifier.fillMaxSize()) {
+                    val photoUri = photoDrawables[page]
+                    Box(Modifier.align(Alignment.Center)) {
+                        AsyncImage(
+                            modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                            model = photoUri,
+                            contentDescription = null
+                        )
+                        FilledIconButton(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(8.dp, (-8).dp),
+                            shape = BlobShape(),
+                            onClick = {},
+                            colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                        ) {
+                            Icon(Icons.Default.Clear, "")
                         }
                     }
                 }
             }
         }
-    )
+    }
 }
 
 @Composable
