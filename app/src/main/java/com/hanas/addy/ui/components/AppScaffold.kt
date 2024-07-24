@@ -5,15 +5,10 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.hanas.addy.view.home.NavigationHandler
-import com.hanas.addy.view.playTable.paperBackground
-import com.hanas.addy.view.playTable.rememberPaperBrush
 
 @Composable
 fun AppScaffold(
@@ -27,9 +22,6 @@ fun AppScaffold(
     content: @Composable() (BoxScope.() -> Unit),
 ) {
     Scaffold(
-        modifier = modifier.paperBackground(rememberPaperBrush(), MaterialTheme.colorScheme.background),
-        containerColor = Color.Transparent,
-        contentColor = contentColorFor(MaterialTheme.colorScheme.background),
         topBar = {
             topBarTitle?.let {
                 AppTopBar(hasBackButton, navHandler, it, actions)
