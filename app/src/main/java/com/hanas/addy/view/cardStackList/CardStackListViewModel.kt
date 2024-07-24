@@ -4,8 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.PlayCardStack
@@ -13,50 +15,52 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.tasks.await
+import kotlin.coroutines.cancellation.CancellationException
 
 class CardStackListViewModel(
-    firestoreRepository: FirestoreRepository
+    cardStackRepository: CardStackRepository
 ) : ViewModel() {
 
-    val cardStacksFlow = firestoreRepository.observePlayCardStacksForUser()
+    val cardStacksFlow = cardStackRepository.observePlayCardStacksForUser()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
 }
 
-class FirestoreRepository {
+class CardStackRepository {
     private val database by lazy { Firebase.firestore }
     private val auth by lazy { Firebase.auth }
 
-    fun savePlayCardStack(cardStack: PlayCardStack) {
+    fun savePlayCardStack(cardStack: PlayCardStack) = callbackFlow<Result<DocumentReference>> {
         database.collection(CARD_STACKS_COLLECTION_PATH)
             .add(cardStack)
             .addOnSuccessListener {
+                trySend(Result.success(it))
                 Log.d(TAG, "DocumentSnapshot added with ID: ${it.id}")
             }
             .addOnFailureListener {
+                trySend(Result.failure(it))
                 Log.e(TAG, "Error adding document", it)
             }
             .addOnCanceledListener {
-                Log.e(TAG, "Canceled adding document")
+                trySend(Result.failure(CancellationException("Adding document canceled")))
             }
     }
 
-    suspend fun getPlayCardStacksForUser(): List<PlayCardStack> {
+    fun getPlayCardStacksForUser(): Flow<List<PlayCardStack>> {
         val userId = auth.uid ?: throw Exception("User not authenticated")
-
-        return try {
-            val snapshot = database.collection(CARD_STACKS_COLLECTION_PATH)
-                .whereEqualTo("createdBy", userId)
-                .get()
-                .await()
-
-            snapshot.documents.mapNotNull(::mapDocumentToPlayCardStack)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting documents", e)
-            emptyList()
-        }
+        return database.collection(CARD_STACKS_COLLECTION_PATH)
+            .whereEqualTo("createdBy", userId)
+            .snapshots()
+            .map {
+                it.documents.mapNotNull(::mapDocumentToPlayCardStack)
+            }
+            .filterNotNull()
+            .take(1)
     }
 
     fun observePlayCardStacksForUser(): Flow<List<PlayCardStack>> = callbackFlow {

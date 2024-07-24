@@ -1,4 +1,4 @@
-package com.hanas.addy.repository
+package com.hanas.addy.repository.gemini
 
 import android.graphics.Bitmap
 import com.google.ai.client.generativeai.GenerativeModel

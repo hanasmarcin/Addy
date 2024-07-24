@@ -32,11 +32,11 @@ import coil.compose.AsyncImage
 import com.hanas.addy.R
 import com.hanas.addy.ui.NavAction
 import com.hanas.addy.ui.NavScreen
-import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.PrimaryButton
+import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.cardStackList.CardStackList
-import com.hanas.addy.view.playTable.PlayTable
+import com.hanas.addy.view.gameSession.chooseGameSession.ChooseSession
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -102,7 +102,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             PrimaryButton(
-                onClick = { navHandler.navigate(PlayTable) },
+                onClick = { navHandler.navigate(ChooseSession) },
             ) {
                 Text("Play", Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
             }

@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
@@ -53,40 +54,12 @@ fun PrimaryButton(
 fun AppButtonPreview() {
     AppTheme {
         Surface {
-            Column {
-                Row {
-                    PrimaryButton(modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .padding(32.dp), onClick = {}) {
-                        Text("Button ggrsfehtrs")
-                    }
-                    PrimaryButton(
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.primary)
-                            .padding(32.dp),
-                        isLoading = true,
-                        onClick = {}) {
-                        Text("Button ggrsfehtrs")
-                    }
+            Row {
+                PrimaryButton(modifier = Modifier.padding(32.dp), onClick = {}) {
+                    Text("Button ggrsfehtrs")
                 }
-                Column {
-                    Row {
-                        PrimaryButton(
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.primary)
-                                .padding(32.dp),
-                            onClick = {}) {
-                            Text("Button ggrsfehtrs")
-                        }
-                        PrimaryButton(
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.primaryContainer)
-                                .padding(32.dp),
-                            isLoading = true,
-                            onClick = {}) {
-                            Text("Button ggrsfehtrs")
-                        }
-                    }
+                PrimaryButton(modifier = Modifier.padding(32.dp), isLoading = true, onClick = {}) {
+                    Text("Button ggrsfehtrs")
                 }
             }
         }
