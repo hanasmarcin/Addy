@@ -4,12 +4,15 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -20,17 +23,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
 import com.hanas.addy.R
-import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.ui.NavAction
 import com.hanas.addy.ui.NavScreen
-import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.ui.components.AppScaffold
+import com.hanas.addy.ui.components.PrimaryButton
+import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.cardStackList.CardStackList
 import com.hanas.addy.view.playTable.PlayTable
 import kotlinx.serialization.Serializable
@@ -93,20 +97,22 @@ fun HomeScreen(
         Column(
             Modifier
                 .align(Alignment.BottomCenter)
-                .padding(16.dp),
+                .padding(16.dp)
+                .width(IntrinsicSize.Min),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            AppButton(
+            PrimaryButton(
                 onClick = { navHandler.navigate(PlayTable) },
-                color = MaterialTheme.colorScheme.primaryContainer
             ) {
-                Text("Play")
+                Text("Play", Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
             }
-            AppButton(
+            PrimaryButton(
                 onClick = { navHandler.navigate(CardStackList) },
-                color = MaterialTheme.colorScheme.tertiaryContainer
             ) {
-                Text("Your card stacks")
+                Text("Your card stacks",
+                    Modifier
+                        .fillMaxWidth()
+                        .requiredWidth(IntrinsicSize.Max))
             }
         }
     }

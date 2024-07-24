@@ -4,7 +4,6 @@ package com.hanas.addy.view.cardStackList
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,27 +13,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,13 +37,12 @@ import androidx.navigation.compose.composable
 import com.hanas.addy.R
 import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.repository.samplePlayCardStack
-import com.hanas.addy.ui.GoBack
 import com.hanas.addy.ui.NavScreen
-import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.ui.components.AppListItem
+import com.hanas.addy.ui.components.AppScaffold
+import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.components.itemsWithPosition
 import com.hanas.addy.ui.components.shapes.BlobShape
-import com.hanas.addy.ui.drawPattern
 import com.hanas.addy.ui.samplePlayCard
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.cardStackDetail.CardStackDetail
@@ -81,24 +71,9 @@ private fun CardStackListScreen(
     cardStacks: List<PlayCardStack>,
     navHandler: NavigationHandler,
 ) {
-    Scaffold(
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.background)
-            .drawPattern(R.drawable.graph_paper, tint = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f)),
-        containerColor = Color.Transparent,
-        contentColor = contentColorFor(MaterialTheme.colorScheme.background),
-        topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.card_stack_list_screen_title)) }, navigationIcon = {
-                FilledIconButton(
-                    shape = BlobShape(),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                    onClick = { navHandler.navigate(GoBack) },
-                ) {
-                    Icon(Icons.AutoMirrored.Default.ArrowBack, null)
-                }
-            }, colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent)
-            )
-        },
+    AppScaffold(
+        topBarTitle = { Text(stringResource(R.string.card_stack_list_screen_title)) },
+        navHandler = navHandler,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navHandler.navigate(CreateNewCardStack) },
@@ -108,11 +83,11 @@ private fun CardStackListScreen(
             ) {
                 Icon(Icons.Default.Add, null)
             }
-        }) {
+        }
+    ) {
         AnimatedContent(
             targetState = cardStacks.isEmpty(),
             modifier = Modifier
-                .padding(it)
                 .fillMaxSize(),
             label = ""
         ) { isEmpty ->
@@ -137,7 +112,6 @@ private fun CardStacksListContent(navHandler: NavigationHandler, cardStacks: Lis
                 trailingContent = {
                     CardStackSizePill(cardStack.cards.size)
                 },
-                pattern = if (index % 2 == 0) R.drawable.hideout else R.drawable.charlie_brown,
                 onClick = {
                     cardStack.id?.let {
                         navHandler.navigate(CardStackDetail(it))
@@ -174,9 +148,8 @@ private fun NoCardStacksContent(navHandler: NavigationHandler) {
                 painter = painterResource(R.drawable.stacks_of_cards), contentDescription = null
             )
             Text(stringResource(R.string.card_stack_list_screen_empty_state_description))
-            AppButton(
+            PrimaryButton(
                 onClick = { navHandler.navigate(CreateNewCardStack) },
-                color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Text(stringResource(R.string.card_stack_list_screen_empty_state_button_label))
             }
@@ -202,6 +175,6 @@ class SamplePlayCardStackListProvider : PreviewParameterProvider<List<PlayCardSt
 @Composable
 fun CardStackListScreenPreview(@PreviewParameter(SamplePlayCardStackListProvider::class) cardStacks: List<PlayCardStack>) {
     AppTheme {
-        CardStackListScreen(cardStacks) {  }
+        CardStackListScreen(cardStacks) { }
     }
 }

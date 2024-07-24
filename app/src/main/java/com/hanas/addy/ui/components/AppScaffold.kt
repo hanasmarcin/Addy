@@ -1,6 +1,5 @@
 package com.hanas.addy.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.RowScope
@@ -12,35 +11,37 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
-import com.hanas.addy.R
-import com.hanas.addy.ui.drawPattern
 import com.hanas.addy.view.home.NavigationHandler
+import com.hanas.addy.view.playTable.paperBackground
+import com.hanas.addy.view.playTable.rememberPaperBrush
 
 @Composable
 fun AppScaffold(
     navHandler: NavigationHandler,
     modifier: Modifier = Modifier,
     hasBackButton: Boolean = true,
-    topBarTitle: @Composable () -> Unit,
+    topBarTitle: (@Composable () -> Unit)?,
     bottomBar: @Composable () -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = {},
     actions: @Composable() (RowScope.() -> Unit) = {},
     content: @Composable() (BoxScope.() -> Unit),
 ) {
-    val color = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f).compositeOver(MaterialTheme.colorScheme.background)
     Scaffold(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-            .drawPattern(R.drawable.graph_paper, tint = color),
+        modifier = modifier.paperBackground(rememberPaperBrush(), MaterialTheme.colorScheme.background),
         containerColor = Color.Transparent,
         contentColor = contentColorFor(MaterialTheme.colorScheme.background),
         topBar = {
-            AppTopBar(hasBackButton, navHandler, topBarTitle, actions)
+            topBarTitle?.let {
+                AppTopBar(hasBackButton, navHandler, it, actions)
+            }
         },
+        floatingActionButton = floatingActionButton,
         bottomBar = bottomBar
     ) {
         Box(
-            Modifier.fillMaxSize().padding(it)
+            Modifier
+                .fillMaxSize()
+                .padding(it)
         ) {
             content()
         }

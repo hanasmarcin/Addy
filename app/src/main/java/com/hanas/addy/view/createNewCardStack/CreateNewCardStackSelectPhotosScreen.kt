@@ -42,11 +42,11 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
 import com.hanas.addy.R
-import com.hanas.addy.ui.theme.AppTheme
-import com.hanas.addy.ui.components.AppButton
 import com.hanas.addy.ui.components.AppScaffold
+import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.drawPattern
+import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.home.NavigationHandler
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -126,20 +126,18 @@ private fun CreateNewCardStackSelectPhotosScreen(
                                     .fillMaxWidth()
                                     .padding(16.dp),
                             ) {
-                                AppButton(
+                                PrimaryButton(
                                     modifier = Modifier.fillMaxWidth(),
                                     onClick = pickImages,
                                     isLoading = isLoading,
-                                    color = MaterialTheme.colorScheme.primaryContainer,
                                 ) {
                                     Text("Choose from gallery")
                                 }
                                 Spacer(Modifier.size(8.dp))
-                                AppButton(
+                                PrimaryButton(
                                     modifier = Modifier.fillMaxWidth(),
                                     onClick = takePhoto,
                                     isLoading = isLoading,
-                                    color = MaterialTheme.colorScheme.secondaryContainer
                                 ) {
                                     Text("Take a photo")
                                 }
@@ -188,11 +186,10 @@ private fun GenerateStackCard(isLoading: Boolean, generateStack: () -> Unit) {
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
-            AppButton(
+            PrimaryButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = generateStack,
                 isLoading = isLoading,
-                color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Icon(painter = painterResource(R.drawable.auto_fix), null)
                 Spacer(Modifier.size(8.dp))

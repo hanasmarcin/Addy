@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,9 +24,10 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialResponse
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.ui.NavScreen
-import com.hanas.addy.ui.components.AppButton
+import com.hanas.addy.ui.components.AppScaffold
+import com.hanas.addy.ui.components.PrimaryButton
+import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.home.Home
 import com.hanas.addy.view.home.NavigationHandler
 import com.hanas.addy.view.playTable.PlayTable
@@ -93,27 +94,34 @@ fun LoginScreen(
             }
         }
     }
-    Scaffold {
+    AppScaffold(
+        navHandler = navHandler,
+        topBarTitle = null,
+        hasBackButton = false
+    ) {
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(it), verticalArrangement = Arrangement.Center
+                .padding(horizontal = 32.dp),
+            verticalArrangement = Arrangement.Center
         )
         {
-            AppButton(
+            PrimaryButton(
                 onClick = {
                     navHandler.navigate(PlayTable)
-                }
+                },
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Play")
             }
             Spacer(Modifier.size(16.dp))
-            AppButton(
+            PrimaryButton(
                 onClick = {
                     coroutineScope.launch(errorHandler) {
                         login()
                     }
                 },
+                modifier = Modifier.fillMaxWidth(),
                 isLoading = loginState is LoginState.LoggingIn
             ) {
                 Text("Login")
