@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class GameSessionState(
     val inviteCode: String,
     val players: List<Player>,
-    val availableCardStacks: List<PlayCardStack>
+    val cardStack: PlayCardStack?
 )
 
 data class Player(
