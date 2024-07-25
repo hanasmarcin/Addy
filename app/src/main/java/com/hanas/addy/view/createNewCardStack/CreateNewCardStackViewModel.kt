@@ -16,6 +16,7 @@ import com.hanas.addy.model.PlayCardStackGeminiResponse
 import com.hanas.addy.model.Question
 import com.hanas.addy.repository.gemini.GeminiRepository
 import com.hanas.addy.view.cardStackList.CardStackRepository
+import com.hanas.addy.view.gameSession.chooseGameSession.NavigationRequester
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,7 +50,7 @@ sealed class DataHolder<T>(
 class CreateNewCardStackViewModel(
     private val geminiRepository: GeminiRepository,
     private val cardStackRepository: CardStackRepository,
-) : ViewModel() {
+) : ViewModel(), NavigationRequester by NavigationRequester() {
     val cardStackFlow = MutableStateFlow<DataHolder<PlayCardStack>>(DataHolder.Idle())
     val photoUrisFlow: StateFlow<List<Drawable>>
         get() = _photoUrisFlow
@@ -96,6 +97,7 @@ class CreateNewCardStackViewModel(
             cardStackRepository.savePlayCardStack(playCards).collectLatest {
                 it.onSuccess {
                     cardStackFlow.value = DataHolder.Success(playCards)
+                    requestNavigation(CreateNewCardStack.PreviewNewStack)
                 }.onFailure {
                     cardStackFlow.value = DataHolder.Error(it, cachedData = cardStackFlow.value.data)
                 }

@@ -23,6 +23,7 @@ import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.cardStackDetail.cardStackDetailComposable
 import com.hanas.addy.view.cardStackList.cardStackListComposable
 import com.hanas.addy.view.createNewCardStack.createNewCardStackNavigation
+import com.hanas.addy.view.gameSession.chooseGameSession.chooseCardStackComposable
 import com.hanas.addy.view.gameSession.chooseGameSession.chooseGameSessionComposable
 import com.hanas.addy.view.gameSession.createNewSession.createNewSessionComposable
 import com.hanas.addy.view.home.Home
@@ -64,6 +65,7 @@ class MainActivity : ComponentActivity() {
                         playTableComposable()
                         chooseGameSessionComposable(navigate)
                         createNewSessionComposable(navigate)
+                        chooseCardStackComposable(navigate)
                     }
                 }
             }

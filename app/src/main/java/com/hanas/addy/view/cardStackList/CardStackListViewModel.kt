@@ -11,12 +11,14 @@ import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.PlayCardStack
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.tasks.await
@@ -36,7 +38,7 @@ class CardStackRepository {
     private val auth by lazy { Firebase.auth }
 
     fun savePlayCardStack(cardStack: PlayCardStack) = callbackFlow<Result<DocumentReference>> {
-        database.collection(CARD_STACKS_COLLECTION_PATH)
+        val listener = database.collection(CARD_STACKS_COLLECTION_PATH)
             .add(cardStack)
             .addOnSuccessListener {
                 trySend(Result.success(it))
@@ -49,7 +51,21 @@ class CardStackRepository {
             .addOnCanceledListener {
                 trySend(Result.failure(CancellationException("Adding document canceled")))
             }
+        awaitClose { this.cancel() }
     }
+
+    fun getPlayCardStack(cardStackId: String): Flow<PlayCardStack> {
+        return database.collection(CARD_STACKS_COLLECTION_PATH)
+            .document(cardStackId)
+            .snapshots()
+            .map {
+                it.toObject<PlayCardStack>()
+            }
+            .onEach { Log.d("HANASSS", "aaa: $it") }
+            .filterNotNull()
+            .take(1)
+    }
+
 
     fun getPlayCardStacksForUser(): Flow<List<PlayCardStack>> {
         val userId = auth.uid ?: throw Exception("User not authenticated")

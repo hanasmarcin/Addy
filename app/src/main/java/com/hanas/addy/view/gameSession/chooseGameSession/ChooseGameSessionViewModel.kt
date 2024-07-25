@@ -11,13 +11,6 @@ class ChooseGameSessionViewModel(
     private val repository: GameSessionRepository
 ) : ViewModel() {
     val state = MutableStateFlow(ChooseGameSessionState(null))
-    fun createGameSession() {
-        viewModelScope.launch {
-            repository.createGameSession().collect {
-                state.value = state.value.copy(newGameSessionId = it)
-            }
-        }
-    }
 
     fun joinSession(code: String) {
         viewModelScope.launch {

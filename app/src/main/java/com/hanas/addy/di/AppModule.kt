@@ -9,6 +9,7 @@ import com.hanas.addy.view.cardStackList.CardStackListViewModel
 import com.hanas.addy.view.cardStackList.CardStackRepository
 import com.hanas.addy.view.createNewCardStack.CreateNewCardStackViewModel
 import com.hanas.addy.view.gameSession.GameSessionRepository
+import com.hanas.addy.view.gameSession.chooseGameSession.ChooseCardStackViewModel
 import com.hanas.addy.view.gameSession.chooseGameSession.ChooseGameSessionViewModel
 import com.hanas.addy.view.gameSession.createNewSession.CreateNewGameSessionViewModel
 import com.hanas.addy.view.home.HomeViewModel
@@ -38,6 +39,7 @@ val appModule = module {
     viewModelOf(::PlayTableViewModel)
     viewModelOf(::CreateNewGameSessionViewModel)
     viewModelOf(::ChooseGameSessionViewModel)
+    viewModelOf(::ChooseCardStackViewModel)
 }
 
 fun provideImageLoader(context: Context): ImageLoader {

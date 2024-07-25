@@ -52,7 +52,7 @@ fun ChooseGameSessionScreen(
 ) {
     LaunchedEffect(state) {
         if (state.newGameSessionId != null) {
-            navHandler.navigate(CreateNewGameSession(state.newGameSessionId))
+            navHandler.navigate(CreateNewGameSession(state.newGameSessionId, null))
         }
     }
     AppScaffold(

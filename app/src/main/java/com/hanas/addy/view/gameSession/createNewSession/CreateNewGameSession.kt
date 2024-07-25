@@ -2,12 +2,15 @@ package com.hanas.addy.view.gameSession.createNewSession
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Done
@@ -42,7 +45,10 @@ import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
 @Serializable
-data class CreateNewGameSession(val gameSessionId: String) : NavScreen
+data class CreateNewGameSession(
+    val gameSessionId: String,
+    val selectedCardStackId: String?
+) : NavScreen
 
 fun NavGraphBuilder.createNewSessionComposable(navHandler: NavigationHandler) {
     composable<CreateNewGameSession> {
@@ -114,10 +120,13 @@ fun CreateNewSessionScreen(state: GameSessionState, navHandler: NavigationHandle
                 }
             }
             Spacer(Modifier.size(16.dp))
-            Card {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Card stack", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.size(8.dp))
+            Text("Card stack", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.size(8.dp))
+            LazyRow(contentPadding = PaddingValues(16.dp)) {
+                items(state.cardStack?.cards ?: emptyList()) {
+                    Card {
+                        Text(it.title)
+                    }
                 }
             }
         }
@@ -136,7 +145,7 @@ fun CreateNewTableScreenPreview() {
                     Player("2", "Marcin Hanas", PlayerInvitationState.ACCEPTED),
                     Player("3", "Marcin Hanas", PlayerInvitationState.DECLINED)
                 ),
-                listOf(samplePlayCardStack),
+                samplePlayCardStack,
             )
         ) {}
     }
