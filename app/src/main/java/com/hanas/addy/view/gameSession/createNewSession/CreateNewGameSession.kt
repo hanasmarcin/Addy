@@ -43,6 +43,7 @@ import com.hanas.addy.view.gameSession.PlayerInvitationState
 import com.hanas.addy.view.home.NavigationHandler
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
+import java.security.InvalidParameterException
 
 @Serializable
 data class CreateNewGameSession(
@@ -54,12 +55,12 @@ fun NavGraphBuilder.createNewSessionComposable(navHandler: NavigationHandler) {
     composable<CreateNewGameSession> {
         val viewModel: CreateNewGameSessionViewModel = koinNavViewModel()
         val state by viewModel.gameSessionStateFlow.collectAsState()
-        CreateNewSessionScreen(state, navHandler)
+        CreateNewSessionScreen(state, navHandler, viewModel::startGame)
     }
 }
 
 @Composable
-fun CreateNewSessionScreen(state: GameSessionState, navHandler: NavigationHandler) {
+fun CreateNewSessionScreen(state: GameSessionState, navHandler: NavigationHandler, startGame: () -> Unit) {
     AppScaffold(
         navHandler = navHandler,
         topBarTitle = { Text("Create New Table") },
@@ -69,7 +70,7 @@ fun CreateNewSessionScreen(state: GameSessionState, navHandler: NavigationHandle
                     .fillMaxWidth()
                     .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
             ) {
-                PrimaryButton(onClick = { }) { Text("Start game") }
+                PrimaryButton(onClick = startGame) { Text("Start game") }
             }
         }
     ) {
@@ -146,7 +147,60 @@ fun CreateNewTableScreenPreview() {
                     Player("3", "Marcin Hanas", PlayerInvitationState.DECLINED)
                 ),
                 samplePlayCardStack,
-            )
+            ), {}
         ) {}
+    }
+}
+
+data class GameActionDTO(
+    val type: String? = null,
+    val cardId: String? = null,
+    val previousPlacement: CardPositionDTO? = null,
+    val targetPlacement: CardPositionDTO? = null
+)
+
+data class CardPositionDTO(
+    val type: String? = null,
+    val forPlayerId: String? = null,
+    val positionInSegment: Int? = null,
+)
+
+sealed class GameAction {
+    data class MoveCard(
+        val cardId: String,
+        val previousPlacement: CardPosition,
+        val targetPlacement: CardPosition
+    ) : GameAction()
+
+    data class StartAnsweringQuestion(val cardId: String) : GameAction()
+    data class FinishAnsweringQuestion(val cardId: String) : GameAction()
+}
+
+sealed class CardPosition {
+    data class UnusedStack(val positionInSegment: Int) : CardPosition()
+    data class InHand(val positionInSegment: Int, val forPlayerId: String) : CardPosition()
+    data class OnBattleSlot(val forPlayerId: String) : CardPosition()
+}
+
+fun GameActionDTO.toDomain(): GameAction {
+    val cardId = requireNotNull(cardId)
+    return when (type) {
+        "move" -> GameAction.MoveCard(
+            cardId = cardId,
+            previousPlacement = requireNotNull(previousPlacement).toDomain(),
+            targetPlacement = requireNotNull(targetPlacement).toDomain(),
+        )
+        "startAnsweringQuestion" -> GameAction.StartAnsweringQuestion(cardId)
+        "finishAnsweringQuestion" -> GameAction.FinishAnsweringQuestion(cardId)
+        else -> throw InvalidParameterException("Unknown player action type: $type")
+    }
+}
+
+private fun CardPositionDTO.toDomain(): CardPosition {
+    return when (type) {
+        "unusedStack" -> return CardPosition.UnusedStack(requireNotNull(positionInSegment))
+        "inHand" -> return CardPosition.InHand(requireNotNull(positionInSegment), requireNotNull(forPlayerId))
+        "onBattleSlot" -> return CardPosition.OnBattleSlot(requireNotNull(forPlayerId))
+        else -> throw InvalidParameterException("Unknown card placement type: $type")
     }
 }

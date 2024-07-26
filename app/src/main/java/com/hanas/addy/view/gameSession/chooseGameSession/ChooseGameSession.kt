@@ -12,7 +12,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,7 +27,6 @@ import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.theme.AppTheme
-import com.hanas.addy.view.gameSession.createNewSession.CreateNewGameSession
 import com.hanas.addy.view.home.NavigationHandler
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
@@ -40,6 +38,7 @@ fun NavGraphBuilder.chooseGameSessionComposable(navHandler: NavigationHandler) {
     composable<ChooseSession> {
         val viewModel: ChooseGameSessionViewModel = koinNavViewModel()
         val state by viewModel.state.collectAsState()
+        viewModel.observeNavigation(navHandler)
         ChooseGameSessionScreen(state, navHandler, viewModel::joinSession)
     }
 }
@@ -50,11 +49,6 @@ fun ChooseGameSessionScreen(
     navHandler: NavigationHandler,
     joinGameSession: (String) -> Unit
 ) {
-    LaunchedEffect(state) {
-        if (state.newGameSessionId != null) {
-            navHandler.navigate(CreateNewGameSession(state.newGameSessionId, null))
-        }
-    }
     AppScaffold(
         navHandler = navHandler,
         topBarTitle = { Text("Choose Table") },
