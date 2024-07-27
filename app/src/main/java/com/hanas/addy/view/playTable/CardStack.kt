@@ -1,19 +1,16 @@
 package com.hanas.addy.view.playTable
 
-import android.util.Log
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.animateValue
-import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -25,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,7 +53,8 @@ import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
 import kotlinx.coroutines.delay
 
 @Composable
-fun BoxWithConstraintsScope.CardOnTableLayout(
+fun CardOnTableLayout(
+    screenSizeInDp: DpSize,
     data: PlayCardData,
     state: PlayCardUiState,
     modifier: Modifier = Modifier,
@@ -64,18 +63,14 @@ fun BoxWithConstraintsScope.CardOnTableLayout(
     startAnswer: () -> Unit,
     onClickCard: () -> Unit
 ) {
-    val screenSizeInDp = with(LocalDensity.current) {
-        DpSize(constraints.maxWidth.toDp(), constraints.maxHeight.toDp())
-    }
     val unscaledCardSizeInDp = DpSize(screenSizeInDp.width, screenSizeInDp.width / 0.6f)
-    val transition = rememberTransition(MutableTransitionState(state))
+    val transition = updateTransition(state, label = "Animate transition")
     val orientation by animateOrientation(transition)
     val rotationOnZ by animateRotationZ(transition)
     val width by animateWidth(transition, screenSizeInDp)
     val offset by animateOffset(transition, screenSizeInDp, unscaledCardSizeInDp)
     val animTransformOrigin by animateTransformOrigin(transition)
     Box(modifier = modifier
-        .align(Alignment.Center)
         .zIndex(
             state
                 .targetIndexZ()
@@ -177,14 +172,16 @@ fun PlayTable(
     data: PlayTableState,
     modifier: Modifier = Modifier,
     onClickAwayFromCloseUp: () -> Unit,
-    onSelectAnswer: (Long, Answer) -> Unit,
-    onSelectToBattle: (Long) -> Unit,
-    onClickCard: (Long, ClickOrigin) -> Unit,
-    onStartAnswer: (Long) -> Unit
+    onSelectAnswer: (Int, Answer) -> Unit,
+    onSelectToBattle: (Int) -> Unit,
+    onClickCard: (Int, ClickOrigin) -> Unit,
+    onStartAnswer: (Int) -> Unit
 ) {
     val cards = data.toCardStateMap()
-    Log.d("HANASSS", "PlayTable: ${cards.map { "${it.key.id} ${it.value}" }}")
     BoxWithConstraints(modifier.fillMaxSize()) {
+        val screenSizeInDp = with(LocalDensity.current) {
+            DpSize(constraints.maxWidth.toDp(), constraints.maxHeight.toDp())
+        }
         if (data.closeUp != null) {
             Box(
                 Modifier
@@ -194,18 +191,21 @@ fun PlayTable(
                     .clickable { onClickAwayFromCloseUp() }
             )
         }
-        cards.toSortedMap(compareBy { it.hashCode() }).forEach { (data, state) ->
-            CardOnTableLayout(
-                data = data,
-                state = state,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .layoutId(data.hashCode()),
-                onSelectAnswer = { onSelectAnswer(data.id, it) },
-                onSelectToBattle = { onSelectToBattle(data.id) },
-                onClickCard = { state.clickOrigin?.let { onClickCard(data.id, it) } },
-                startAnswer = { onStartAnswer(data.id) }
-            )
+        cards.forEach { (data, state) ->
+            key(data.id) {
+                CardOnTableLayout(
+                    data = data,
+                    screenSizeInDp = screenSizeInDp,
+                    state = state,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .layoutId(data.hashCode()),
+                    onSelectAnswer = { onSelectAnswer(data.id, it) },
+                    onSelectToBattle = { onSelectToBattle(data.id) },
+                    onClickCard = { state.clickOrigin?.let { onClickCard(data.id, it) } },
+                    startAnswer = { onStartAnswer(data.id) }
+                )
+            }
         }
     }
 }
@@ -220,20 +220,38 @@ fun PlayTablePreview() {
                 PlayTableState(
                     PlayTableState.Segment(emptyList()),
                     PlayTableState.Segment(emptyList()),
-                    PlayTableState.Segment(emptyList())
+                    PlayTableState.Segment(emptyList()),
                 )
             )
         }
         LaunchedEffect(Unit) {
-            for (i in 0..50) {
-                delay(500)
+            for (i in 0..20) {
+                delay(600)
                 playTableState = PlayTableState(
-                    PlayTableState.Segment(cardStack.take(i), 10),
+                    PlayTableState.Segment(cardStack.take(i)),
                     PlayTableState.Segment(emptyList()),
-                    PlayTableState.Segment(emptyList())
+                    PlayTableState.Segment(emptyList()),
+                )
+            }
+            for (i in 0..10) {
+                delay(600)
+                val x = playTableState.unusedStack.cards.last()
+                playTableState = PlayTableState(
+                    PlayTableState.Segment(playTableState.unusedStack.cards.drop(1)),
+                    PlayTableState.Segment(playTableState.playerHand.cards + x),
+                    PlayTableState.Segment(emptyList()),
                 )
             }
         }
+//        LaunchedEffect(Unit) {
+//            delay(500)
+//            playTableState = PlayTableState(
+//                List(10) { cardStack[it] },
+//                List(3) { cardStack[1 + it + 11] },
+//                List(5) { cardStack[it + 12 + 3] } + cardStack[11] + cardStack[12],
+//                List(7) { cardStack[it + 12 + 3 + 5 + 7] } + cardStack[10],
+//            )
+//        }
         Surface {
             PlayTable(
                 playTableState,
