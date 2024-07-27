@@ -5,11 +5,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,7 +28,6 @@ import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.home.Home
 import com.hanas.addy.view.home.NavigationHandler
-import com.hanas.addy.view.playTable.PlayTable
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -106,15 +103,6 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         )
         {
-            PrimaryButton(
-                onClick = {
-                    navHandler.navigate(PlayTable)
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Play")
-            }
-            Spacer(Modifier.size(16.dp))
             PrimaryButton(
                 onClick = {
                     coroutineScope.launch(errorHandler) {

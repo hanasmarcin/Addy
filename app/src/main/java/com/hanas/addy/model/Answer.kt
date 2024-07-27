@@ -41,7 +41,7 @@ data class PlayCardStack(
 
 @Serializable
 data class PlayCardData(
-    val id: Int = 0,
+    val id: Long = 0,
     val question: Question = Question(),
     val title: String = "",
     val description: String = "",

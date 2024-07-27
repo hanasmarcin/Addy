@@ -39,7 +39,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
@@ -48,6 +47,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.hanas.addy.R
+import com.hanas.addy.model.DataHolder
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.components.shapes.BlobShape

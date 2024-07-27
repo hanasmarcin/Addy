@@ -173,10 +173,10 @@ fun PlayTable(
     data: PlayTableState,
     modifier: Modifier = Modifier,
     onClickAwayFromCloseUp: () -> Unit,
-    onSelectAnswer: (Int, Answer) -> Unit,
-    onSelectToBattle: (Int) -> Unit,
-    onClickCard: (Int, ClickOrigin) -> Unit,
-    onStartAnswer: (Int) -> Unit
+    onSelectAnswer: (Long, Answer) -> Unit,
+    onSelectToBattle: (Long) -> Unit,
+    onClickCard: (Long, ClickOrigin) -> Unit,
+    onStartAnswer: (Long) -> Unit
 ) {
     val cards = data.toCardStateMap()
     BoxWithConstraints(modifier.fillMaxSize()) {

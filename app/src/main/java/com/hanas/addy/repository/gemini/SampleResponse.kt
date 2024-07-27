@@ -230,6 +230,6 @@ val samplePlayCardStack = samplePlayCardStackJsonResponse
     .mapToPlayCardStack("")
     .let {
         it.copy(cards = it.cards.mapIndexed { id, data ->
-            data.copy(id = id)
+            data.copy(id = id.toLong())
         })
     }

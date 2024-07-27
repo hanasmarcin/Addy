@@ -1,9 +1,15 @@
 package com.hanas.addy.view.playTable
 
+import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.hanas.addy.model.Answer
-import com.hanas.addy.repository.gemini.samplePlayCardStack
+import com.hanas.addy.model.PlayCardData
+import com.hanas.addy.view.gameSession.GameSessionRepository
+import com.hanas.addy.view.gameSession.createNewSession.CardPosition
+import com.hanas.addy.view.gameSession.createNewSession.GameAction
 import com.hanas.addy.view.playTable.PlayCardContentUiState.QuestionRace
 import com.hanas.addy.view.playTable.PlayTableState.CardSlot
 import com.hanas.addy.view.playTable.PlayTableState.Segment
@@ -11,49 +17,44 @@ import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.CLOSE_UP
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.OPPONENT_BATTLE_SLOT
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.PLAYER_BATTLE_SLOT
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.PLAYER_HAND
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
-sealed class PlayTableAction {
-    data class ClickOnCard(val cardId: String) : PlayTableAction()
-    data object ExitCardCloseUp : PlayTableAction()
-    data class SelectBattleCard(val cardId: String) : PlayTableAction()
-    data object StartAnsweringQuestion : PlayTableAction()
-    data class AnswerQuestion(val answer: Answer) : PlayTableAction()
-}
+@OptIn(ExperimentalCoroutinesApi::class)
+class PlayTableViewModel(
+    savedStateHandle: SavedStateHandle,
+    repository: GameSessionRepository,
+) : ViewModel() {
+    private val handledActions = mutableSetOf<String>()
+    private val navArgs by lazy { savedStateHandle.toRoute<PlayTable>() }
 
-sealed class QuestionRaceResult {
-    data class Correct(val answeringTimeInMs: Long) : QuestionRaceResult()
-    data object Incorrect : QuestionRaceResult()
-}
-
-sealed class RoundPhase(val userInputEnabled: Boolean) {
-    data object FetchingInitialCards : RoundPhase(false)
-    data object DealingCards : RoundPhase(false)
-    data object UserSelectsBattleCard : RoundPhase(true)
-    data object PreparingQuestion : RoundPhase(false)
-    data object UserAnswersQuestion : RoundPhase(true)
-    data object FinalizingQuestionAnswer : RoundPhase(false)
-    data object WaitingForQuestionRaceResult : RoundPhase(false)
-    data object ProcessingQuestionRaceResult : RoundPhase(false)
-    data object UserChoosesBattleAttribute : RoundPhase(true)
-    data object WaitingForAttributeBattleResult : RoundPhase(false)
-    data object ProcessingBattleResult : RoundPhase(false)
-}
+    private val gameSession = repository.getGameSessionFlow(navArgs.gameSessionId)
+        .filterNotNull()
+        .take(1)
 
 
-private fun <T> List<T>.lastWithIndexOrNull(): Pair<T, Int>? {
-    val last = lastOrNull() ?: return null
-    return last to lastIndex
-}
+    private val gameActions = repository.getGameActionsFlow(navArgs.gameSessionId, ::isActionHandled)
+        .filterNotNull()
+        .onEach { batchActions ->
+            handledActions.addAll(batchActions.map { it.actionId })
+        }
+    //.buffer()
+//.shareIn(viewModelScope, SharingStarted.Eagerly, replay = 0)
 
-class PlayTableViewModel : ViewModel() {
-    private val playCards = samplePlayCardStack.cards.take(15).shuffled()
+    private fun isActionHandled(actionId: String) = actionId in handledActions
+
     val playTableStateFlow = MutableStateFlow(
         PlayTableState(
-            unusedStack = Segment(playCards.take(15)),
+            unusedStack = Segment(emptyList()),
             playerHand = Segment(emptyList()),
             opponentHand = Segment(emptyList()),
         )
@@ -65,9 +66,66 @@ class PlayTableViewModel : ViewModel() {
             playTableStateFlow.value = value
         }
 
+    val cards = mutableListOf<PlayCardData>()
+
 
     init {
-        dealCardsAtStart()
+        viewModelScope.launch {
+            gameSession.flatMapConcat { gameSession ->
+                cards.clear()
+                gameSession.cardStack?.cards?.let {
+                    cards.addAll(it)
+                }
+                if (cards.isNotEmpty()) gameActions.transform { backActions -> backActions.onEach { emit(it) } } else emptyFlow()
+            }.collect { batchAction ->
+                batchAction.unitActions.forEach { action ->
+                    delay(1000)
+                    Log.d("HANASSS", "Performing action: $action")
+                    when (action) {
+                        is GameAction.MoveCard -> {
+                            val (removedCard, stateWithRemovedCard) = when (action.currentPlacement) {
+                                is CardPosition.InHand -> tableState.playerHand.cards.first { it.id == action.cardId } to tableState.copy(
+                                    playerHand = Segment(tableState.playerHand.cards.dropAt(action.currentPlacement.positionInSegment))
+                                )
+                                is CardPosition.OnBattleSlot -> TODO()
+                                is CardPosition.UnusedStack -> {
+                                    val removedCard = tableState.unusedStack.cards.first { it.id == action.cardId }
+                                    val id = tableState.unusedStack.cards.indexOf(removedCard)
+                                    removedCard to tableState.copy(
+                                        unusedStack = Segment(tableState.unusedStack.cards.dropAt(id))
+                                    )
+                                }
+                            }
+                            val stateWithMovedCard = when (action.targetPlacement) {
+                                is CardPosition.InHand -> stateWithRemovedCard.copy(
+                                    playerHand = Segment(
+                                        stateWithRemovedCard.playerHand.cards + removedCard,
+                                        stateWithRemovedCard.playerHand.availableSlots + 1
+                                    )
+                                )
+                                is CardPosition.OnBattleSlot -> TODO()
+                                is CardPosition.UnusedStack -> stateWithRemovedCard.copy(
+                                    unusedStack = Segment(
+                                        stateWithRemovedCard.unusedStack.cards + removedCard,
+                                        stateWithRemovedCard.unusedStack.availableSlots + 1
+                                    )
+                                )
+                            }
+                            tableState = stateWithMovedCard
+                        }
+                        is GameAction.FinishAnsweringQuestion -> {}
+                        is GameAction.StartAnsweringQuestion -> {}
+                        is GameAction.AddCard -> {
+                            tableState = PlayTableState(
+                                unusedStack = Segment(tableState.unusedStack.cards + cards.first { it.id == action.cardId }),
+                                playerHand = Segment(emptyList()),
+                                opponentHand = Segment(emptyList())
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun dealCardsAtStart() {
@@ -83,14 +141,14 @@ class PlayTableViewModel : ViewModel() {
         }
     }
 
-    fun onClickCard(cardId: Int, origin: ClickOrigin) {
+    fun onClickCard(cardId: Long, origin: ClickOrigin) {
         viewModelScope.launch {
             when (origin) {
                 CLOSE_UP -> {
                     clearCloseUp()
                 }
                 PLAYER_HAND -> {
-                    val position = tableState.playerHand.cards.indexOfFirst { it.id == cardId } ?: return@launch
+                    val position = tableState.playerHand.cards.indexOfFirst { it.id == cardId }
                     closeUpTheCardFromPlayerHand(position)
                 }
                 PLAYER_BATTLE_SLOT -> {
@@ -109,7 +167,7 @@ class PlayTableViewModel : ViewModel() {
         clearCloseUp()
     }
 
-    fun onSelectAnswer(cardId: Int, answer: Answer) {
+    fun onSelectAnswer(cardId: Long, answer: Answer) {
         viewModelScope.launch {
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
                 val isAnswerCorrect = slot.card.question.answer == answer
@@ -141,7 +199,7 @@ class PlayTableViewModel : ViewModel() {
         }
     }
 
-    fun onSelectToBattle(cardId: Int) {
+    fun onSelectToBattle(cardId: Long) {
         viewModelScope.launch {
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
                 tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionRace.Initial))
@@ -219,7 +277,7 @@ class PlayTableViewModel : ViewModel() {
 
     private var answerStartTimestamp: Long? = null
 
-    fun onStartAnswer(cardId: Int) {
+    fun onStartAnswer(cardId: Long) {
         viewModelScope.launch {
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
                 tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionRace.Answering))

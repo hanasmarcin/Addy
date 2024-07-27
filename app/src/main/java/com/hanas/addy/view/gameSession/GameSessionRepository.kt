@@ -10,6 +10,8 @@ import com.google.firebase.firestore.toObject
 import com.google.firebase.functions.ktx.functions
 import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.PlayCardStack
+import com.hanas.addy.view.gameSession.createNewSession.GameActionsBatchDTO
+import com.hanas.addy.view.gameSession.createNewSession.toDomain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
@@ -50,11 +52,28 @@ class GameSessionRepository {
         }
 
 
-    fun getGameSessionFlow(id: String) = firestore.collection("gameSessions").document(id).snapshots().map {
-        val cardStackDocument = it.get("cardStack") as? DocumentReference
-        val selected = cardStackDocument?.snapshots()?.first()?.toObject<PlayCardStack>()
-        it.toObject<GameSessionStateResponse>()?.toDomain(cardStacks = selected)
-    }
+    fun getGameSessionFlow(id: String) = firestore.collection("gameSessions")
+        .document(id)
+        .snapshots()
+        .map {
+            val cardStackDocument = it.get("cardStack") as? DocumentReference
+            val selected = cardStackDocument?.snapshots()?.first()?.toObject<PlayCardStack>()
+            it.toObject<GameSessionStateResponse>()?.toDomain(cardStacks = selected)
+        }
+
+    fun getGameActionsFlow(gameSessionId: String, isHandled: (String) -> Boolean) = firestore
+        .collection("gameSessions")
+        .document(gameSessionId)
+        .collection("actions")
+        .snapshots()
+        .map {
+            Log.d("HANASSS", "new game actions snapshot")
+            it.documents.mapNotNull { document ->
+                if (isHandled(document.id).not()) {
+                    document.toObject<GameActionsBatchDTO>()?.toDomain(document.id)
+                } else null
+            }
+        }
 
     fun startGame(gameSessionId: String) = functions.getHttpsCallable("start_game")
         .call(mapOf("gameSessionId" to gameSessionId))
