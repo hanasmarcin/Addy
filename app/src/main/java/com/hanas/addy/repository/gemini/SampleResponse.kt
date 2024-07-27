@@ -1,4 +1,4 @@
-package com.hanas.addy.repository
+package com.hanas.addy.repository.gemini
 
 import com.hanas.addy.model.PlayCardStackGeminiResponse
 import com.hanas.addy.view.createNewCardStack.mapToPlayCardStack

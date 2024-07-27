@@ -17,12 +17,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.ui.GoBack
 import com.hanas.addy.ui.NavScreen
+import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.cardStackDetail.cardStackDetailComposable
 import com.hanas.addy.view.cardStackList.cardStackListComposable
 import com.hanas.addy.view.createNewCardStack.createNewCardStackNavigation
+import com.hanas.addy.view.gameSession.chooseGameSession.chooseCardStackComposable
+import com.hanas.addy.view.gameSession.chooseGameSession.chooseGameSessionComposable
+import com.hanas.addy.view.gameSession.createNewSession.createNewSessionComposable
 import com.hanas.addy.view.home.Home
 import com.hanas.addy.view.home.NavigationHandler
 import com.hanas.addy.view.home.homeComposable
@@ -48,7 +51,9 @@ class MainActivity : ComponentActivity() {
                         navController,
                         if (Firebase.auth.currentUser == null) Login else Home,
                         enterTransition = { slideIntoContainer(Start, tween(300)) },
-                        exitTransition = { fadeOut(tween(300, 100, easing = FastOutSlowInEasing), 0.5f) },
+                        exitTransition = {
+                            fadeOut(tween(300, 100, easing = FastOutSlowInEasing), 0.5f)
+                        },
                         popExitTransition = { slideOutOfContainer(End, tween(300)) },
                         popEnterTransition = { fadeIn(tween(300, easing = LinearEasing), 0.5f) },
                     ) {
@@ -58,6 +63,9 @@ class MainActivity : ComponentActivity() {
                         cardStackDetailComposable()
                         createNewCardStackNavigation(navigate, navController)
                         playTableComposable()
+                        chooseGameSessionComposable(navigate)
+                        createNewSessionComposable(navigate)
+                        chooseCardStackComposable(navigate)
                     }
                 }
             }

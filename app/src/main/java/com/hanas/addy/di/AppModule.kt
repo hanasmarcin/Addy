@@ -3,11 +3,15 @@ package com.hanas.addy.di
 import android.content.Context
 import androidx.credentials.CredentialManager
 import coil.ImageLoader
-import com.hanas.addy.repository.GeminiRepository
+import com.hanas.addy.repository.gemini.GeminiRepository
 import com.hanas.addy.view.cardStackDetail.CardStackDetailViewModel
 import com.hanas.addy.view.cardStackList.CardStackListViewModel
-import com.hanas.addy.view.cardStackList.FirestoreRepository
+import com.hanas.addy.view.cardStackList.CardStackRepository
 import com.hanas.addy.view.createNewCardStack.CreateNewCardStackViewModel
+import com.hanas.addy.view.gameSession.GameSessionRepository
+import com.hanas.addy.view.gameSession.chooseGameSession.ChooseCardStackViewModel
+import com.hanas.addy.view.gameSession.chooseGameSession.ChooseGameSessionViewModel
+import com.hanas.addy.view.gameSession.createNewSession.CreateNewGameSessionViewModel
 import com.hanas.addy.view.home.HomeViewModel
 import com.hanas.addy.view.login.LoginViewModel
 import com.hanas.addy.view.playTable.PlayTableViewModel
@@ -25,13 +29,17 @@ val appModule = module {
         provideCredentialManager(androidContext())
     }
     factoryOf(::GeminiRepository)
-    singleOf(::FirestoreRepository)
+    singleOf(::CardStackRepository)
+    factoryOf(::GameSessionRepository)
     viewModelOf(::HomeViewModel)
     viewModelOf(::CreateNewCardStackViewModel)
     viewModelOf(::LoginViewModel)
     viewModelOf(::CardStackListViewModel)
     viewModelOf(::CardStackDetailViewModel)
     viewModelOf(::PlayTableViewModel)
+    viewModelOf(::CreateNewGameSessionViewModel)
+    viewModelOf(::ChooseGameSessionViewModel)
+    viewModelOf(::ChooseCardStackViewModel)
 }
 
 fun provideImageLoader(context: Context): ImageLoader {

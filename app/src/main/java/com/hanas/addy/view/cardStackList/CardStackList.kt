@@ -36,7 +36,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
 import com.hanas.addy.model.PlayCardStack
-import com.hanas.addy.repository.samplePlayCardStack
+import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppListItem
 import com.hanas.addy.ui.components.AppScaffold
@@ -94,29 +94,27 @@ private fun CardStackListScreen(
             if (isEmpty) {
                 NoCardStacksContent(navHandler)
             } else {
-                CardStacksListContent(navHandler, cardStacks)
+                CardStacksListContent(cardStacks) { id ->
+                    navHandler.navigate(CardStackDetail(id))
+                }
             }
         }
     }
 }
 
 @Composable
-private fun CardStacksListContent(navHandler: NavigationHandler, cardStacks: List<PlayCardStack>) {
+fun CardStacksListContent(cardStacks: List<PlayCardStack>, onClick: (String) -> Unit) {
     LazyColumn(
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp)
     ) {
-        itemsWithPosition(cardStacks) { cardStack, position, index ->
+        itemsWithPosition(cardStacks) { cardStack, position, _ ->
             AppListItem(
                 position = position,
                 trailingContent = {
                     CardStackSizePill(cardStack.cards.size)
                 },
-                onClick = {
-                    cardStack.id?.let {
-                        navHandler.navigate(CardStackDetail(it))
-                    }
-                }
+                onClick = { cardStack.id?.let { onClick(it) } }
             ) {
                 Text(cardStack.title, Modifier.padding(horizontal = 4.dp))
             }

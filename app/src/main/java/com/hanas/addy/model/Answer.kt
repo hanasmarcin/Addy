@@ -60,10 +60,17 @@ data class Question(
 
 @Serializable
 enum class Answer(val value: String) {
-    @SerialName("a") A("a"),
-    @SerialName("b") B("b"),
-    @SerialName("c") C("c"),
-    @SerialName("d") D("d")
+    @SerialName("a")
+    A("a"),
+
+    @SerialName("b")
+    B("b"),
+
+    @SerialName("c")
+    C("c"),
+
+    @SerialName("d")
+    D("d")
 }
 
 @Serializable

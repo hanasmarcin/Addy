@@ -20,6 +20,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledIconButton
@@ -31,15 +32,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.hanas.addy.R
 import com.hanas.addy.ui.components.AppScaffold
@@ -47,13 +53,16 @@ import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.drawPattern
 import com.hanas.addy.ui.theme.AppTheme
+import com.hanas.addy.view.gameSession.chooseGameSession.observeNavigation
 import com.hanas.addy.view.home.NavigationHandler
+import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
 fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: NavigationHandler, navController: NavController) {
     composable<CreateNewCardStack.SelectPhotos> {
-        val parent = navController.getBackStackEntry<CreateNewCardStack>()
+        val parent = remember(it) { navController.getBackStackEntry<CreateNewCardStack>() }
         val viewModel: CreateNewCardStackViewModel = koinNavViewModel(viewModelStoreOwner = parent)
+        viewModel.observeNavigation(navHandler)
         val photoDrawables by viewModel.photoUrisFlow.collectAsState()
         val cardStackFlow by viewModel.cardStackFlow.collectAsState()
         val cameraHelper = rememberCameraHelper {
@@ -62,12 +71,6 @@ fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: Navigat
         val photoPickerHelper = rememberPhotoPickerHelper {
             viewModel.addAllPhotos(it)
         }
-        LaunchedEffect(cardStackFlow) {
-            if (cardStackFlow.data?.cards.isNullOrEmpty().not()) {
-                navHandler.navigate(CreateNewCardStack.PreviewNewStack)
-            }
-        }
-
         CreateNewCardStackSelectPhotosScreen(
             navHandler = navHandler,
             photoDrawables = photoDrawables,
@@ -216,5 +219,40 @@ fun AddNewCardStackScreenPreview() {
 //            "https://picsum.photos/200/800".toUri(),
         )
         CreateNewCardStackSelectPhotosScreen({ }, emptyList(), false, {}, {}, {})
+    }
+}
+
+@Serializable
+object TestHome
+
+@Serializable
+object TestOther
+
+@Serializable
+object Nested
+
+@Serializable
+object InsideNested
+
+@Preview
+@Composable
+fun NavBackExploration() {
+    AppTheme {
+        val navController = rememberNavController()
+        NavHost(navController, modifier = Modifier.fillMaxSize(), startDestination = TestHome) {
+            composable<TestHome> {
+                Button(onClick = { navController.navigate(TestOther) }) {
+                    Text("to test other")
+                }
+            }
+            composable<TestOther> {
+                Button(onClick = { navController.navigate(Nested) }) {
+                    Text("5o n3w53e")
+                }
+            }
+            navigation<Nested>(startDestination = InsideNested) {
+                composable<InsideNested> { Button(onClick = { navController.navigateUp() }) { Text("Inside nested") } }
+            }
+        }
     }
 }

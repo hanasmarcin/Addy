@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayCardData
-import com.hanas.addy.repository.samplePlayCardStack
+import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.PlayCardContentUiType.ATTRIBUTES
 import com.hanas.addy.view.playTable.PlayCardContentUiType.BACK_COVER

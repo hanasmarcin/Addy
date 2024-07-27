@@ -3,7 +3,7 @@ package com.hanas.addy.view.playTable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hanas.addy.model.Answer
-import com.hanas.addy.repository.samplePlayCardStack
+import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.view.playTable.PlayCardContentUiState.QuestionRace
 import com.hanas.addy.view.playTable.PlayTableState.CardSlot
 import com.hanas.addy.view.playTable.PlayTableState.Segment

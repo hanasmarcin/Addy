@@ -14,12 +14,14 @@ import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.model.PlayCardStackGeminiResponse
 import com.hanas.addy.model.Question
-import com.hanas.addy.repository.GeminiRepository
-import com.hanas.addy.view.cardStackList.FirestoreRepository
+import com.hanas.addy.repository.gemini.GeminiRepository
+import com.hanas.addy.view.cardStackList.CardStackRepository
+import com.hanas.addy.view.gameSession.chooseGameSession.NavigationRequester
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
@@ -47,8 +49,8 @@ sealed class DataHolder<T>(
 
 class CreateNewCardStackViewModel(
     private val geminiRepository: GeminiRepository,
-    private val firestoreRepository: FirestoreRepository,
-) : ViewModel() {
+    private val cardStackRepository: CardStackRepository,
+) : ViewModel(), NavigationRequester by NavigationRequester() {
     val cardStackFlow = MutableStateFlow<DataHolder<PlayCardStack>>(DataHolder.Idle())
     val photoUrisFlow: StateFlow<List<Drawable>>
         get() = _photoUrisFlow
@@ -92,8 +94,14 @@ class CreateNewCardStackViewModel(
                     generatedText.replaceFirst("```json", "").replaceFirst("```", "").replace(Regex("(?<=:\\s?)\"(.*?)(?<!\\\\)\""), "\"$1\"")
                 Json.decodeFromString<PlayCardStackGeminiResponse>(cleanCorrectedString)
             }).mapToPlayCardStack(Firebase.auth.currentUser?.uid)
-            cardStackFlow.value = DataHolder.Success(playCards)
-            firestoreRepository.savePlayCardStack(playCards)
+            cardStackRepository.savePlayCardStack(playCards).collectLatest {
+                it.onSuccess {
+                    cardStackFlow.value = DataHolder.Success(playCards)
+                    requestNavigation(CreateNewCardStack.PreviewNewStack)
+                }.onFailure {
+                    cardStackFlow.value = DataHolder.Error(it, cachedData = cardStackFlow.value.data)
+                }
+            }
         }
     }
 }
