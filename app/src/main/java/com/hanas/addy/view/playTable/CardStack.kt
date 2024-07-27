@@ -1,12 +1,14 @@
 package com.hanas.addy.view.playTable
 
+import android.util.Log
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.animateValue
+import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -20,6 +22,7 @@ import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +52,7 @@ import com.hanas.addy.view.playTable.PlayCardContentUiType.ATTRIBUTES
 import com.hanas.addy.view.playTable.PlayCardContentUiType.BACK_COVER
 import com.hanas.addy.view.playTable.PlayCardContentUiType.QUESTION
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
+import kotlinx.coroutines.delay
 
 @Composable
 fun BoxWithConstraintsScope.CardOnTableLayout(
@@ -64,7 +68,7 @@ fun BoxWithConstraintsScope.CardOnTableLayout(
         DpSize(constraints.maxWidth.toDp(), constraints.maxHeight.toDp())
     }
     val unscaledCardSizeInDp = DpSize(screenSizeInDp.width, screenSizeInDp.width / 0.6f)
-    val transition = updateTransition(state, label = "Animate transition")
+    val transition = rememberTransition(MutableTransitionState(state))
     val orientation by animateOrientation(transition)
     val rotationOnZ by animateRotationZ(transition)
     val width by animateWidth(transition, screenSizeInDp)
@@ -179,6 +183,7 @@ fun PlayTable(
     onStartAnswer: (Long) -> Unit
 ) {
     val cards = data.toCardStateMap()
+    Log.d("HANASSS", "PlayTable: ${cards.map { "${it.key.id} ${it.value}" }}")
     BoxWithConstraints(modifier.fillMaxSize()) {
         if (data.closeUp != null) {
             Box(
@@ -213,21 +218,22 @@ fun PlayTablePreview() {
         var playTableState by remember {
             mutableStateOf(
                 PlayTableState(
-                    PlayTableState.Segment(List(7) { cardStack[it] }),
-                    PlayTableState.Segment(List(3) { cardStack[it + 7] }),
-                    PlayTableState.Segment(List(5) { cardStack[it + 7 + 3] }),
+                    PlayTableState.Segment(emptyList()),
+                    PlayTableState.Segment(emptyList()),
+                    PlayTableState.Segment(emptyList())
                 )
             )
         }
-//        LaunchedEffect(Unit) {
-//            delay(500)
-//            playTableState = PlayTableState(
-//                List(10) { cardStack[it] },
-//                List(3) { cardStack[1 + it + 11] },
-//                List(5) { cardStack[it + 12 + 3] } + cardStack[11] + cardStack[12],
-//                List(7) { cardStack[it + 12 + 3 + 5 + 7] } + cardStack[10],
-//            )
-//        }
+        LaunchedEffect(Unit) {
+            for (i in 0..50) {
+                delay(500)
+                playTableState = PlayTableState(
+                    PlayTableState.Segment(cardStack.take(i), 10),
+                    PlayTableState.Segment(emptyList()),
+                    PlayTableState.Segment(emptyList())
+                )
+            }
+        }
         Surface {
             PlayTable(
                 playTableState,

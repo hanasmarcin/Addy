@@ -52,13 +52,11 @@ data class PlayCardOrientation(
                 val rotationX = vector.v1
                 val rotationY = vector.v2
                 val contentToShow = when {
-                    rotationY in -180f..-90f && rotationX in -90f..0f -> PlayCardContentUiType.QUESTION
+                    rotationY in -180f..-90f && rotationX in -90f..0f -> QUESTION
                     rotationY in -90f..0f && rotationX in -90f..0f -> ATTRIBUTES
                     else -> BACK_COVER
                 }
-                PlayCardOrientation(rotationX, rotationY, contentToShow).also {
-                    Log.d("HANASSS", it.toString())
-                }
+                PlayCardOrientation(rotationX, rotationY, contentToShow)
             }
         )
     }
