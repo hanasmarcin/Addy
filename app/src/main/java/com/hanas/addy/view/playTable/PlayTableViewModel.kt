@@ -76,7 +76,7 @@ class PlayTableViewModel(
                 gameSession.cardStack?.cards?.let {
                     cards.addAll(it)
                 }
-                if (cards.isNotEmpty()) gameActions.transform { backActions -> backActions.onEach { emit(it) } } else emptyFlow()
+                if (cards.isNotEmpty()) gameActions.transform { batchActions -> batchActions.onEach { emit(it) } } else emptyFlow()
             }.collect { batchAction ->
                 batchAction.unitActions.forEach { action ->
                     delay(1000)

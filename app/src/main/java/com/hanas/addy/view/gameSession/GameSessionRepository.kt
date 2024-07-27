@@ -72,7 +72,7 @@ class GameSessionRepository {
                 if (isHandled(document.id).not()) {
                     document.toObject<GameActionsBatchDTO>()?.toDomain(document.id)
                 } else null
-            }
+            }.sortedBy { it.timestamp }
         }
 
     fun startGame(gameSessionId: String) = functions.getHttpsCallable("start_game")

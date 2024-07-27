@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.google.firebase.Timestamp
 import com.hanas.addy.model.DataHolder
 import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
@@ -60,6 +61,7 @@ import com.hanas.addy.view.home.NavigationHandler
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 import java.security.InvalidParameterException
+import java.util.Date
 
 @Serializable
 data class CreateNewGameSession(
@@ -186,6 +188,7 @@ fun CreateNewTableScreenPreview(@PreviewParameter(GameSessionStateProvider::clas
 
 data class GameActionsBatchDTO(
     val items: List<GameActionDTO> = emptyList(),
+    val timestamp: Timestamp = Timestamp.now()
 )
 
 data class GameActionDTO(
@@ -205,6 +208,7 @@ data class CardPositionDTO(
 data class GameActionsBatch(
     val unitActions: List<GameAction>,
     val actionId: String,
+    val timestamp: Date,
 )
 
 sealed class GameAction(open val msDelay: Long) {
@@ -286,6 +290,7 @@ fun Modifier.shimmerLoadingAnimation(
 fun GameActionsBatchDTO.toDomain(actionId: String) = GameActionsBatch(
     unitActions = items.map { it.toDomain() },
     actionId = actionId,
+    timestamp = timestamp.toDate()
 )
 
 fun GameActionDTO.toDomain(): GameAction {
