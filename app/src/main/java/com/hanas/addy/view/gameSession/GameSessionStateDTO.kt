@@ -1,13 +1,24 @@
 package com.hanas.addy.view.gameSession
 
+import com.google.firebase.Timestamp
+import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.model.PlayCardStack
-import kotlinx.serialization.Serializable
+import java.util.Date
 
-data class GameSessionState(
-    val inviteCode: String,
-    val players: List<Player>,
-    val cardStack: PlayCardStack?
-)
+sealed class GameSessionState(open val players: List<Player>, open val cardStackInGame: PlayCardStack) {
+    data class WaitingForPlayers(
+        val inviteCode: String,
+        override val players: List<Player>,
+        override val cardStackInGame: PlayCardStack,
+    ) : GameSessionState(players, cardStackInGame)
+
+    data class GameInProgress(
+        override val players: List<Player>,
+        override val cardStackInGame: PlayCardStack,
+        val unusedStack: List<PlayCardData>,
+        val startGameTimestamp: Date,
+    ) : GameSessionState(players, cardStackInGame)
+}
 
 data class Player(
     val id: String,
@@ -16,13 +27,13 @@ data class Player(
 )
 
 
-@Serializable
 data class GameSessionStateDTO(
     val inviteCode: String? = null,
     val players: List<PlayerDTO> = emptyList(),
+    val unusedStack: List<PlayCardData> = emptyList(),
+    val startGameTimestamp: Timestamp? = null,
 )
 
-@Serializable
 data class PlayerDTO(
     val id: String = "",
     val displayName: String = "",

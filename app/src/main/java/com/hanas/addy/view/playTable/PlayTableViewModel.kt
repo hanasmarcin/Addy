@@ -5,11 +5,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.view.gameSession.GameSessionRepository
+import com.hanas.addy.view.gameSession.GameSessionState
 import com.hanas.addy.view.gameSession.createNewSession.CardPosition
 import com.hanas.addy.view.gameSession.createNewSession.GameAction
+import com.hanas.addy.view.gameSession.createNewSession.GameActionsBatch
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.CLOSE_UP
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.OPPONENT_BATTLE_SLOT
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.PLAYER_BATTLE_SLOT
@@ -22,13 +26,14 @@ import com.hanas.addy.view.playTable.model.PlayTableState.CardSlot
 import com.hanas.addy.view.playTable.model.PlayTableState.Segment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -75,74 +80,129 @@ class PlayTableViewModel(
     init {
         viewModelScope.launch {
             gameSession.flatMapConcat { gameSession ->
-                cards.clear()
-                gameSession.cardStack?.cards?.let {
-                    cards.addAll(it)
-                }
-                if (cards.isNotEmpty()) gameActions.transform { batchActions -> batchActions.onEach { emit(it) } } else emptyFlow()
+                handleGameSession(gameSession)
             }.collect { batchAction ->
-                batchAction.unitActions.forEach { action ->
-                    delay(1000)
-                    Log.d("HANASSS", "Performing action: $action")
-                    when (action) {
-                        is GameAction.MoveCard -> {
-                            val (removedCard, stateWithRemovedCard) = when (action.currentPlacement) {
-                                is CardPosition.InHand -> tableState.playerHand.cards.first { it.id == action.cardId } to tableState.copy(
-                                    playerHand = Segment(tableState.playerHand.cards.dropAt(action.currentPlacement.positionInSegment))
-                                )
-                                is CardPosition.OnBattleSlot -> TODO()
-                                is CardPosition.UnusedStack -> {
-                                    val removedCard = tableState.unusedStack.cards.first { it.id == action.cardId }
-                                    val id = tableState.unusedStack.cards.indexOf(removedCard)
-                                    removedCard to tableState.copy(
-                                        unusedStack = Segment(tableState.unusedStack.cards.dropAt(id))
-                                    )
-                                }
-                            }
-                            val stateWithMovedCard = when (action.targetPlacement) {
-                                is CardPosition.InHand -> stateWithRemovedCard.copy(
-                                    playerHand = Segment(
-                                        stateWithRemovedCard.playerHand.cards + removedCard,
-                                        stateWithRemovedCard.playerHand.availableSlots + 1
-                                    )
-                                )
-                                is CardPosition.OnBattleSlot -> TODO()
-                                is CardPosition.UnusedStack -> stateWithRemovedCard.copy(
-                                    unusedStack = Segment(
-                                        stateWithRemovedCard.unusedStack.cards + removedCard,
-                                        stateWithRemovedCard.unusedStack.availableSlots + 1
-                                    )
-                                )
-                            }
-                            tableState = stateWithMovedCard
-                        }
-                        is GameAction.FinishAnsweringQuestion -> {}
-                        is GameAction.StartAnsweringQuestion -> {}
-                        is GameAction.AddCard -> {
-                            tableState = PlayTableState(
-                                unusedStack = Segment(tableState.unusedStack.cards + cards.first { it.id == action.cardId }),
-                                playerHand = Segment(emptyList()),
-                                opponentHand = Segment(emptyList())
-                            )
-                        }
-                    }
-                }
+                handleBatchAction(batchAction)
             }
         }
     }
 
-    private fun dealCardsAtStart() {
-        viewModelScope.launch {
-            (1..5).forEach { _ ->
-                giveCardFromUnusedToPlayer()
-                delay(510)
-            }
-            (1..5).forEach { _ ->
-                giveCardFromUnusedToOpponent()
-                delay(510)
+    private suspend fun handleGameSession(gameSession: GameSessionState): Flow<GameActionsBatch> {
+        cards.clear()
+        cards.addAll(gameSession.cardStackInGame.cards)
+        return if (cards.isNotEmpty()) {
+            gameActions.flatMapConcat { batchActions -> batchActions.asFlow() }
+        } else {
+            emptyFlow()
+        }
+    }
+
+    private suspend fun handleBatchAction(batchAction: GameActionsBatch) {
+        batchAction.unitActions.forEach { action ->
+            delay(1000)
+            Log.d("HANASSS", "Performing action: $action")
+            when (action) {
+                is GameAction.MoveCard -> handleMoveCardAction(action)
+                is GameAction.FinishAnsweringQuestion -> handleFinishAnsweringQuestion(action)
+                is GameAction.StartAnsweringQuestion -> handleStartAnsweringQuestion(action)
+                is GameAction.AddCard -> handleAddCardAction(action)
             }
         }
     }
+
+    private fun handleMoveCardAction(action: GameAction.MoveCard) {
+        val (removedCard, stateWithRemovedCard) = removeCardFromCurrentPlacement(action)
+        val stateWithMovedCard = placeCardToTargetPlacement(action, removedCard, stateWithRemovedCard)
+        tableState = stateWithMovedCard
+    }
+
+    private fun removeCardFromCurrentPlacement(action: GameAction.MoveCard): Pair<PlayCardData, PlayTableState> {
+        return when (action.currentPlacement) {
+            is CardPosition.InHand -> removeCardFromHand(action.currentPlacement, action.cardId)
+            is CardPosition.OnBattleSlot -> TODO()
+            is CardPosition.UnusedStack -> removeCardFromUnusedStack(action)
+        }
+    }
+
+    private fun removeCardFromHand(currentPlacement: CardPosition.InHand, cardId: Long): Pair<PlayCardData, PlayTableState> {
+        return if (currentPlacement.forPlayerId == Firebase.auth.currentUser?.uid) {
+            tableState.playerHand.cards.first { it.id == cardId } to tableState.copy(
+                playerHand = Segment(tableState.playerHand.cards.dropAt(currentPlacement.positionInSegment))
+            )
+        } else {
+            tableState.opponentHand.cards.first { it.id == cardId } to tableState.copy(
+                opponentHand = Segment(tableState.opponentHand.cards.dropAt(currentPlacement.positionInSegment))
+            )
+        }
+    }
+
+    private fun removeCardFromUnusedStack(action: GameAction.MoveCard): Pair<PlayCardData, PlayTableState> {
+        val removedCard = tableState.unusedStack.cards.first { it.id == action.cardId }
+        val id = tableState.unusedStack.cards.indexOf(removedCard)
+        return removedCard to tableState.copy(
+            unusedStack = Segment(tableState.unusedStack.cards.dropAt(id))
+        )
+    }
+
+    private fun placeCardToTargetPlacement(
+        action: GameAction.MoveCard,
+        removedCard: PlayCardData,
+        stateWithRemovedCard: PlayTableState
+    ): PlayTableState {
+        return when (action.targetPlacement) {
+            is CardPosition.InHand -> placeCardInHand(action.targetPlacement, removedCard, stateWithRemovedCard)
+            is CardPosition.OnBattleSlot -> TODO()
+            is CardPosition.UnusedStack -> placeCardInUnusedStack(removedCard, stateWithRemovedCard)
+        }
+    }
+
+    private fun placeCardInHand(
+        targetPlacement: CardPosition.InHand,
+        removedCard: PlayCardData,
+        stateWithRemovedCard: PlayTableState
+    ): PlayTableState {
+        return if (targetPlacement.forPlayerId == Firebase.auth.currentUser?.uid) {
+            stateWithRemovedCard.copy(
+                playerHand = Segment(
+                    stateWithRemovedCard.playerHand.cards + removedCard,
+                    stateWithRemovedCard.playerHand.availableSlots + 1
+                )
+            )
+        } else {
+            stateWithRemovedCard.copy(
+                opponentHand = Segment(
+                    stateWithRemovedCard.opponentHand.cards + removedCard,
+                    stateWithRemovedCard.opponentHand.availableSlots + 1
+                )
+            )
+        }
+    }
+
+    private fun placeCardInUnusedStack(removedCard: PlayCardData, stateWithRemovedCard: PlayTableState): PlayTableState {
+        return stateWithRemovedCard.copy(
+            unusedStack = Segment(
+                stateWithRemovedCard.unusedStack.cards + removedCard,
+                stateWithRemovedCard.unusedStack.availableSlots + 1
+            )
+        )
+    }
+
+    private suspend fun handleFinishAnsweringQuestion(action: GameAction.FinishAnsweringQuestion) {
+        // Handle FinishAnsweringQuestion logic
+    }
+
+    private suspend fun handleStartAnsweringQuestion(action: GameAction.StartAnsweringQuestion) {
+        // Handle StartAnsweringQuestion logic
+    }
+
+    private suspend fun handleAddCardAction(action: GameAction.AddCard) {
+        tableState = PlayTableState(
+            unusedStack = Segment(tableState.unusedStack.cards + cards.first { it.id == action.cardId }),
+            playerHand = Segment(emptyList()),
+            opponentHand = Segment(emptyList())
+        )
+    }
+
 
     fun onClickCard(cardId: Long, origin: ClickOrigin) {
         viewModelScope.launch {

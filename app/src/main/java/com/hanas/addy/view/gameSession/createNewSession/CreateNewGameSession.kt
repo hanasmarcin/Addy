@@ -103,7 +103,7 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: Navi
                         .shimmerLoadingAnimation(state is DataHolder.Loading),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, CenterHorizontally)
                 ) {
-                    (state.data?.inviteCode ?: "000000").forEach { digit ->
+                    ((state.data as? GameSessionState.WaitingForPlayers)?.inviteCode ?: "000000").forEach { digit ->
                         Text(
                             digit.toString(),
                             Modifier
@@ -148,7 +148,7 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: Navi
             Text("Card stack", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.size(8.dp))
             LazyRow(contentPadding = PaddingValues(16.dp)) {
-                items(state.data?.cardStack?.cards ?: emptyList()) {
+                items(state.data?.cardStackInGame?.cards ?: emptyList()) {
                     Card {
                         Text(it.title)
                     }
@@ -162,8 +162,8 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: Navi
 class GameSessionStateProvider : PreviewParameterProvider<DataHolder<GameSessionState>> {
     override val values = sequenceOf(
         DataHolder.Loading(),
-        DataHolder.Success(
-            GameSessionState(
+        DataHolder.Success<GameSessionState>(
+            GameSessionState.WaitingForPlayers(
                 "123456",
                 listOf(
                     Player("1", "Marcin Hanas", PlayerInvitationState.WAITING_FOR_RESPONSE),

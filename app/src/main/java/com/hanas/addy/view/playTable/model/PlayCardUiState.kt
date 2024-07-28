@@ -129,7 +129,7 @@ sealed class PlayCardUiState(
         content = PlayCardContentUiState.BackCover,
         clickOrigin = null,
     ) {
-        override fun targetIndexZ() = 1000.5f + (amountInState - position - 1)
+        override fun targetIndexZ() = -500f + (amountInState - position - 1)
         private val cardWidth = 100.dp
         override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize) =
             DpOffset(

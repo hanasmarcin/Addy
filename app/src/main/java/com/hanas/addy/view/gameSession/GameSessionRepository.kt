@@ -58,7 +58,9 @@ class GameSessionRepository {
         .map {
             val cardStackDocument = it.get("cardStack") as? DocumentReference
             val selected = cardStackDocument?.snapshots()?.first()?.toObject<PlayCardStack>()
-            it.toObject<GameSessionStateDTO>()?.toDomain(cardStacks = selected)
+            if (selected != null) {
+                it.toObject<GameSessionStateDTO>()?.toDomain(cardStacks = selected)
+            } else null
         }
 
     fun getGameActionsFlow(gameSessionId: String, isHandled: (String) -> Boolean) = firestore
@@ -84,10 +86,23 @@ class GameSessionRepository {
 }
 
 
-fun GameSessionStateDTO.toDomain(cardStacks: PlayCardStack?) = inviteCode?.let {
-    GameSessionState(
-        inviteCode = it,
-        cardStack = cardStacks,
+fun GameSessionStateDTO.toDomain(cardStacks: PlayCardStack) = if (startGameTimestamp != null && players.isNotEmpty() && unusedStack.isNotEmpty()) {
+    GameSessionState.GameInProgress(
+        cardStackInGame = cardStacks,
+        startGameTimestamp = startGameTimestamp.toDate(),
+        unusedStack = unusedStack,
+        players = players.map {
+            Player(
+                id = it.id,
+                displayName = it.displayName,
+                invitationStatus = it.invitationStatus.toInvitationStatus() ?: PlayerInvitationState.WAITING_FOR_RESPONSE
+            )
+        }
+    )
+} else if (inviteCode != null) {
+    GameSessionState.WaitingForPlayers(
+        inviteCode = inviteCode,
+        cardStackInGame = cardStacks,
         players = players.mapNotNull { player ->
             player.invitationStatus.toInvitationStatus()?.let { invitation ->
                 Player(
@@ -98,7 +113,8 @@ fun GameSessionStateDTO.toDomain(cardStacks: PlayCardStack?) = inviteCode?.let {
             }
         }
     )
-}
+} else null
+
 
 @OptIn(ExperimentalCoroutinesApi::class)
 fun <T> Task<T>.asFlow(): Flow<T> = callbackFlow {
