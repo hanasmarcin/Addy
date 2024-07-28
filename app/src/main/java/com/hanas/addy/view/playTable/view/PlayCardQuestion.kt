@@ -280,11 +280,11 @@ fun RowScope.AnswerItem(
 
 @Composable
 fun AnswerBox(
-    color: Color = MaterialTheme.colorScheme.tertiaryContainer,
     color1: Color,
     innerPadding: PaddingValues,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.tertiaryContainer,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(
@@ -336,7 +336,7 @@ fun PlayCardAnimationPreview() {
     AppTheme {
         var state by remember { mutableStateOf<PlayCardContentUiState.QuestionRace>(Initial) }
         Card(shape = RoundedCornerShape(24.dp)) {
-            CardOnTableContent(samplePlayCard, state, false, null, {}, {}, {
+            CardOnTableContent(samplePlayCard, state, false, {}, {}, {
                 state = Result(it, it == Answer.A)
             }) {
                 state = Answering
@@ -350,7 +350,7 @@ fun PlayCardAnimationPreview() {
 fun PlayCardPreview(@PreviewParameter(PlayCardProvider::class) state: PlayCardContentUiState) {
     AppTheme {
         Card(shape = RoundedCornerShape(24.dp)) {
-            CardOnTableContent(samplePlayCard, state, false, null, {}, {}, {}, {})
+            CardOnTableContent(samplePlayCard, state, false, {}, {}, {}, {})
         }
     }
 }

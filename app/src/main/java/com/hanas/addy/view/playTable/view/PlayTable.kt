@@ -1,6 +1,7 @@
 package com.hanas.addy.view.playTable.view
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.foundation.background
@@ -23,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
@@ -35,6 +35,7 @@ import com.hanas.addy.model.Answer
 import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
+import com.hanas.addy.view.playTable.model.PlayCardContentUiState
 import com.hanas.addy.view.playTable.model.PlayCardUiState
 import com.hanas.addy.view.playTable.model.PlayTableSegmentType
 import com.hanas.addy.view.playTable.model.PlayTableState
@@ -67,31 +68,12 @@ fun PlayTable(
         val screenSizeInDp = with(LocalDensity.current) {
             DpSize(constraints.maxWidth.toDp(), constraints.maxHeight.toDp())
         }
-        if (data.closeUp != null) {
-            Box(
-                Modifier
-                    .onPlaced {
-                        Log.d(
-                            "HANASSS",
-                            "placed:${it.size}, ${it.positionInRoot()}, ${it.isAttached}, ${it.providedAlignmentLines}, ${it.parentCoordinates?.parentCoordinates?.size}, ${it.parentLayoutCoordinates?.parentCoordinates?.size}"
-                        )
-                    }
-                    .fillMaxSize()
-                    .layout { measurable, constraints ->
-                        val size = scrimSize
-                        Log.d("HANASSS", "constraints: $constraints")
-                        val placeable = measurable.measure(
-                            Constraints.fixed(size.width, size.height)
-                        )
-                        layout(size.width, size.height) {
-                            placeable.place(0, 0)
-                        }
-                    }
-                    .background(DrawerDefaults.scrimColor)
-                    .zIndex(700f)
-                    .clickable { onClickAwayFromCloseUp() }
-            )
-        }
+        Scrim(
+            enabled = data.closeUp != null,
+            isClickAvailable = (data.closeUp?.contentState is PlayCardContentUiState.AttributesDisplay),
+            scrimSize = scrimSize,
+            onClickAwayFromCloseUp = onClickAwayFromCloseUp
+        )
         cards.forEach { (data, state) ->
             key(data.id) {
                 CardOnTableLayout(
@@ -103,11 +85,41 @@ fun PlayTable(
                         .layoutId(data.hashCode()),
                     onSelectAnswer = { onSelectAnswer(data.id, it) },
                     onSelectToBattle = { onSelectToBattle(data.id) },
-                    onClickCard = { state.clickOrigin?.let { onClickCard(data.id, it) } },
+                    onClickCard = { onClickCard(data.id, state.clickOrigin) },
                     startAnswer = { onStartAnswer(data.id) }
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun Scrim(
+    enabled: Boolean,
+    isClickAvailable: Boolean,
+    scrimSize: IntSize,
+    onClickAwayFromCloseUp: () -> Unit
+) {
+    AnimatedVisibility(enabled, Modifier
+        .fillMaxSize()
+        .zIndex(700f)
+        .layout { measurable, constraints ->
+            val size = scrimSize
+            Log.d("HANASSS", "constraints: $constraints")
+            val placeable = measurable.measure(
+                Constraints.fixed(size.width, size.height)
+            )
+            layout(size.width, size.height) {
+                placeable.place(0, 0)
+            }
+        }
+    ) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(DrawerDefaults.scrimColor)
+                .clickable(isClickAvailable) { onClickAwayFromCloseUp() }
+        )
     }
 }
 

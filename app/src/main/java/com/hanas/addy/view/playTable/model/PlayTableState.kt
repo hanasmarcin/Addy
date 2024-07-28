@@ -39,7 +39,7 @@ data class PlayTableState(
             if (card.isNotInSlot()) set(card, PlayCardUiState.OnUnusedStack(index, unusedStack.availableSlots))
         }
         playerHand.cards.onEachIndexed { index, card ->
-            val isClickAvailable = closeUp?.contentState !is PlayCardContentUiState.QuestionRace
+            val isClickAvailable = closeUp == null || closeUp.contentState is PlayCardContentUiState.AttributesDisplay
             if (card.isNotInSlot()) set(card, PlayCardUiState.InHand(index, playerHand.availableSlots, isClickAvailable))
         }
         opponentHand.cards.onEachIndexed { index, card ->

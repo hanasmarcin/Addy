@@ -12,7 +12,7 @@ sealed class PlayCardUiState(
     open val position: Int,
     open val amountInState: Int,
     open val content: PlayCardContentUiState,
-    val clickOrigin: ClickOrigin?,
+    val clickOrigin: ClickOrigin,
 ) {
 
     //    abstract fun targetOffset(): DpOffset
@@ -31,7 +31,7 @@ sealed class PlayCardUiState(
         position = position,
         amountInState = amountInState,
         content = PlayCardContentUiState.BackCover,
-        clickOrigin = null
+        clickOrigin = ClickOrigin.NOT_CLICKABLE
     ) {
         override fun targetIndexZ() = position.toFloat()
         override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize) = DpOffset(x = position.dp * 2, y = position.dp * -2)
@@ -47,7 +47,7 @@ sealed class PlayCardUiState(
         position = position,
         amountInState = 1,
         content = content,
-        clickOrigin = ClickOrigin.CLOSE_UP
+        clickOrigin = if (content.isClickable) ClickOrigin.CLOSE_UP else ClickOrigin.NOT_CLICKABLE
     ) {
 
         override fun targetIndexZ() = 1000f + position
@@ -65,7 +65,7 @@ sealed class PlayCardUiState(
         position = position,
         amountInState = amountInState,
         content = content,
-        clickOrigin = ClickOrigin.PLAYER_BATTLE_SLOT.takeIf { content is PlayCardContentUiState.AttributesDisplay },
+        clickOrigin = if (content.isClickable) ClickOrigin.PLAYER_BATTLE_SLOT else ClickOrigin.NOT_CLICKABLE,
     ) {
         override fun targetIndexZ() = position.toFloat()
         override fun targetOffset(
@@ -85,7 +85,7 @@ sealed class PlayCardUiState(
         position = position,
         amountInState = amountInState,
         content = content,
-        clickOrigin = ClickOrigin.OPPONENT_BATTLE_SLOT.takeIf { content is PlayCardContentUiState.AttributesDisplay },
+        clickOrigin = if (content.isClickable) ClickOrigin.OPPONENT_BATTLE_SLOT else ClickOrigin.NOT_CLICKABLE,
     ) {
         override fun targetIndexZ() = position.toFloat()
         override fun targetOffset(
@@ -105,7 +105,7 @@ sealed class PlayCardUiState(
         position = position,
         amountInState = amountInState,
         content = PlayCardContentUiState.AttributesDisplay.Initial,
-        clickOrigin = ClickOrigin.PLAYER_HAND.takeIf { isClickAvailable },
+        clickOrigin = if (isClickAvailable) ClickOrigin.PLAYER_HAND else ClickOrigin.NOT_CLICKABLE,
     ) {
         override fun targetIndexZ() = 1000.5f + position
         private val cardWidth = 100.dp
@@ -127,7 +127,7 @@ sealed class PlayCardUiState(
         position = position,
         amountInState = amountInState,
         content = PlayCardContentUiState.BackCover,
-        clickOrigin = null,
+        clickOrigin = ClickOrigin.NOT_CLICKABLE,
     ) {
         override fun targetIndexZ() = -500f + (amountInState - position - 1)
         private val cardWidth = 100.dp

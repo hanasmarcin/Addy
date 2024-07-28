@@ -3,6 +3,7 @@ package com.hanas.addy.view.gameSession.chooseGameSession
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
@@ -57,6 +58,7 @@ fun ChooseGameSessionScreen(
                 Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
+                    .navigationBarsPadding()
             ) {
                 PrimaryButton(onClick = {
                     navHandler.navigate(ChooseCardStack)

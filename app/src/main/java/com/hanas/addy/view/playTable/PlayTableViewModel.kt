@@ -222,6 +222,7 @@ class PlayTableViewModel(
                     val cardSlot = tableState.opponentBattleSlot ?: return@launch
                     closeUpFromSlot(cardSlot)
                 }
+                ClickOrigin.NOT_CLICKABLE -> {}
             }
         }
     }
@@ -273,7 +274,7 @@ class PlayTableViewModel(
 
 
     enum class ClickOrigin {
-        CLOSE_UP, PLAYER_HAND, PLAYER_BATTLE_SLOT, OPPONENT_BATTLE_SLOT
+        NOT_CLICKABLE, CLOSE_UP, PLAYER_HAND, PLAYER_BATTLE_SLOT, OPPONENT_BATTLE_SLOT
 
     }
 

@@ -45,11 +45,7 @@ fun CardOnTableLayout(
     val offset by animateOffset(transition, screenSizeInDp, unscaledCardSizeInDp)
     val animTransformOrigin by animateTransformOrigin(transition)
     Box(modifier = modifier
-        .zIndex(
-            state
-                .targetIndexZ()
-                .toFloat()
-        )
+        .zIndex(state.targetIndexZ())
         .offset {
             IntOffset(offset.x.dp.roundToPx(), offset.y.dp.roundToPx())
         }
@@ -81,8 +77,7 @@ fun CardOnTableLayout(
         CardOnTableContent(
             data = data,
             contentState = contentState,
-            isTransitioning = transition.isRunning,
-            clickOrigin = state.clickOrigin,
+            isClickable = transition.isRunning.not() && state.clickOrigin != ClickOrigin.NOT_CLICKABLE,
             onClickCard = onClickCard,
             onSelectToBattle = onSelectToBattle,
             onSelectAnswer = onSelectAnswer,
@@ -95,14 +90,12 @@ fun CardOnTableLayout(
 fun CardOnTableContent(
     data: PlayCardData,
     contentState: PlayCardContentUiState,
-    isTransitioning: Boolean,
-    clickOrigin: ClickOrigin?,
+    isClickable: Boolean,
     onClickCard: () -> Unit,
     onSelectToBattle: () -> Unit,
     onSelectAnswer: (Answer) -> Unit,
     startAnswering: () -> Unit
 ) {
-    val isClickable = isTransitioning.not() && clickOrigin != null
     val cardModifier = Modifier.clickable(enabled = isClickable) {
         onClickCard()
     }
