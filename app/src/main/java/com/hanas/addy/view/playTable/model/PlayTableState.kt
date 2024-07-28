@@ -1,4 +1,4 @@
-package com.hanas.addy.view.playTable
+package com.hanas.addy.view.playTable.model
 
 import com.hanas.addy.model.PlayCardData
 

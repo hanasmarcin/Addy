@@ -58,7 +58,7 @@ class GameSessionRepository {
         .map {
             val cardStackDocument = it.get("cardStack") as? DocumentReference
             val selected = cardStackDocument?.snapshots()?.first()?.toObject<PlayCardStack>()
-            it.toObject<GameSessionStateResponse>()?.toDomain(cardStacks = selected)
+            it.toObject<GameSessionStateDTO>()?.toDomain(cardStacks = selected)
         }
 
     fun getGameActionsFlow(gameSessionId: String, isHandled: (String) -> Boolean) = firestore
@@ -84,7 +84,7 @@ class GameSessionRepository {
 }
 
 
-fun GameSessionStateResponse.toDomain(cardStacks: PlayCardStack?) = inviteCode?.let {
+fun GameSessionStateDTO.toDomain(cardStacks: PlayCardStack?) = inviteCode?.let {
     GameSessionState(
         inviteCode = it,
         cardStack = cardStacks,

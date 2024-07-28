@@ -9,7 +9,7 @@ import com.hanas.addy.model.DataHolder
 import com.hanas.addy.model.wrapInDataHolder
 import com.hanas.addy.view.gameSession.GameSessionRepository
 import com.hanas.addy.view.gameSession.chooseGameSession.NavigationRequester
-import com.hanas.addy.view.playTable.PlayTable
+import com.hanas.addy.view.playTable.view.PlayTable
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull

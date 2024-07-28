@@ -17,13 +17,13 @@ data class Player(
 
 
 @Serializable
-data class GameSessionStateResponse(
+data class GameSessionStateDTO(
     val inviteCode: String? = null,
-    val players: List<PlayerResponse> = emptyList(),
+    val players: List<PlayerDTO> = emptyList(),
 )
 
 @Serializable
-data class PlayerResponse(
+data class PlayerDTO(
     val id: String = "",
     val displayName: String = "",
     val invitationStatus: String = "",

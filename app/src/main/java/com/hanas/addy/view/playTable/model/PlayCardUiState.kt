@@ -1,66 +1,11 @@
-package com.hanas.addy.view.playTable
+package com.hanas.addy.view.playTable.model
 
-import android.util.Log
-import androidx.compose.animation.core.AnimationVector2D
-import androidx.compose.animation.core.TwoWayConverter
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import com.hanas.addy.model.Answer
-import com.hanas.addy.view.playTable.PlayCardContentUiType.ATTRIBUTES
-import com.hanas.addy.view.playTable.PlayCardContentUiType.BACK_COVER
-import com.hanas.addy.view.playTable.PlayCardContentUiType.QUESTION
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
-
-enum class PlayCardContentUiType {
-    BACK_COVER, ATTRIBUTES, QUESTION
-}
-
-sealed class PlayCardContentUiState(
-    val rotationX: Float,
-    val rotationY: Float,
-    val type: PlayCardContentUiType
-) {
-    data object BackCover : PlayCardContentUiState(-180f, 0f, BACK_COVER)
-    sealed class AttributesDisplay : PlayCardContentUiState(0f, 0f, ATTRIBUTES) {
-        data object Initial : AttributesDisplay()
-        data class AddingBoost(val boostForRed: Int, val boostForGreen: Int, val boostForBlue: Int) : AttributesDisplay()
-        data object WaitingForAttributeBattle : AttributesDisplay()
-
-    }
-
-    sealed class QuestionRace(val targetImageHeight: Dp) : PlayCardContentUiState(0f, -180f, QUESTION) {
-        data object Initial : QuestionRace(Dp.Infinity)
-        data object Answering : QuestionRace(0.dp)
-        data class Result(val answer: Answer, val isAnswerCorrect: Boolean) : QuestionRace(0.dp)
-    }
-}
-
-data class PlayCardOrientation(
-    val rotationX: Float,
-    val rotationY: Float,
-    val contentType: PlayCardContentUiType,
-) {
-    companion object {
-        val ToVector: TwoWayConverter<PlayCardOrientation, AnimationVector2D> = TwoWayConverter(
-            convertToVector = { state ->
-                AnimationVector2D(state.rotationX, state.rotationY)
-            },
-            convertFromVector = { vector ->
-                val rotationX = vector.v1
-                val rotationY = vector.v2
-                val contentToShow = when {
-                    rotationY in -180f..-90f && rotationX in -90f..0f -> QUESTION
-                    rotationY in -90f..0f && rotationX in -90f..0f -> ATTRIBUTES
-                    else -> BACK_COVER
-                }
-                PlayCardOrientation(rotationX, rotationY, contentToShow)
-            }
-        )
-    }
-}
 
 
 sealed class PlayCardUiState(
