@@ -40,7 +40,7 @@ import kotlin.random.Random
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayTableViewModel(
     savedStateHandle: SavedStateHandle,
-    repository: GameSessionRepository,
+    private val repository: GameSessionRepository,
 ) : ViewModel() {
     private val handledActions = mutableSetOf<String>()
     private val navArgs by lazy { savedStateHandle.toRoute<PlayTable>() }
@@ -188,11 +188,25 @@ class PlayTableViewModel(
     }
 
     private suspend fun handleFinishAnsweringQuestion(action: GameAction.FinishAnsweringQuestion) {
-        // Handle FinishAnsweringQuestion logic
+        tableState.opponentHand.cards.firstOrNullIndexed { it.id == action.cardId }?.let { (index, card) ->
+            tableState = tableState.copy(
+                opponentBattleSlot = CardSlot(
+                    card,
+                    PlayTableSegmentType.TOP_OPPONENT_HAND,
+                    index,
+                    contentState = PlayCardContentUiState.AttributesDisplay.AddingBoost(3, 3, 3)
+                )
+            )
+        }
     }
 
     private suspend fun handleStartAnsweringQuestion(action: GameAction.StartAnsweringQuestion) {
-        // Handle StartAnsweringQuestion logic
+        if (action.playerId == Firebase.auth.currentUser?.uid) return // Skip if our own event
+        tableState.opponentHand.cards.firstOrNullIndexed { it.id == action.cardId }?.let { (index, card) ->
+            tableState = tableState.copy(
+                opponentBattleSlot = CardSlot(card, PlayTableSegmentType.TOP_OPPONENT_HAND, index, contentState = QuestionRace.Answering)
+            )
+        }
     }
 
     private suspend fun handleAddCardAction(action: GameAction.AddCard) {
@@ -233,6 +247,10 @@ class PlayTableViewModel(
 
     fun onSelectAnswer(cardId: Long, answer: Answer) {
         viewModelScope.launch {
+            launch {
+                val action = GameAction.FinishAnsweringQuestion(cardId = cardId, playerId = Firebase.auth.uid ?: "", msDelay = 0)
+                repository.sendSingleAction(action, navArgs.gameSessionId)
+            }
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
                 val isAnswerCorrect = slot.card.question.answer == answer
                 tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionRace.Result(answer, isAnswerCorrect)))
@@ -258,8 +276,6 @@ class PlayTableViewModel(
                     )
                 )
             }
-            //TODO Send to firebase
-
         }
     }
 
@@ -311,38 +327,14 @@ class PlayTableViewModel(
         } ?: return false
     }
 
-    private suspend fun giveCardFromUnusedToPlayer(position: Int = tableState.unusedStack.cards.lastIndex) {
-        val targetCard = tableState.unusedStack.cards[position]
-        tableState = tableState.copy(
-            playerHand = Segment(tableState.playerHand.cards, tableState.playerHand.availableSlots + 1)
-        )
-        delay(550)
-        tableState = tableState.copy(
-            unusedStack = Segment(tableState.unusedStack.cards.dropAt(position), tableState.unusedStack.availableSlots - 1),
-            playerHand = Segment(tableState.playerHand.cards + targetCard, tableState.playerHand.availableSlots)
-        )
-    }
-
-    private suspend fun giveCardFromUnusedToOpponent(): Boolean {
-        if (tableState.unusedStack.cards.isEmpty()) return false
-        tableState = tableState.copy(
-            opponentHand = Segment(tableState.opponentHand.cards, tableState.opponentHand.availableSlots + 1)
-        )
-        delay(550)
-        tableState = tableState.copy(
-            unusedStack = Segment(tableState.unusedStack.cards.dropLast(1), tableState.unusedStack.availableSlots - 1),
-            opponentHand = Segment(
-                tableState.opponentHand.cards + tableState.unusedStack.cards.last(),
-                tableState.opponentHand.availableSlots
-            )
-        )
-        return true
-    }
-
     private var answerStartTimestamp: Long? = null
 
     fun onStartAnswer(cardId: Long) {
         viewModelScope.launch {
+            launch {
+                val action = GameAction.StartAnsweringQuestion(cardId = cardId, playerId = Firebase.auth.uid ?: "", msDelay = 0)
+                repository.sendSingleAction(action, navArgs.gameSessionId)
+            }
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
                 tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionRace.Answering))
                 answerStartTimestamp = System.currentTimeMillis()
@@ -350,7 +342,10 @@ class PlayTableViewModel(
             //TODO Send to firebase
         }
     }
+
 }
 
 private fun <E> List<E>.dropAt(position: Int) = take(position) + drop(position + 1)
 
+inline fun <T> Iterable<T>.firstOrNullIndexed(predicate: (T) -> Boolean): Pair<Int, T>? =
+    mapIndexed { index, t -> index to t }.firstOrNull { (_, t) -> predicate(t) }

@@ -13,7 +13,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.DpSize
@@ -43,7 +42,6 @@ fun CardOnTableLayout(
     val rotationOnZ by animateRotationZ(transition)
     val width by animateWidth(transition, screenSizeInDp)
     val offset by animateOffset(transition, screenSizeInDp, unscaledCardSizeInDp)
-    val animTransformOrigin by animateTransformOrigin(transition)
     Box(modifier = modifier
         .zIndex(state.targetIndexZ())
         .offset {
@@ -51,7 +49,6 @@ fun CardOnTableLayout(
         }
         .graphicsLayer {
             val scale = width.toPx() / screenSizeInDp.width.toPx()
-            transformOrigin = TransformOrigin(animTransformOrigin.x, animTransformOrigin.y)
             scaleX = scale
             scaleY = scale
             rotationX = orientation.rotationX

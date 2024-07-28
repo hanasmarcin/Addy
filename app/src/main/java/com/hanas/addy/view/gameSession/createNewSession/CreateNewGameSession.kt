@@ -196,6 +196,7 @@ data class GameActionsBatchDTO(
 data class GameActionDTO(
     val type: String? = null,
     val cardId: Long? = null,
+    val playerId: String? = null,
     val currentSegment: CardPositionDTO? = null,
     val targetSegment: CardPositionDTO? = null,
     val msDelay: Long = 0,
@@ -229,11 +230,13 @@ sealed class GameAction(open val msDelay: Long) {
 
     data class StartAnsweringQuestion(
         val cardId: Long,
+        val playerId: String,
         override val msDelay: Long
     ) : GameAction(msDelay)
 
     data class FinishAnsweringQuestion(
         val cardId: Long,
+        val playerId: String,
         override val msDelay: Long
     ) : GameAction(msDelay)
 }
@@ -309,8 +312,8 @@ fun GameActionDTO.toDomain(): GameAction {
             targetPlacement = requireNotNull(targetSegment).toDomain(),
             msDelay = msDelay
         )
-        "startAnsweringQuestion" -> GameAction.StartAnsweringQuestion(cardId, msDelay)
-        "finishAnsweringQuestion" -> GameAction.FinishAnsweringQuestion(cardId, msDelay)
+        "startAnsweringQuestion" -> GameAction.StartAnsweringQuestion(cardId, requireNotNull(playerId), msDelay)
+        "finishAnsweringQuestion" -> GameAction.FinishAnsweringQuestion(cardId, requireNotNull(playerId), msDelay)
         else -> throw InvalidParameterException("Unknown player action type: $type")
     }
 }
@@ -320,4 +323,24 @@ private fun CardPositionDTO.toDomain() = when (type) {
     "inHand" -> CardPosition.InHand(requireNotNull(positionInSegment), requireNotNull(forPlayerId))
     "onBattleSlot" -> CardPosition.OnBattleSlot(requireNotNull(forPlayerId))
     else -> throw InvalidParameterException("Unknown card placement type: $type")
+}
+
+private fun CardPosition.toDTO() = when (this) {
+    is CardPosition.InHand -> CardPositionDTO("inHand", forPlayerId, positionInSegment)
+    is CardPosition.OnBattleSlot -> CardPositionDTO("onBattleSlot", forPlayerId)
+    is CardPosition.UnusedStack -> CardPositionDTO("unusedStack", positionInSegment = positionInSegment)
+}
+
+
+fun GameAction.toDTO() = when (this) {
+    is GameAction.AddCard -> GameActionDTO("add", cardId, targetSegment = targetPlacement.toDTO(), msDelay = msDelay)
+    is GameAction.FinishAnsweringQuestion -> GameActionDTO("finishAnsweringQuestion", cardId, playerId, msDelay = msDelay)
+    is GameAction.MoveCard -> GameActionDTO(
+        "move",
+        cardId,
+        currentSegment = currentPlacement.toDTO(),
+        targetSegment = targetPlacement.toDTO(),
+        msDelay = msDelay
+    )
+    is GameAction.StartAnsweringQuestion -> GameActionDTO("startAnsweringQuestion", cardId, playerId, msDelay = msDelay)
 }

@@ -2,8 +2,6 @@ package com.hanas.addy.view.playTable.view
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Transition
-import androidx.compose.animation.core.animateOffset
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -36,17 +33,8 @@ import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
 import com.hanas.addy.view.playTable.model.PlayCardContentUiState
-import com.hanas.addy.view.playTable.model.PlayCardUiState
 import com.hanas.addy.view.playTable.model.PlayTableSegmentType
 import com.hanas.addy.view.playTable.model.PlayTableState
-import kotlinx.coroutines.delay
-
-@Composable
-fun animateTransformOrigin(transition: Transition<PlayCardUiState>) = transition.animateOffset(
-    transitionSpec = { spec() }, label = "aaa"
-) {
-    it.targetTransformOrigin()
-}
 
 @Composable
 fun PlayTable(
@@ -131,37 +119,34 @@ fun PlayTablePreview() {
         var playTableState by remember {
             mutableStateOf(
                 PlayTableState(
-                    PlayTableState.Segment(emptyList()),
-                    PlayTableState.Segment(emptyList()),
-                    PlayTableState.Segment(emptyList()),
-                )
-            )
-        }
-        LaunchedEffect(Unit) {
-            for (i in 0..20) {
-                playTableState = PlayTableState(
-                    PlayTableState.Segment(cardStack.take(i)),
-                    PlayTableState.Segment(emptyList()),
-                    PlayTableState.Segment(emptyList()),
-                )
-            }
-            delay(600)
-            playTableState = PlayTableState(
-                PlayTableState.Segment(playTableState.unusedStack.cards.drop(5)),
-                PlayTableState.Segment(listOf(playTableState.unusedStack.cards[0])),
-                PlayTableState.Segment(listOf(playTableState.unusedStack.cards[1])),
-                closeUp = PlayTableState.CardSlot(
-                    playTableState.unusedStack.cards[2], PlayTableSegmentType.PLAYER_HAND, 0
+                    PlayTableState.Segment(listOf(cardStack[0])),
+                    PlayTableState.Segment(listOf(cardStack[1], cardStack[5], cardStack[6])),
+                    PlayTableState.Segment(listOf(cardStack[2], cardStack[7], cardStack[8])),
+                    playerBattleSlot = PlayTableState.CardSlot(
+                        cardStack[3], PlayTableSegmentType.PLAYER_HAND, 0
+                    ),
+                    opponentBattleSlot = PlayTableState.CardSlot(
+                        cardStack[4], PlayTableSegmentType.TOP_OPPONENT_HAND, 0
+                    )
                 )
             )
         }
 //        LaunchedEffect(Unit) {
-//            delay(500)
+//            for (i in 0..20) {
+//                playTableState = PlayTableState(
+//                    PlayTableState.Segment(cardStack.take(i)),
+//                    PlayTableState.Segment(emptyList()),
+//                    PlayTableState.Segment(emptyList()),
+//                )
+//            }
+//            delay(600)
 //            playTableState = PlayTableState(
-//                List(10) { cardStack[it] },
-//                List(3) { cardStack[1 + it + 11] },
-//                List(5) { cardStack[it + 12 + 3] } + cardStack[11] + cardStack[12],
-//                List(7) { cardStack[it + 12 + 3 + 5 + 7] } + cardStack[10],
+//                PlayTableState.Segment(playTableState.unusedStack.cards.drop(5)),
+//                PlayTableState.Segment(listOf(playTableState.unusedStack.cards[0])),
+//                PlayTableState.Segment(listOf(playTableState.unusedStack.cards[1])),
+//                opponentBattleSlot = PlayTableState.CardSlot(
+//                    playTableState.unusedStack.cards[2], PlayTableSegmentType.PLAYER_HAND, 0
+//                )
 //            )
 //        }
         Surface {

@@ -32,6 +32,9 @@ data class PlayTableState(
         if (playerBattleSlot != null) {
             set(playerBattleSlot.card, PlayCardUiState.OnBattleSlotForPlayer(0, 1, playerBattleSlot.contentState))
         }
+        if (opponentBattleSlot != null) {
+            set(opponentBattleSlot.card, PlayCardUiState.OnBattleSlotForOpponent(0, 1, opponentBattleSlot.contentState))
+        }
         if (closeUp != null) {
             set(closeUp.card, PlayCardUiState.OnCloseUp(closeUp.positionWithinOriginSegment, closeUp.contentState))
         }

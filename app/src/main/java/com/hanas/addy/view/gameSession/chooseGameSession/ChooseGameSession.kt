@@ -13,7 +13,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,15 +37,13 @@ object ChooseSession : NavScreen
 fun NavGraphBuilder.chooseGameSessionComposable(navHandler: NavigationHandler) {
     composable<ChooseSession> {
         val viewModel: ChooseGameSessionViewModel = koinNavViewModel()
-        val state by viewModel.state.collectAsState()
         viewModel.observeNavigation(navHandler)
-        ChooseGameSessionScreen(state, navHandler, viewModel::joinSession)
+        ChooseGameSessionScreen(navHandler, viewModel::joinSession)
     }
 }
 
 @Composable
 fun ChooseGameSessionScreen(
-    state: ChooseGameSessionState,
     navHandler: NavigationHandler,
     joinGameSession: (String) -> Unit
 ) {
@@ -94,6 +91,6 @@ fun ChooseGameSessionScreen(
 @Preview
 fun ChooseGameSessionScreenPreview() {
     AppTheme {
-        ChooseGameSessionScreen(ChooseGameSessionState(""), {}, {})
+        ChooseGameSessionScreen({}, {})
     }
 }

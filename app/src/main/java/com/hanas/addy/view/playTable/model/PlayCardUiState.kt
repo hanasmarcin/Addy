@@ -1,6 +1,5 @@
 package com.hanas.addy.view.playTable.model
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
@@ -14,14 +13,9 @@ sealed class PlayCardUiState(
     open val content: PlayCardContentUiState,
     val clickOrigin: ClickOrigin,
 ) {
-
-    //    abstract fun targetOffset(): DpOffset
     abstract fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize): DpOffset
     abstract fun targetRotationZ(): Float
     abstract fun targetWidth(): Dp
-
-    //    abstract fun targetRotationX(): Float
-    abstract fun targetTransformOrigin(): Offset
     abstract fun targetIndexZ(): Float
 
     data class OnUnusedStack(
@@ -34,10 +28,12 @@ sealed class PlayCardUiState(
         clickOrigin = ClickOrigin.NOT_CLICKABLE
     ) {
         override fun targetIndexZ() = position.toFloat()
-        override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize) = DpOffset(x = position.dp * 2, y = position.dp * -2)
+        override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize) = DpOffset(
+            x = screenSizeInDp.width * 0.2f + position.dp * 2,
+            y = position.dp * -2
+        )
         override fun targetRotationZ() = 0f
         override fun targetWidth() = ((1f + position * 0.005f) * 100).dp
-        override fun targetTransformOrigin() = Offset(1f, 0.5f)
     }
 
     data class OnCloseUp(
@@ -54,7 +50,6 @@ sealed class PlayCardUiState(
         override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize): DpOffset = DpOffset.Zero
         override fun targetRotationZ() = 0f
         override fun targetWidth() = Dp.Infinity
-        override fun targetTransformOrigin() = Offset(0.5f, 0.5f)
     }
 
     data class OnBattleSlotForPlayer(
@@ -70,11 +65,10 @@ sealed class PlayCardUiState(
         override fun targetIndexZ() = position.toFloat()
         override fun targetOffset(
             screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize
-        ): DpOffset = DpOffset(x = position.dp * 2, y = position.dp * -2)
+        ): DpOffset = DpOffset(-screenSizeInDp.width * 0.2f, targetWidth())
 
         override fun targetRotationZ() = 0f
-        override fun targetWidth() = ((1f + position * 0.005f) * 100).dp
-        override fun targetTransformOrigin() = Offset(0f, 0.2f)
+        override fun targetWidth() = 100.dp
     }
 
     data class OnBattleSlotForOpponent(
@@ -88,13 +82,11 @@ sealed class PlayCardUiState(
         clickOrigin = if (content.isClickable) ClickOrigin.OPPONENT_BATTLE_SLOT else ClickOrigin.NOT_CLICKABLE,
     ) {
         override fun targetIndexZ() = position.toFloat()
-        override fun targetOffset(
-            screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize
-        ): DpOffset = DpOffset(x = position.dp * 2, y = position.dp * -2)
+        override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize): DpOffset =
+            DpOffset(-screenSizeInDp.width * 0.2f, -targetWidth())
 
         override fun targetRotationZ() = 0f
-        override fun targetWidth() = (((1f + position * 0.005f) * 100).dp)
-        override fun targetTransformOrigin() = Offset(0f, 0f)
+        override fun targetWidth() = 100.dp
     }
 
     data class InHand(
@@ -111,13 +103,12 @@ sealed class PlayCardUiState(
         private val cardWidth = 100.dp
         override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize) =
             DpOffset(
-                x = (screenSizeInDp.width - cardWidth) / (if (amountInState > 1) (amountInState - 1) else 1) * position,
-                y = (screenSizeInDp.height - unscaledCardSizeInDp.height) / 2 + cardWidth
+                x = (screenSizeInDp.width - cardWidth) / (if (amountInState > 1) (amountInState - 1) else 1) * position - (screenSizeInDp.width - cardWidth) / 2,
+                y = screenSizeInDp.height / 2
             )
 
         override fun targetRotationZ() = (position - amountInState / 2f) / amountInState * 5f
         override fun targetWidth() = (cardWidth)
-        override fun targetTransformOrigin() = Offset(0f, 1f)
     }
 
     data class InTopOpponentHand(
@@ -133,14 +124,11 @@ sealed class PlayCardUiState(
         private val cardWidth = 100.dp
         override fun targetOffset(screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize) =
             DpOffset(
-                x = (screenSizeInDp.width - cardWidth) / (if (amountInState > 1) (amountInState - 1) else 1) * position,
-                y = -(screenSizeInDp.height - unscaledCardSizeInDp.height) / 2 + cardWidth
+                x = (screenSizeInDp.width - cardWidth) / (if (amountInState > 1) (amountInState - 1) else 1) * position - (screenSizeInDp.width - cardWidth) / 2,
+                y = -screenSizeInDp.height / 2
             )
 
         override fun targetRotationZ() = (position - amountInState / 2f) / amountInState * 5f
         override fun targetWidth() = (cardWidth)
-        override fun targetTransformOrigin() = Offset(0f, 0f)
     }
-
-//    abstract fun targetRotationY(): Float
 }

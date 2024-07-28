@@ -10,7 +10,9 @@ import com.google.firebase.firestore.toObject
 import com.google.firebase.functions.ktx.functions
 import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.PlayCardStack
+import com.hanas.addy.view.gameSession.createNewSession.GameAction
 import com.hanas.addy.view.gameSession.createNewSession.GameActionsBatchDTO
+import com.hanas.addy.view.gameSession.createNewSession.toDTO
 import com.hanas.addy.view.gameSession.createNewSession.toDomain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -63,11 +65,7 @@ class GameSessionRepository {
             } else null
         }
 
-    fun getGameActionsFlow(gameSessionId: String, isHandled: (String) -> Boolean) = firestore
-        .collection("gameSessions")
-        .document(gameSessionId)
-        .collection("actions")
-        .snapshots()
+    fun getGameActionsFlow(gameSessionId: String, isHandled: (String) -> Boolean) = actionsCollectionReference(gameSessionId).snapshots()
         .map {
             Log.d("HANASSS", "new game actions snapshot")
             it.documents.mapNotNull { document ->
@@ -77,43 +75,54 @@ class GameSessionRepository {
             }.sortedBy { it.timestamp }
         }
 
+    private fun actionsCollectionReference(gameSessionId: String) = firestore
+        .collection("gameSessions")
+        .document(gameSessionId)
+        .collection("actions")
+
     fun startGame(gameSessionId: String) = functions.getHttpsCallable("start_game")
         .call(mapOf("gameSessionId" to gameSessionId))
         .asFlow()
         .map { result ->
             result.data as? String ?: throw Exception("data is null")
         }
+
+    fun sendSingleAction(action: GameAction, gameSessionId: String) = actionsCollectionReference(gameSessionId).add(
+        GameActionsBatchDTO(items = listOf(action.toDTO()))
+    ).asFlow().map {
+        it.id
+    }
 }
 
-
-fun GameSessionStateDTO.toDomain(cardStacks: PlayCardStack) = if (startGameTimestamp != null && players.isNotEmpty() && unusedStack.isNotEmpty()) {
-    GameSessionState.GameInProgress(
-        cardStackInGame = cardStacks,
-        startGameTimestamp = startGameTimestamp.toDate(),
-        unusedStack = unusedStack,
-        players = players.map {
-            Player(
-                id = it.id,
-                displayName = it.displayName,
-                invitationStatus = it.invitationStatus.toInvitationStatus() ?: PlayerInvitationState.WAITING_FOR_RESPONSE
-            )
-        }
-    )
-} else if (inviteCode != null) {
-    GameSessionState.WaitingForPlayers(
-        inviteCode = inviteCode,
-        cardStackInGame = cardStacks,
-        players = players.mapNotNull { player ->
-            player.invitationStatus.toInvitationStatus()?.let { invitation ->
+fun GameSessionStateDTO.toDomain(cardStacks: PlayCardStack) =
+    if (startGameTimestamp != null && players.isNotEmpty() && unusedStack.isNotEmpty()) {
+        GameSessionState.GameInProgress(
+            cardStackInGame = cardStacks,
+            startGameTimestamp = startGameTimestamp.toDate(),
+            unusedStack = unusedStack,
+            players = players.map {
                 Player(
-                    id = player.id,
-                    displayName = player.displayName,
-                    invitationStatus = invitation
+                    id = it.id,
+                    displayName = it.displayName,
+                    invitationStatus = it.invitationStatus.toInvitationStatus() ?: PlayerInvitationState.WAITING_FOR_RESPONSE
                 )
             }
-        }
-    )
-} else null
+        )
+    } else if (inviteCode != null) {
+        GameSessionState.WaitingForPlayers(
+            inviteCode = inviteCode,
+            cardStackInGame = cardStacks,
+            players = players.mapNotNull { player ->
+                player.invitationStatus.toInvitationStatus()?.let { invitation ->
+                    Player(
+                        id = player.id,
+                        displayName = player.displayName,
+                        invitationStatus = invitation
+                    )
+                }
+            }
+        )
+    } else null
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
