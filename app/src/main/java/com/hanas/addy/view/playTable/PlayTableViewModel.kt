@@ -25,6 +25,7 @@ import com.hanas.addy.view.playTable.model.PlayTableState
 import com.hanas.addy.view.playTable.model.PlayTableState.CardSlot
 import com.hanas.addy.view.playTable.model.PlayTableState.Segment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +36,6 @@ import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayTableViewModel(
@@ -106,8 +106,18 @@ class PlayTableViewModel(
                 is GameAction.FinishAnsweringQuestion -> handleFinishAnsweringQuestion(action)
                 is GameAction.StartAnsweringQuestion -> handleStartAnsweringQuestion(action)
                 is GameAction.AddCard -> handleAddCardAction(action)
+                is GameAction.QuestionRaceResult -> handleQuestionRaceResult(action)
+                is GameAction.SelectActiveAttribute -> handleSelectActiveAttribute(action)
             }
         }
+    }
+
+    private fun handleSelectActiveAttribute(action: GameAction.SelectActiveAttribute) {
+        Log.d("HANASSS", action.toString())
+    }
+
+    private fun handleQuestionRaceResult(action: GameAction.QuestionRaceResult) {
+        Log.d("HANASSS", action.toString())
     }
 
     private fun handleMoveCardAction(action: GameAction.MoveCard) {
@@ -194,7 +204,7 @@ class PlayTableViewModel(
                     card,
                     PlayTableSegmentType.TOP_OPPONENT_HAND,
                     index,
-                    contentState = PlayCardContentUiState.AttributesDisplay.AddingBoost(3, 3, 3)
+                    contentState = PlayCardContentUiState.OpponentWaitingForAttributeBattle
                 )
             )
         }
@@ -204,7 +214,12 @@ class PlayTableViewModel(
         if (action.playerId == Firebase.auth.currentUser?.uid) return // Skip if our own event
         tableState.opponentHand.cards.firstOrNullIndexed { it.id == action.cardId }?.let { (index, card) ->
             tableState = tableState.copy(
-                opponentBattleSlot = CardSlot(card, PlayTableSegmentType.TOP_OPPONENT_HAND, index, contentState = QuestionRace.Answering)
+                opponentBattleSlot = CardSlot(
+                    card,
+                    PlayTableSegmentType.TOP_OPPONENT_HAND,
+                    index,
+                    contentState = PlayCardContentUiState.OpponentAnswering
+                )
             )
         }
     }
@@ -246,25 +261,21 @@ class PlayTableViewModel(
     }
 
     fun onSelectAnswer(cardId: Long, answer: Answer) {
+        val answerTimeInMs = System.currentTimeMillis() - requireNotNull(answerStartTimestamp) { "onSelectAnswer before onStartAnswer" }
         viewModelScope.launch {
-            launch {
-                val action = GameAction.FinishAnsweringQuestion(cardId = cardId, playerId = Firebase.auth.uid ?: "", msDelay = 0)
-                repository.sendSingleAction(action, navArgs.gameSessionId)
-            }
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
                 val isAnswerCorrect = slot.card.question.answer == answer
+                val deferred = async { repository.finishAnsweringQuestion(navArgs.gameSessionId, cardId, isAnswerCorrect, answerTimeInMs) }
+
                 tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionRace.Result(answer, isAnswerCorrect)))
                 delay(1500)
+                val attributes = deferred.await()
                 tableState = tableState.copy(
                     closeUp = slot.copy(
-                        contentState = if (isAnswerCorrect) PlayCardContentUiState.AttributesDisplay.AddingBoost(
-                            Random.nextInt(0, 2),
-                            Random.nextInt(0, 2),
-                            Random.nextInt(0, 2)
-                        ) else PlayCardContentUiState.AttributesDisplay.AddingBoost(
-                            Random.nextInt(-2, 0),
-                            Random.nextInt(-2, 0),
-                            Random.nextInt(-2, 0)
+                        contentState = PlayCardContentUiState.AttributesDisplay.AddingBoost(
+                            attributes?.red?.booster ?: 0,
+                            attributes?.green?.booster ?: 0,
+                            attributes?.blue?.booster ?: 0,
                         )
                     )
                 )

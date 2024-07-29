@@ -123,10 +123,10 @@ fun PlayTablePreview() {
                     PlayTableState.Segment(listOf(cardStack[1], cardStack[5], cardStack[6])),
                     PlayTableState.Segment(listOf(cardStack[2], cardStack[7], cardStack[8])),
                     playerBattleSlot = PlayTableState.CardSlot(
-                        cardStack[3], PlayTableSegmentType.PLAYER_HAND, 0
+                        cardStack[3], PlayTableSegmentType.PLAYER_HAND, 0, contentState = PlayCardContentUiState.QuestionRace.Answering
                     ),
                     opponentBattleSlot = PlayTableState.CardSlot(
-                        cardStack[4], PlayTableSegmentType.TOP_OPPONENT_HAND, 0
+                        cardStack[4], PlayTableSegmentType.TOP_OPPONENT_HAND, 0, contentState = PlayCardContentUiState.QuestionRace.Answering
                     )
                 )
             )

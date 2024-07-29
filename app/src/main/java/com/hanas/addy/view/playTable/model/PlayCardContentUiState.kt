@@ -37,6 +37,22 @@ sealed class PlayCardContentUiState(
 
     }
 
+    data object OpponentAnswering : PlayCardContentUiState(
+        rotationX = -180f,
+        rotationY = 0f,
+        isClickable = false,
+        type = BACK_COVER
+    )
+
+    data object OpponentWaitingForAttributeBattle : PlayCardContentUiState(
+        rotationX = -180f,
+        rotationY = 0f,
+        isClickable = false,
+        type = BACK_COVER
+    )
+
+
+
     sealed class QuestionRace(val targetImageHeight: Dp, override val isClickable: Boolean) : PlayCardContentUiState(
         rotationX = 0f,
         rotationY = -180f,

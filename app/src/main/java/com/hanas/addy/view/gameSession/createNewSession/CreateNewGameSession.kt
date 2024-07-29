@@ -197,6 +197,7 @@ data class GameActionDTO(
     val type: String? = null,
     val cardId: Long? = null,
     val playerId: String? = null,
+    val attribute: String? = null,
     val currentSegment: CardPositionDTO? = null,
     val targetSegment: CardPositionDTO? = null,
     val msDelay: Long = 0,
@@ -237,6 +238,17 @@ sealed class GameAction(open val msDelay: Long) {
     data class FinishAnsweringQuestion(
         val cardId: Long,
         val playerId: String,
+        override val msDelay: Long
+    ) : GameAction(msDelay)
+
+    data class QuestionRaceResult(
+        val cardId: Long,
+        val playerId: String,
+        override val msDelay: Long
+    ) : GameAction(msDelay)
+
+    data class SelectActiveAttribute(
+        val attribute: String,
         override val msDelay: Long
     ) : GameAction(msDelay)
 }
@@ -299,21 +311,22 @@ fun GameActionsBatchDTO.toDomain(actionId: String) = GameActionsBatch(
 )
 
 fun GameActionDTO.toDomain(): GameAction {
-    val cardId = requireNotNull(cardId)
     return when (type) {
         "add" -> GameAction.AddCard(
-            cardId = cardId,
+            cardId = requireNotNull(cardId),
             targetPlacement = requireNotNull(targetSegment).toDomain(),
             msDelay = msDelay
         )
         "move" -> GameAction.MoveCard(
-            cardId = cardId,
+            cardId = requireNotNull(cardId),
             currentPlacement = requireNotNull(currentSegment).toDomain(),
             targetPlacement = requireNotNull(targetSegment).toDomain(),
             msDelay = msDelay
         )
-        "startAnsweringQuestion" -> GameAction.StartAnsweringQuestion(cardId, requireNotNull(playerId), msDelay)
-        "finishAnsweringQuestion" -> GameAction.FinishAnsweringQuestion(cardId, requireNotNull(playerId), msDelay)
+        "startAnsweringQuestion" -> GameAction.StartAnsweringQuestion(requireNotNull(cardId), requireNotNull(playerId), msDelay)
+        "finishAnsweringQuestion" -> GameAction.FinishAnsweringQuestion(requireNotNull(cardId), requireNotNull(playerId), msDelay)
+        "questionRaceResult" -> GameAction.QuestionRaceResult(requireNotNull(cardId), requireNotNull(playerId), msDelay)
+        "selectActiveAttribute" -> GameAction.SelectActiveAttribute(requireNotNull(attribute), msDelay)
         else -> throw InvalidParameterException("Unknown player action type: $type")
     }
 }
@@ -343,4 +356,6 @@ fun GameAction.toDTO() = when (this) {
         msDelay = msDelay
     )
     is GameAction.StartAnsweringQuestion -> GameActionDTO("startAnsweringQuestion", cardId, playerId, msDelay = msDelay)
+    is GameAction.QuestionRaceResult -> GameActionDTO("questionRaceResult", cardId, playerId, msDelay = msDelay)
+    is GameAction.SelectActiveAttribute -> GameActionDTO("selectActiveAttribute", attribute = attribute, msDelay = msDelay)
 }

@@ -83,5 +83,6 @@ data class Attributes(
 @Serializable
 data class Attribute(
     val name: String = "",
-    @IntRange(from = 1, to = 10) val value: Int = 1
+    @IntRange(from = 1, to = 10) val value: Int = 1,
+    val booster: Int = 0,
 )

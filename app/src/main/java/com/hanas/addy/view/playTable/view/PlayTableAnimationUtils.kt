@@ -58,6 +58,8 @@ fun animateOrientation(transition: Transition<PlayCardUiState>) = transition.ani
             is PlayCardContentUiState.AttributesDisplay -> ATTRIBUTES
             PlayCardContentUiState.BackCover -> BACK_COVER
             is PlayCardContentUiState.QuestionRace -> QUESTION
+            PlayCardContentUiState.OpponentAnswering -> BACK_COVER
+            PlayCardContentUiState.OpponentWaitingForAttributeBattle -> BACK_COVER
         }
     )
 }

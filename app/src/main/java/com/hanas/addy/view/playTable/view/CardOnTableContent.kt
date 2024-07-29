@@ -1,24 +1,38 @@
 package com.hanas.addy.view.playTable.view
 
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
@@ -106,5 +120,44 @@ fun CardOnTableContent(
         is PlayCardContentUiState.QuestionRace -> {
             PlayCardQuestion(data, contentState, cardModifier.graphicsLayer { scaleX = -1f }, startAnswering, onSelectAnswer)
         }
+        PlayCardContentUiState.OpponentAnswering -> {
+            PlayCardOpponentOnBattleSlot(cardModifier, null)
+        }
+        PlayCardContentUiState.OpponentWaitingForAttributeBattle -> {
+            PlayCardOpponentOnBattleSlot(cardModifier, true)
+        }
     }
+}
+
+@Composable
+fun PlayCardOpponentOnBattleSlot(modifier: Modifier, answeredCorrectly: Boolean?) {
+    Box(
+        modifier
+            .rotate(180f)
+            .aspectRatio(0.6f)
+            .fillMaxSize()
+            .paperBackground(rememberPaperBrush(), MaterialTheme.colorScheme.primary)
+            .padding(16.dp)
+            .clip(RoundedCornerShape(16.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painterResource(R.drawable.book_pattern_bauhaus_imagen),
+            null,
+            contentScale = ContentScale.Inside,
+            modifier = Modifier.fillMaxSize()
+        )
+        when (answeredCorrectly) {
+            true -> Icon(Icons.Default.Done, null, tint = Color.Green, modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f, false))
+            false -> Icon(Icons.Default.Clear, null, tint = Color.Red, modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f, false))
+            null -> Icon(Icons.Default.Lock, null, tint = Color.White, modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f, false))
+        }
+    }
+
 }

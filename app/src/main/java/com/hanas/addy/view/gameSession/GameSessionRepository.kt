@@ -9,6 +9,7 @@ import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObject
 import com.google.firebase.functions.ktx.functions
 import com.google.firebase.ktx.Firebase
+import com.hanas.addy.model.Attributes
 import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.view.gameSession.createNewSession.GameAction
 import com.hanas.addy.view.gameSession.createNewSession.GameActionsBatchDTO
@@ -91,6 +92,16 @@ class GameSessionRepository {
         GameActionsBatchDTO(items = listOf(action.toDTO()))
     ).asFlow().map {
         it.id
+    }
+
+    suspend fun finishAnsweringQuestion(gameSessionId: String, cardId: Long, isAnswerCorrect: Boolean, answerTimeInMs: Long): Attributes? {
+        val args = mapOf(
+            "cardId" to cardId,
+            "gameSessionId" to gameSessionId,
+            "isAnswerCorrect" to isAnswerCorrect,
+            "answerTimeInMs" to answerTimeInMs
+        )
+        return functions.getHttpsCallable("answer_question").call(args).await().data as? Attributes
     }
 }
 
