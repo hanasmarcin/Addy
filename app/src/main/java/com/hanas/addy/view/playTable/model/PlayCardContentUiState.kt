@@ -37,6 +37,13 @@ sealed class PlayCardContentUiState(
 
     }
 
+    data object ChooseActiveAttribute : PlayCardContentUiState(
+        rotationX = 0f,
+        rotationY = 0f,
+        isClickable = false,
+        type = ATTRIBUTES
+    )
+
     data object OpponentAnswering : PlayCardContentUiState(
         rotationX = -180f,
         rotationY = 0f,

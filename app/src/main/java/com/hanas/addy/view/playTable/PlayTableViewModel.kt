@@ -113,11 +113,20 @@ class PlayTableViewModel(
     }
 
     private fun handleSelectActiveAttribute(action: GameAction.SelectActiveAttribute) {
-        Log.d("HANASSS", action.toString())
+        tableState.playerBattleSlot?.let {
+            tableState = tableState.copy(closeUp = it)
+        }
     }
 
     private fun handleQuestionRaceResult(action: GameAction.QuestionRaceResult) {
-        Log.d("HANASSS", action.toString())
+        if (Firebase.auth.currentUser?.uid == action.playerId) {
+            val winningCard = tableState.playerBattleSlot?.card
+            if (winningCard != null) {
+                tableState = tableState.copy(
+                    closeUp = CardSlot(winningCard, PlayTableSegmentType.PLAYER_HAND, 0, contentState = PlayCardContentUiState.ChooseActiveAttribute)
+                )
+            }
+        }
     }
 
     private fun handleMoveCardAction(action: GameAction.MoveCard) {

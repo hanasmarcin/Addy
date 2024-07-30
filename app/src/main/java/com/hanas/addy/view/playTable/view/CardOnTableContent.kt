@@ -126,6 +126,9 @@ fun CardOnTableContent(
         PlayCardContentUiState.OpponentWaitingForAttributeBattle -> {
             PlayCardOpponentOnBattleSlot(cardModifier, true)
         }
+        PlayCardContentUiState.ChooseActiveAttribute -> {
+            CardBack(cardModifier)
+        }
     }
 }
 
