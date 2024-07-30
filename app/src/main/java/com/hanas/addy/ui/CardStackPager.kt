@@ -44,6 +44,7 @@ import com.hanas.addy.model.Question
 import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.theme.AppTheme
+import com.hanas.addy.view.playTable.view.cardcontent.CARD_ASPECT_RATIO
 
 @Composable
 fun CardStackPager(
@@ -94,7 +95,7 @@ fun PlayCardBack(card: PlayCardData, modifier: Modifier = Modifier) {
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(8.dp)
-            .aspectRatio(0.6f)
+            .aspectRatio(CARD_ASPECT_RATIO)
     )
     {
         Text(card.title, style = MaterialTheme.typography.titleLarge)
@@ -116,7 +117,7 @@ fun PlayCardBack(card: PlayCardData, modifier: Modifier = Modifier) {
 fun PlayCardFront(card: PlayCardData, modifier: Modifier = Modifier) {
     Column(
         modifier
-            .aspectRatio(0.6f)
+            .aspectRatio(CARD_ASPECT_RATIO)
             .background(MaterialTheme.colorScheme.primary)
             .drawPattern(R.drawable.melt, MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
             .padding(16.dp)

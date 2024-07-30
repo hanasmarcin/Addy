@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -18,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onPlaced
@@ -47,7 +50,8 @@ fun PlayTable(
     onSelectAnswer: (Long, Answer) -> Unit,
     onSelectToBattle: (Long) -> Unit,
     onClickCard: (Long, ClickOrigin) -> Unit,
-    onStartAnswer: (Long) -> Unit
+    onStartAnswer: (Long) -> Unit,
+    onSelectAttribute: (Long, Int) -> Unit,
 ) {
     val cards = data.toCardStateMap()
     var scrimSize by remember { mutableStateOf(IntSize.Zero) }
@@ -76,10 +80,13 @@ fun PlayTable(
                     onSelectAnswer = { onSelectAnswer(cardId, it) },
                     onSelectToBattle = { onSelectToBattle(cardId) },
                     onClickCard = { onClickCard(cardId, ClickOrigin.PLAYER_HAND) },
-                    startAnswer = { onStartAnswer(cardId) }
+                    startAnswer = { onStartAnswer(cardId) },
+                    onSelectAttribute = { onSelectAttribute(cardId, it) }
                 )
             }
         }
+        val message = data.playerBattleSlot?.contentState?.toString() ?: data.closeUp?.contentState?.toString() ?: "NO STATE"
+        Text(message, modifier = Modifier.background(Color.White), style = MaterialTheme.typography.headlineMedium)
     }
 }
 
@@ -157,7 +164,7 @@ fun PlayTablePreview() {
                 Modifier
                     .fillMaxSize()
                     .padding(32.dp),
-                {}, { _, _ -> }, {}, { _, _ -> }, {})
+                {}, { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> })
         }
     }
 }

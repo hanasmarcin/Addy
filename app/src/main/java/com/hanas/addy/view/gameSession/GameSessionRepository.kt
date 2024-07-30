@@ -9,7 +9,6 @@ import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObject
 import com.google.firebase.functions.ktx.functions
 import com.google.firebase.ktx.Firebase
-import com.hanas.addy.model.Attributes
 import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.view.gameSession.createNewSession.GameAction
 import com.hanas.addy.view.gameSession.createNewSession.GameActionsBatchDTO
@@ -94,16 +93,29 @@ class GameSessionRepository {
         it.id
     }
 
-    suspend fun finishAnsweringQuestion(gameSessionId: String, cardId: Long, isAnswerCorrect: Boolean, answerTimeInMs: Long): Attributes? {
+    suspend fun finishAnsweringQuestion(gameSessionId: String, cardId: Long, isAnswerCorrect: Boolean, answerTimeInMs: Long): AnswerScoreResult {
         val args = mapOf(
             "cardId" to cardId,
             "gameSessionId" to gameSessionId,
             "isAnswerCorrect" to isAnswerCorrect,
             "answerTimeInMs" to answerTimeInMs
         )
-        return functions.getHttpsCallable("answer_question").call(args).await().data as? Attributes
+        val result = functions.getHttpsCallable("answer_question").call(args).await()
+        val data = result.data as HashMap<*, *>
+        return AnswerScoreResult(
+            greenBooster = data["greenBooster"] as Int,
+            redBooster = data["redBooster"] as Int,
+            blueBooster = data["blueBooster"] as Int,
+        )
     }
 }
+
+data class AnswerScoreResult(
+    val greenBooster: Int = 0,
+    val redBooster: Int = 0,
+    val blueBooster: Int = 0,
+)
+
 
 fun GameSessionStateDTO.toDomain(cardStacks: PlayCardStack) =
     if (startGameTimestamp != null && players.isNotEmpty() && unusedStack.isNotEmpty()) {

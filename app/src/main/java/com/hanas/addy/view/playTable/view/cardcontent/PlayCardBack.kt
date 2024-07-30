@@ -21,7 +21,7 @@ fun CardBack(modifier: Modifier = Modifier) {
     Box(
         modifier
             .rotate(180f)
-            .aspectRatio(0.6f)
+            .aspectRatio(CARD_ASPECT_RATIO)
             .fillMaxSize()
             .paperBackground(rememberPaperBrush(), MaterialTheme.colorScheme.primary)
             .padding(16.dp)

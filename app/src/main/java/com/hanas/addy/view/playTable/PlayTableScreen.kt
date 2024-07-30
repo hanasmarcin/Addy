@@ -42,6 +42,7 @@ fun NavGraphBuilder.playTableComposable() {
             viewModel::onSelectAnswer,
             viewModel::onSelectToBattle,
             viewModel::onStartAnswer,
+            viewModel::onSelectAttribute,
         )
     }
 }
@@ -54,6 +55,7 @@ fun PlayTableScreen(
     onSelectAnswer: (Long, Answer) -> Unit,
     onSelectToBattle: (Long) -> Unit,
     onStartAnswer: (Long) -> Unit,
+    onSelectAttribute: (Long, Int) -> Unit,
 ) {
     Surface {
         PlayTable(
@@ -66,7 +68,8 @@ fun PlayTableScreen(
             onSelectAnswer = onSelectAnswer,
             onSelectToBattle = onSelectToBattle,
             onClickCard = onClickCard,
-            onStartAnswer = onStartAnswer
+            onStartAnswer = onStartAnswer,
+            onSelectAttribute = onSelectAttribute,
         )
     }
 }
@@ -94,7 +97,7 @@ fun PlayTableScreenPreview2() {
                 delay(1000)
             }
         }
-        PlayTableScreen(playTableState, {}, { _, _ -> }, { _, _ -> }, {}) {}
+        PlayTableScreen(playTableState, {}, { _, _ -> }, { _, _ -> }, {}, {}) { _, _ -> }
     }
 }
 
@@ -112,6 +115,6 @@ fun PlayTableScreenPreview() {
                 )
             )
         }
-        PlayTableScreen(playTableState, {}, { _, _ -> }, { _, _ -> }, {}) {}
+        PlayTableScreen(playTableState, {}, { _, _ -> }, { _, _ -> }, {}, {}) { _, _ -> }
     }
 }

@@ -2,8 +2,6 @@ package com.hanas.addy.view.playTable.model
 
 import androidx.compose.animation.core.AnimationVector2D
 import androidx.compose.animation.core.TwoWayConverter
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.Attribute
 
@@ -32,15 +30,14 @@ sealed class AttributesFace : PlayCardContentState(
 }
 
 sealed class QuestionFace(
-    val targetImageHeight: Dp,
     override val isClickable: Boolean
 ) : PlayCardContentState(
     isClickable = isClickable,
     rotation = CardRotation.FrontAlternate() // Assuming questions are on the alternate front rotation
 ) {
-    data object ReadyToAnswer : QuestionFace(Dp.Infinity, true)  // Waiting for user to start
-    data object Answering : QuestionFace(0.dp, false)
-    data class AnswerScored(val answer: Answer, val isAnswerCorrect: Boolean) : QuestionFace(0.dp, false)
+    data object ReadyToAnswer : QuestionFace(true)  // Waiting for user to start
+    data object Answering : QuestionFace(false)
+    data class AnswerScored(val answer: Answer, val isAnswerCorrect: Boolean) : QuestionFace(false)
 }
 
 

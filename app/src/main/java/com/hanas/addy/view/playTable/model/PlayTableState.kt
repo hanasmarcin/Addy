@@ -56,7 +56,7 @@ data class PlayTableState(
         }
         opponentHand.cards.onEachIndexed { index, card ->
             if (card.isNotInSlot()) {
-                this[card.id] = PlayCardUiState(card, PlayCardUiPlacement.OpponentHand(index, playerHand.size), BackFace.BackCover)
+                this[card.id] = PlayCardUiState(card, PlayCardUiPlacement.OpponentHand(index, opponentHand.size), BackFace.BackCover)
             }
         }
     }

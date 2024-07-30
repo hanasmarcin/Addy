@@ -1,5 +1,6 @@
 package com.hanas.addy.view.playTable.view
 
+import android.util.Log
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
@@ -22,6 +23,7 @@ fun animateOffset(
 ): State<Offset> {
     return transition.animateOffset(transitionSpec = { spec() }, label = "ccc") {
         val dpOffset = it.targetOffset(screenSizeInDp, unscaledCardSizeInDp)
+        Log.d("HANASSS", "animateOffset: $dpOffset")
         Offset(dpOffset.x.value, dpOffset.y.value)
     }
 }
@@ -33,8 +35,13 @@ fun animateWidth(
     transition: Transition<PlayCardUiPlacement>, screenSizeInDp: DpSize
 ) = transition.animateDp(transitionSpec = { spec() }, label = "bbb") {
     val width = it.targetWidth()
-    if (width == Dp.Infinity) screenSizeInDp.width
-    else width
+    (if (width == Dp.Infinity) screenSizeInDp.width
+    else width).apply {
+        Log.d(
+            "HANASSS", "animateWidth: $this" +
+                ""
+        )
+    }
 
 }
 
@@ -42,11 +49,17 @@ fun animateWidth(
 fun animateRotationZ(transition: Transition<PlayCardUiPlacement>) = transition.animateFloat(
     transitionSpec = { spec() }, label = "aaa"
 ) {
-    it.targetRotationZ()
+    it.targetRotationZ().apply {
+        Log.d("HANASSS", "animateRotationZ: $this")
+    }
 }
 
 @Composable
 fun animateOrientation(transition: Transition<PlayCardContentState>) = transition.animateValue(
     typeConverter = CardRotation.ToVector,
     transitionSpec = { spec() }, label = "aaa"
-) { it.rotation }
+) {
+    it.rotation.apply {
+        Log.d("HANASSS", "animateRotation: $this")
+    }
+}

@@ -20,9 +20,9 @@ import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.PLAYER_BATTL
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.PLAYER_HAND
 import com.hanas.addy.view.playTable.model.AttributesFace
 import com.hanas.addy.view.playTable.model.BackFace
-import com.hanas.addy.view.playTable.model.PlayTableState
 import com.hanas.addy.view.playTable.model.CardCollection
 import com.hanas.addy.view.playTable.model.CardSlot
+import com.hanas.addy.view.playTable.model.PlayTableState
 import com.hanas.addy.view.playTable.model.QuestionFace
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -268,13 +268,13 @@ class PlayTableViewModel(
 
                 tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionFace.AnswerScored(answer, isAnswerCorrect)))
                 delay(1500)
-                val attributes = deferred.await()
+                val result = deferred.await()
                 tableState = tableState.copy(
                     closeUp = slot.copy(
                         contentState = AttributesFace.AddingBoost(
-                            attributes?.red?.booster ?: 0,
-                            attributes?.green?.booster ?: 0,
-                            attributes?.blue?.booster ?: 0,
+                            result?.redBooster ?: 0,
+                            result?.greenBooster ?: 0,
+                            result?.blueBooster ?: 0,
                         )
                     )
                 )
@@ -327,7 +327,7 @@ class PlayTableViewModel(
 //            return true
 //        } ?: return false
 //    }
-//
+//<
 //    private fun moveCloseUpToPreviousCardInPlayerHand(): Boolean {
 //        tableState.closeUp?.let { closeUp ->
 //            if (closeUp.originSegment != PlayTableSegmentType.PLAYER_HAND || closeUp.positionWithinOriginSegment == 0) return false
@@ -351,6 +351,10 @@ class PlayTableViewModel(
             }
             //TODO Send to firebase
         }
+    }
+
+    fun onSelectAttribute(cardId: Long, attributeId: Int) {
+
     }
 
 }

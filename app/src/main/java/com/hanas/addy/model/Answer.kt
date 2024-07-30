@@ -84,5 +84,4 @@ data class Attributes(
 data class Attribute(
     val name: String = "",
     @IntRange(from = 1, to = 10) val value: Int = 1,
-    val booster: Int = 0,
 )

@@ -1,62 +1,70 @@
 package com.hanas.addy.view.playTable.view.cardcontent
 
-import android.graphics.Path
-import android.graphics.RectF
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.content.res.ResourcesCompat
-import com.hanas.addy.R
+import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.PlayCardData
+import com.hanas.addy.ui.samplePlayCard
+import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.model.AttributesFace
-import kotlin.math.min
-import kotlin.math.sqrt
+import kotlin.math.abs
 
 @Composable
 fun PlayCardAttributes(
     state: AttributesFace,
     card: PlayCardData,
     modifier: Modifier = Modifier,
-    onSelectToBattle: () -> Unit,
+    onSelectCardToBattle: () -> Unit,
+    onSelectAttribute: (Int) -> Unit,
 ) {
     val brush = rememberPaperBrush()
     Column(
         modifier
-            .aspectRatio(0.6f)
+            .aspectRatio(CARD_ASPECT_RATIO)
             .paperBackground(brush, MaterialTheme.colorScheme.primary)
             .padding(16.dp)
     ) {
-        CardImageWithTitle(imageHeight = Dp.Infinity, card = card, brush = brush)
-        Attributes(card, state, brush, onSelectToBattle)
+        CardImageWithTitle(card = card, brush = brush)
+        Attributes(card, state, brush, onSelectAttribute, onSelectCardToBattle)
     }
 }
 
@@ -65,9 +73,10 @@ fun Attributes(
     card: PlayCardData,
     state: AttributesFace,
     brush: ShaderBrush,
+    onSelectAttribute: (Int) -> Unit,
     onSelectToBattle: () -> Unit,
 ) {
-    Box(
+    Column(
         Modifier
             .fillMaxSize()
             .clip(RoundedCornerShape(16.dp))
@@ -80,183 +89,120 @@ fun Attributes(
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(12.dp))
     ) {
-        TripleCircleLayout(Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(0.6f))
-                    .fillMaxSize()
-                    .aspectRatio(1f)
-            )
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondary.copy(0.6f))
-                    .fillMaxSize()
-                    .aspectRatio(1f)
-            )
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.tertiary.copy(0.6f))
-                    .fillMaxSize()
-                    .aspectRatio(1f)
-            )
-        }
-        val textStyle = MaterialTheme.typography.bodyMedium
-        val context = LocalContext.current
-        val paint = Paint().asFrameworkPaint().apply {
-            color = android.graphics.Color.WHITE
-            isAntiAlias = true
-            textSize = with(LocalDensity.current) { textStyle.fontSize.toPx() }
-            typeface = ResourcesCompat.getFont(context, R.font.atkinson_hyperlegible__bold)
-        }
+        Text(card.description, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
+        Spacer(Modifier.size(16.dp))
 
-        TripleCircleLayout(Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .drawBehind {
-                        drawRect(Color(0xFFD7D7D7), blendMode = BlendMode.Softlight)
-                        drawIntoCanvas {
-                            val path = Path()
-                            path.addArc(RectF(16.dp.toPx(), 16.dp.toPx(), size.width - 10.dp.toPx(), size.height - 10.dp.toPx()), 180f, 360f)
-                            it.nativeCanvas.drawTextOnPath(card.attributes.red.name, path, 0f, 0f, paint)
-                        }
-                    }
-                    .padding(32.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .fillMaxSize()
-                    .aspectRatio(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(card.attributes.red.value.toString(), style = MaterialTheme.typography.headlineLarge)
-                if (state is AttributesFace.AddingBoost && state.boostForRed != 0) {
-                    BoostText(state.boostForRed, MaterialTheme.colorScheme.primaryContainer)
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .drawBehind {
-                        drawRect(Color(0xFFD7D7D7), blendMode = BlendMode.Softlight)
-                        drawIntoCanvas {
-                            val path = Path()
-                            path.addArc(RectF(16.dp.toPx(), 16.dp.toPx(), size.width - 10.dp.toPx(), size.height - 10.dp.toPx()), 180f, 360f)
-                            it.nativeCanvas.drawTextOnPath(card.attributes.green.name, path, 0f, 0f, paint)
-                        }
-                    }
-                    .padding(32.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .fillMaxSize()
-                    .aspectRatio(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(card.attributes.green.value.toString(), style = MaterialTheme.typography.headlineLarge)
-                if (state is AttributesFace.AddingBoost && state.boostForGreen != 0) {
-                    BoostText(state.boostForGreen, MaterialTheme.colorScheme.primaryContainer)
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .drawBehind {
-                        drawRect(Color(0xFFD7D7D7), blendMode = BlendMode.Softlight)
-                        drawIntoCanvas {
-                            val path = Path()
-                            path.addArc(RectF(16.dp.toPx(), 16.dp.toPx(), size.width - 10.dp.toPx(), size.height - 10.dp.toPx()), 180f, 360f)
-                            it.nativeCanvas.drawTextOnPath(card.attributes.blue.name, path, 0f, 0f, paint)
-                        }
-                    }
-                    .padding(32.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.tertiaryContainer)
-                    .fillMaxSize()
-                    .aspectRatio(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(card.attributes.blue.value.toString(), style = MaterialTheme.typography.headlineLarge)
-                if (state is AttributesFace.AddingBoost && state.boostForBlue != 0) {
-                    BoostText(state.boostForBlue, MaterialTheme.colorScheme.primaryContainer)
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable(onClick = onSelectToBattle)
-                    .background(MaterialTheme.colorScheme.tertiary)
-                    .size(64.dp)
-                    .padding(8.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
-            ) {
-            }
-        }
+        // Create attribute rows using the function
+        AttributeRow(card.attributes.red, state, (state as? AttributesFace.AddingBoost)?.boostForRed) { onSelectAttribute(0) }
+        Spacer(Modifier.size(16.dp))
+        AttributeRow(card.attributes.green, state, (state as? AttributesFace.AddingBoost)?.boostForGreen) { onSelectAttribute(1) }
+        Spacer(Modifier.size(16.dp))
+        AttributeRow(card.attributes.blue, state, (state as? AttributesFace.AddingBoost)?.boostForBlue) { onSelectAttribute(2) }
+        Spacer(Modifier.size(16.dp))
 
-    }
-}
-
-@Composable
-private fun BoostText(boostValue: Int, color: Color = MaterialTheme.colorScheme.primaryContainer) {
-    Text(
-        text = (if (boostValue > 0) "+" else "") + boostValue.toString(),
-        modifier = Modifier.layout { measurable, constraints ->
-            val placeable = measurable.measure(constraints)
-            layout(constraints.maxWidth, constraints.maxHeight) {
-                placeable.placeRelative((0.7 * constraints.maxWidth).toInt(), (0.6f * placeable.height).toInt())
-            }
-        },
-        style = MaterialTheme.typography.labelLarge.copy(fontSize = 20.sp),
-        color = contentColorFor(color).copy(alpha = 0.5f)
-    )
-}
-
-
-@Composable
-fun TripleCircleLayout(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Layout(
-        modifier = modifier,
-        content = content
-    ) { measurable, constraints ->
-        val radiusFromHeight = 2 * constraints.maxHeight / 7f
-        val radiusFromWidth = constraints.maxWidth / (2 + sqrt(3f))
-        val radius = min(radiusFromHeight, radiusFromWidth)
-        val diagonal = 2 * radius.toInt()
-
-        val plceables = measurable.map {
-            it.measure(
-                constraints.copy(
-                    minWidth = 0,
-                    maxWidth = diagonal,
-                    minHeight = 0,
-                    maxHeight = diagonal
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .paperBackground(
+                    brush,
+                    MaterialTheme.colorScheme.primaryContainer
                 )
-            )
-        }
-
-        val layoutWidth = ((2 + sqrt(3f)) * radius).toInt()
-        val layoutHeight = (7 * radius / 2).toInt()
-        layout(layoutWidth, layoutHeight) {
-            plceables.forEachIndexed { index, placeable ->
-                when (index) {
-                    0 -> {
-                        placeable.placeRelative((layoutWidth - diagonal) / 2, 0)
-                    }
-                    1 -> {
-                        placeable.placeRelative(0, layoutHeight - diagonal)
-                    }
-                    2 -> {
-                        placeable.placeRelative(layoutWidth - diagonal, layoutHeight - diagonal)
-                    }
-                    3 -> {
-                        placeable.placeRelative((layoutWidth - placeable.width) / 2, diagonal - placeable.height / 2)
-                    }
-                }
-            }
+                .clickable { onSelectToBattle() }
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Select to battle")
         }
     }
 }
 
+@Composable
+fun AttributeRow(attribute: Attribute, state: AttributesFace, booster: Int?, onSelectAttribute: () -> Unit) {
+    val brush = rememberPaperBrush()
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .paperBackground(brush, MaterialTheme.colorScheme.primaryContainer)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable(state is AttributesFace.ChooseActiveAttribute) { onSelectAttribute() }
+            .clip(RoundedCornerShape(12.dp)),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AttributeValue(
+            attribute.value,
+            booster,
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(attribute.name)
+    }
+}
+
+
+@Composable
+private fun AttributeValue(value: Int, booster: Int?, style: TextStyle) {
+    var targetValue by remember { mutableIntStateOf(value) }
+    var targetColor by remember { mutableStateOf(Color.Black) }
+    LaunchedEffect(booster) {
+        if (booster != null && booster != 0) {
+            targetValue += booster
+            targetColor = (if (booster > 0) Color.Green else Color.Red).copy(alpha = 0.6f).compositeOver(Color.Black)
+        }
+    }
+    val aaa by animateIntAsState(targetValue, label = "", animationSpec = tween(510 * abs(booster ?: 0) + 1, easing = LinearEasing))
+    val color by animateColorAsState(targetColor, label = "", animationSpec = tween(500 * abs(booster ?: 0) + 1))
+    val spec = tween<IntOffset>(abs(500), easing = LinearEasing)
+    AnimatedContent(
+        targetState = aaa,
+        transitionSpec = {
+            if (targetState > initialState) {
+                slideInVertically(spec) { -it } togetherWith slideOutVertically(spec) { it }
+            } else {
+                slideInVertically(spec) { it } togetherWith slideOutVertically(spec) { -it }
+            }
+        }, label = ""
+    ) { count ->
+        Text(
+            count.toString(),
+            style = style,
+            color = color,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+class AttributesFacePreviewProvider : PreviewParameterProvider<AttributesFace> {
+    override val values = sequenceOf(
+        AttributesFace.CardPreview,
+        AttributesFace.AddingBoost(1, 2, 3),
+        AttributesFace.AddingBoost(-1, 0, -3),
+        AttributesFace.ChooseActiveAttribute(),
+        AttributesFace.WaitingForAttributeBattle
+    )
+
+}
+
+@Preview
+@Composable
+fun CounterPreview() {
+    AppTheme {
+        Surface {
+            AttributeValue(2, 3, MaterialTheme.typography.headlineLarge)
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PlayCardAttributesPreview(
+    @PreviewParameter(AttributesFacePreviewProvider::class) state: AttributesFace
+) {
+    val data = samplePlayCard
+    AppTheme {
+        PlayCardAttributes(state, data, onSelectCardToBattle = {}) { }
+    }
+}

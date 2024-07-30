@@ -54,6 +54,8 @@ import com.hanas.addy.view.playTable.view.animateRotationZ
 import com.hanas.addy.view.playTable.view.animateWidth
 import com.hanas.addy.view.playTable.view.uistate.PlayCardUiState
 
+const val CARD_ASPECT_RATIO = 0.55f
+
 @Composable
 fun CardOnTableLayout(
     screenSizeInDp: DpSize,
@@ -61,10 +63,11 @@ fun CardOnTableLayout(
     modifier: Modifier = Modifier,
     onSelectAnswer: (Answer) -> Unit,
     onSelectToBattle: () -> Unit,
+    onSelectAttribute: (Int) -> Unit,
     startAnswer: () -> Unit,
     onClickCard: () -> Unit
 ) {
-    val unscaledCardSizeInDp = DpSize(screenSizeInDp.width, screenSizeInDp.width / 0.6f)
+    val unscaledCardSizeInDp = DpSize(screenSizeInDp.width, screenSizeInDp.width / CARD_ASPECT_RATIO)
     val placementTransition = updateTransition(state.placement, label = "Animate placement")
     val contentTransition = updateTransition(state.contentState, label = "Animate content state")
     val orientation by animateOrientation(contentTransition)
@@ -102,11 +105,12 @@ fun CardOnTableLayout(
         CardOnTableContent(
             data = state.data,
             contentState = contentState,
-            isClickable = placementTransition.isRunning.not(),
+            isClickable = placementTransition.isRunning.not() && with(contentTransition) { currentState.isClickable && targetState.isClickable },
             onClickCard = onClickCard,
             onSelectToBattle = onSelectToBattle,
             onSelectAnswer = onSelectAnswer,
             startAnswering = startAnswer,
+            onSelectAttribute = onSelectAttribute
         )
     }
 }
@@ -119,14 +123,15 @@ fun CardOnTableContent(
     onClickCard: () -> Unit,
     onSelectToBattle: () -> Unit,
     onSelectAnswer: (Answer) -> Unit,
-    startAnswering: () -> Unit
+    startAnswering: () -> Unit,
+    onSelectAttribute: (Int) -> Unit
 ) {
     val cardModifier = Modifier.clickable(enabled = isClickable) {
         onClickCard()
     }
     when (contentState) {
         is AttributesFace -> {
-            PlayCardAttributes(contentState, data, cardModifier, onSelectToBattle)
+            PlayCardAttributes(contentState, data, cardModifier, onSelectToBattle, onSelectAttribute)
         }
         is BackFace -> {
             when (contentState) {
@@ -146,7 +151,7 @@ fun PlayCardOpponentOnBattleSlot(modifier: Modifier, answeredCorrectly: Boolean?
     Box(
         modifier
             .rotate(180f)
-            .aspectRatio(0.6f)
+            .aspectRatio(CARD_ASPECT_RATIO)
             .fillMaxSize()
             .paperBackground(rememberPaperBrush(), MaterialTheme.colorScheme.primary)
             .padding(16.dp)
@@ -201,11 +206,16 @@ fun PlayCardAnimationPreview() {
     AppTheme {
         var state by remember { mutableStateOf<QuestionFace>(QuestionFace.ReadyToAnswer) }
         Card(shape = RoundedCornerShape(24.dp)) {
-            CardOnTableContent(samplePlayCard, state, false, {}, {}, {
-                state = QuestionFace.AnswerScored(it, it == Answer.A)
-            }) {
-                state = QuestionFace.Answering
-            }
+            CardOnTableContent(
+                samplePlayCard, state, false, {}, {},
+                {
+                    state = QuestionFace.AnswerScored(it, it == Answer.A)
+                },
+                {
+                    state = QuestionFace.Answering
+                },
+                {}
+            )
         }
     }
 }
@@ -215,7 +225,7 @@ fun PlayCardAnimationPreview() {
 fun PlayCardPreview(@PreviewParameter(PlayCardProvider::class) state: PlayCardContentState) {
     AppTheme {
         Card(shape = RoundedCornerShape(24.dp)) {
-            CardOnTableContent(samplePlayCard, state, false, {}, {}, {}, {})
+            CardOnTableContent(samplePlayCard, state, false, {}, {}, {}, {}) {}
         }
     }
 }
