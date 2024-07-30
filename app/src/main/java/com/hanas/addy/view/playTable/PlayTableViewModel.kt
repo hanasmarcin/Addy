@@ -18,12 +18,12 @@ import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.CLOSE_UP
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.OPPONENT_BATTLE_SLOT
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.PLAYER_BATTLE_SLOT
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.PLAYER_HAND
-import com.hanas.addy.view.playTable.model.PlayCardContentUiState
-import com.hanas.addy.view.playTable.model.PlayCardContentUiState.QuestionRace
-import com.hanas.addy.view.playTable.model.PlayTableSegmentType
+import com.hanas.addy.view.playTable.model.AttributesFace
+import com.hanas.addy.view.playTable.model.BackFace
 import com.hanas.addy.view.playTable.model.PlayTableState
-import com.hanas.addy.view.playTable.model.PlayTableState.CardSlot
-import com.hanas.addy.view.playTable.model.PlayTableState.Segment
+import com.hanas.addy.view.playTable.model.CardCollection
+import com.hanas.addy.view.playTable.model.CardSlot
+import com.hanas.addy.view.playTable.model.QuestionFace
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -62,9 +62,9 @@ class PlayTableViewModel(
 
     val playTableStateFlow = MutableStateFlow(
         PlayTableState(
-            unusedStack = Segment(emptyList()),
-            playerHand = Segment(emptyList()),
-            opponentHand = Segment(emptyList()),
+            deck = CardCollection(emptyList()),
+            playerHand = CardCollection(emptyList()),
+            opponentHand = CardCollection(emptyList()),
         )
     )
 
@@ -123,7 +123,7 @@ class PlayTableViewModel(
             val winningCard = tableState.playerBattleSlot?.card
             if (winningCard != null) {
                 tableState = tableState.copy(
-                    closeUp = CardSlot(winningCard, PlayTableSegmentType.PLAYER_HAND, 0, contentState = PlayCardContentUiState.ChooseActiveAttribute)
+                    closeUp = CardSlot(winningCard, contentState = AttributesFace.ChooseActiveAttribute())
                 )
             }
         }
@@ -146,20 +146,20 @@ class PlayTableViewModel(
     private fun removeCardFromHand(currentPlacement: CardPosition.InHand, cardId: Long): Pair<PlayCardData, PlayTableState> {
         return if (currentPlacement.forPlayerId == Firebase.auth.currentUser?.uid) {
             tableState.playerHand.cards.first { it.id == cardId } to tableState.copy(
-                playerHand = Segment(tableState.playerHand.cards.dropAt(currentPlacement.positionInSegment))
+                playerHand = CardCollection(tableState.playerHand.cards.dropAt(currentPlacement.positionInSegment))
             )
         } else {
             tableState.opponentHand.cards.first { it.id == cardId } to tableState.copy(
-                opponentHand = Segment(tableState.opponentHand.cards.dropAt(currentPlacement.positionInSegment))
+                opponentHand = CardCollection(tableState.opponentHand.cards.dropAt(currentPlacement.positionInSegment))
             )
         }
     }
 
     private fun removeCardFromUnusedStack(action: GameAction.MoveCard): Pair<PlayCardData, PlayTableState> {
-        val removedCard = tableState.unusedStack.cards.first { it.id == action.cardId }
-        val id = tableState.unusedStack.cards.indexOf(removedCard)
+        val removedCard = tableState.deck.cards.first { it.id == action.cardId }
+        val id = tableState.deck.cards.indexOf(removedCard)
         return removedCard to tableState.copy(
-            unusedStack = Segment(tableState.unusedStack.cards.dropAt(id))
+            deck = CardCollection(tableState.deck.cards.dropAt(id))
         )
     }
 
@@ -182,16 +182,16 @@ class PlayTableViewModel(
     ): PlayTableState {
         return if (targetPlacement.forPlayerId == Firebase.auth.currentUser?.uid) {
             stateWithRemovedCard.copy(
-                playerHand = Segment(
+                playerHand = CardCollection(
                     stateWithRemovedCard.playerHand.cards + removedCard,
-                    stateWithRemovedCard.playerHand.availableSlots + 1
+                    stateWithRemovedCard.playerHand.size + 1
                 )
             )
         } else {
             stateWithRemovedCard.copy(
-                opponentHand = Segment(
+                opponentHand = CardCollection(
                     stateWithRemovedCard.opponentHand.cards + removedCard,
-                    stateWithRemovedCard.opponentHand.availableSlots + 1
+                    stateWithRemovedCard.opponentHand.size + 1
                 )
             )
         }
@@ -199,45 +199,35 @@ class PlayTableViewModel(
 
     private fun placeCardInUnusedStack(removedCard: PlayCardData, stateWithRemovedCard: PlayTableState): PlayTableState {
         return stateWithRemovedCard.copy(
-            unusedStack = Segment(
-                stateWithRemovedCard.unusedStack.cards + removedCard,
-                stateWithRemovedCard.unusedStack.availableSlots + 1
+            deck = CardCollection(
+                stateWithRemovedCard.deck.cards + removedCard,
+                stateWithRemovedCard.deck.size + 1
             )
         )
     }
 
     private suspend fun handleFinishAnsweringQuestion(action: GameAction.FinishAnsweringQuestion) {
-        tableState.opponentHand.cards.firstOrNullIndexed { it.id == action.cardId }?.let { (index, card) ->
+        tableState.opponentHand.cards.firstOrNull { it.id == action.cardId }?.let { card ->
             tableState = tableState.copy(
-                opponentBattleSlot = CardSlot(
-                    card,
-                    PlayTableSegmentType.TOP_OPPONENT_HAND,
-                    index,
-                    contentState = PlayCardContentUiState.OpponentWaitingForAttributeBattle
-                )
+                opponentBattleSlot = CardSlot(card, BackFace.OpponentWaitingForAttributeBattle)
             )
         }
     }
 
     private suspend fun handleStartAnsweringQuestion(action: GameAction.StartAnsweringQuestion) {
         if (action.playerId == Firebase.auth.currentUser?.uid) return // Skip if our own event
-        tableState.opponentHand.cards.firstOrNullIndexed { it.id == action.cardId }?.let { (index, card) ->
+        tableState.opponentHand.cards.firstOrNull { it.id == action.cardId }?.let { card ->
             tableState = tableState.copy(
-                opponentBattleSlot = CardSlot(
-                    card,
-                    PlayTableSegmentType.TOP_OPPONENT_HAND,
-                    index,
-                    contentState = PlayCardContentUiState.OpponentAnswering
-                )
+                opponentBattleSlot = CardSlot(card, BackFace.OpponentAnswering)
             )
         }
     }
 
     private suspend fun handleAddCardAction(action: GameAction.AddCard) {
         tableState = PlayTableState(
-            unusedStack = Segment(tableState.unusedStack.cards + cards.first { it.id == action.cardId }),
-            playerHand = Segment(emptyList()),
-            opponentHand = Segment(emptyList())
+            deck = CardCollection(tableState.deck.cards + cards.first { it.id == action.cardId }),
+            playerHand = CardCollection(emptyList()),
+            opponentHand = CardCollection(emptyList())
         )
     }
 
@@ -276,12 +266,12 @@ class PlayTableViewModel(
                 val isAnswerCorrect = slot.card.question.answer == answer
                 val deferred = async { repository.finishAnsweringQuestion(navArgs.gameSessionId, cardId, isAnswerCorrect, answerTimeInMs) }
 
-                tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionRace.Result(answer, isAnswerCorrect)))
+                tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionFace.AnswerScored(answer, isAnswerCorrect)))
                 delay(1500)
                 val attributes = deferred.await()
                 tableState = tableState.copy(
                     closeUp = slot.copy(
-                        contentState = PlayCardContentUiState.AttributesDisplay.AddingBoost(
+                        contentState = AttributesFace.AddingBoost(
                             attributes?.red?.booster ?: 0,
                             attributes?.green?.booster ?: 0,
                             attributes?.blue?.booster ?: 0,
@@ -292,7 +282,7 @@ class PlayTableViewModel(
                 tableState = tableState.copy(
                     closeUp = null,
                     playerBattleSlot = slot.copy(
-                        contentState = PlayCardContentUiState.AttributesDisplay.WaitingForAttributeBattle
+                        contentState = AttributesFace.WaitingForAttributeBattle
                     )
                 )
             }
@@ -302,7 +292,7 @@ class PlayTableViewModel(
     fun onSelectToBattle(cardId: Long) {
         viewModelScope.launch {
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
-                tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionRace.Initial))
+                tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionFace.ReadyToAnswer))
             }
             //TODO Send to firebase
         }
@@ -326,26 +316,26 @@ class PlayTableViewModel(
 
     private fun closeUpTheCardFromPlayerHand(position: Int) {
         val card = tableState.playerHand.cards[position]
-        tableState = tableState.copy(closeUp = CardSlot(card, PlayTableSegmentType.PLAYER_HAND, position))
+        tableState = tableState.copy(closeUp = CardSlot(card, AttributesFace.CardPreview))
     }
 
-    private fun moveCloseUpToNextCardInPlayerHand(): Boolean {
-        tableState.closeUp?.let { closeUp ->
-            if (closeUp.originSegment != PlayTableSegmentType.PLAYER_HAND || closeUp.positionWithinOriginSegment == tableState.playerHand.availableSlots - 1) return false
-            val newPosition = closeUp.positionWithinOriginSegment + 1
-            tableState = tableState.copy(closeUp = CardSlot(tableState.playerHand.cards[newPosition], PlayTableSegmentType.PLAYER_HAND, newPosition))
-            return true
-        } ?: return false
-    }
-
-    private fun moveCloseUpToPreviousCardInPlayerHand(): Boolean {
-        tableState.closeUp?.let { closeUp ->
-            if (closeUp.originSegment != PlayTableSegmentType.PLAYER_HAND || closeUp.positionWithinOriginSegment == 0) return false
-            val newPosition = closeUp.positionWithinOriginSegment - 1
-            tableState = tableState.copy(closeUp = CardSlot(tableState.playerHand.cards[newPosition], PlayTableSegmentType.PLAYER_HAND, newPosition))
-            return true
-        } ?: return false
-    }
+//    private fun moveCloseUpToNextCardInPlayerHand(): Boolean {
+//        tableState.closeUp?.let { closeUp ->
+//            if (closeUp.ori != PlayTableSegmentType.PLAYER_HAND || closeUp.positionWithinOriginSegment == tableState.playerHand.availableSlots - 1) return false
+//            val newPosition = closeUp.positionWithinOriginSegment + 1
+//            tableState = tableState.copy(closeUp = CardSlot(tableState.playerHand.cards[newPosition], PlayTableSegmentType.PLAYER_HAND, newPosition))
+//            return true
+//        } ?: return false
+//    }
+//
+//    private fun moveCloseUpToPreviousCardInPlayerHand(): Boolean {
+//        tableState.closeUp?.let { closeUp ->
+//            if (closeUp.originSegment != PlayTableSegmentType.PLAYER_HAND || closeUp.positionWithinOriginSegment == 0) return false
+//            val newPosition = closeUp.positionWithinOriginSegment - 1
+//            tableState = tableState.copy(closeUp = CardSlot(tableState.playerHand.cards[newPosition], PlayTableSegmentType.PLAYER_HAND, newPosition))
+//            return true
+//        } ?: return false
+//    }
 
     private var answerStartTimestamp: Long? = null
 
@@ -356,7 +346,7 @@ class PlayTableViewModel(
                 repository.sendSingleAction(action, navArgs.gameSessionId)
             }
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
-                tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionRace.Answering))
+                tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionFace.Answering))
                 answerStartTimestamp = System.currentTimeMillis()
             }
             //TODO Send to firebase

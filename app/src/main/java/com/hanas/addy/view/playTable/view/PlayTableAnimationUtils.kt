@@ -11,17 +11,14 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
-import com.hanas.addy.view.playTable.model.PlayCardContentUiState
-import com.hanas.addy.view.playTable.model.PlayCardContentUiType.ATTRIBUTES
-import com.hanas.addy.view.playTable.model.PlayCardContentUiType.BACK_COVER
-import com.hanas.addy.view.playTable.model.PlayCardContentUiType.QUESTION
-import com.hanas.addy.view.playTable.model.PlayCardOrientation
-import com.hanas.addy.view.playTable.model.PlayCardUiState
+import com.hanas.addy.view.playTable.model.CardRotation
+import com.hanas.addy.view.playTable.model.PlayCardContentState
+import com.hanas.addy.view.playTable.view.uistate.PlayCardUiPlacement
 
 
 @Composable
 fun animateOffset(
-    transition: Transition<PlayCardUiState>, screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize
+    transition: Transition<PlayCardUiPlacement>, screenSizeInDp: DpSize, unscaledCardSizeInDp: DpSize
 ): State<Offset> {
     return transition.animateOffset(transitionSpec = { spec() }, label = "ccc") {
         val dpOffset = it.targetOffset(screenSizeInDp, unscaledCardSizeInDp)
@@ -33,7 +30,7 @@ fun <T : Any> spec() = tween<T>(500)
 
 @Composable
 fun animateWidth(
-    transition: Transition<PlayCardUiState>, screenSizeInDp: DpSize
+    transition: Transition<PlayCardUiPlacement>, screenSizeInDp: DpSize
 ) = transition.animateDp(transitionSpec = { spec() }, label = "bbb") {
     val width = it.targetWidth()
     if (width == Dp.Infinity) screenSizeInDp.width
@@ -42,25 +39,14 @@ fun animateWidth(
 }
 
 @Composable
-fun animateRotationZ(transition: Transition<PlayCardUiState>) = transition.animateFloat(
+fun animateRotationZ(transition: Transition<PlayCardUiPlacement>) = transition.animateFloat(
     transitionSpec = { spec() }, label = "aaa"
 ) {
     it.targetRotationZ()
 }
 
 @Composable
-fun animateOrientation(transition: Transition<PlayCardUiState>) = transition.animateValue(
-    typeConverter = PlayCardOrientation.ToVector,
+fun animateOrientation(transition: Transition<PlayCardContentState>) = transition.animateValue(
+    typeConverter = CardRotation.ToVector,
     transitionSpec = { spec() }, label = "aaa"
-) {
-    PlayCardOrientation(
-        it.content.rotationX, it.content.rotationY, when (it.content) {
-            is PlayCardContentUiState.AttributesDisplay -> ATTRIBUTES
-            PlayCardContentUiState.BackCover -> BACK_COVER
-            is PlayCardContentUiState.QuestionRace -> QUESTION
-            PlayCardContentUiState.OpponentAnswering -> BACK_COVER
-            PlayCardContentUiState.OpponentWaitingForAttributeBattle -> BACK_COVER
-            PlayCardContentUiState.ChooseActiveAttribute -> BACK_COVER
-        }
-    )
-}
+) { it.rotation }

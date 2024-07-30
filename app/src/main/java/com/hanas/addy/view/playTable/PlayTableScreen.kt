@@ -21,6 +21,7 @@ import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
+import com.hanas.addy.view.playTable.model.CardCollection
 import com.hanas.addy.view.playTable.model.PlayTableState
 import com.hanas.addy.view.playTable.view.PlayTable
 import kotlinx.coroutines.delay
@@ -78,9 +79,9 @@ fun PlayTableScreenPreview2() {
         var playTableState by remember {
             mutableStateOf(
                 PlayTableState(
-                    PlayTableState.Segment(emptyList()),
-                    PlayTableState.Segment(emptyList()),
-                    PlayTableState.Segment(emptyList()),
+                    CardCollection(emptyList()),
+                    CardCollection(emptyList()),
+                    CardCollection(emptyList()),
                 )
             )
         }
@@ -88,7 +89,7 @@ fun PlayTableScreenPreview2() {
             delay(100)
             for (i in 0..20) {
                 playTableState = playTableState.copy(
-                    unusedStack = PlayTableState.Segment(listOf(cardStack[i]) + playTableState.unusedStack.cards, 20)
+                    deck = CardCollection(listOf(cardStack[i]) + playTableState.deck.cards, 20)
                 )
                 delay(1000)
             }
@@ -105,9 +106,9 @@ fun PlayTableScreenPreview() {
         var playTableState by remember {
             mutableStateOf(
                 PlayTableState(
-                    PlayTableState.Segment(List(6) { cardStack[it] }),
-                    PlayTableState.Segment(List(3) { cardStack[it + 6] }),
-                    PlayTableState.Segment(List(2) { cardStack[it + 6 + 3] }),
+                    CardCollection(List(6) { cardStack[it] }),
+                    CardCollection(List(3) { cardStack[it + 6] }),
+                    CardCollection(List(2) { cardStack[it + 6 + 3] }),
                 )
             )
         }

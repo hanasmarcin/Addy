@@ -32,9 +32,12 @@ import com.hanas.addy.model.Answer
 import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
-import com.hanas.addy.view.playTable.model.PlayCardContentUiState
-import com.hanas.addy.view.playTable.model.PlayTableSegmentType
+import com.hanas.addy.view.playTable.model.AttributesFace
+import com.hanas.addy.view.playTable.model.CardCollection
+import com.hanas.addy.view.playTable.model.CardSlot
 import com.hanas.addy.view.playTable.model.PlayTableState
+import com.hanas.addy.view.playTable.model.QuestionFace
+import com.hanas.addy.view.playTable.view.cardcontent.CardOnTableLayout
 
 @Composable
 fun PlayTable(
@@ -58,23 +61,22 @@ fun PlayTable(
         }
         Scrim(
             enabled = data.closeUp != null,
-            isClickAvailable = (data.closeUp?.contentState is PlayCardContentUiState.AttributesDisplay),
+            isClickAvailable = (data.closeUp?.contentState is AttributesFace),
             scrimSize = scrimSize,
             onClickAwayFromCloseUp = onClickAwayFromCloseUp
         )
-        cards.forEach { (data, state) ->
-            key(data.id) {
+        cards.forEach { (cardId, state) ->
+            key(cardId) {
                 CardOnTableLayout(
-                    data = data,
-                    screenSizeInDp = screenSizeInDp,
                     state = state,
+                    screenSizeInDp = screenSizeInDp,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .layoutId(data.hashCode()),
-                    onSelectAnswer = { onSelectAnswer(data.id, it) },
-                    onSelectToBattle = { onSelectToBattle(data.id) },
-                    onClickCard = { onClickCard(data.id, state.clickOrigin) },
-                    startAnswer = { onStartAnswer(data.id) }
+                    onSelectAnswer = { onSelectAnswer(cardId, it) },
+                    onSelectToBattle = { onSelectToBattle(cardId) },
+                    onClickCard = { onClickCard(cardId, ClickOrigin.PLAYER_HAND) },
+                    startAnswer = { onStartAnswer(cardId) }
                 )
             }
         }
@@ -119,14 +121,14 @@ fun PlayTablePreview() {
         var playTableState by remember {
             mutableStateOf(
                 PlayTableState(
-                    PlayTableState.Segment(listOf(cardStack[0])),
-                    PlayTableState.Segment(listOf(cardStack[1], cardStack[5], cardStack[6])),
-                    PlayTableState.Segment(listOf(cardStack[2], cardStack[7], cardStack[8])),
-                    playerBattleSlot = PlayTableState.CardSlot(
-                        cardStack[3], PlayTableSegmentType.PLAYER_HAND, 0, contentState = PlayCardContentUiState.QuestionRace.Answering
+                    CardCollection(listOf(cardStack[0])),
+                    CardCollection(listOf(cardStack[1], cardStack[5], cardStack[6])),
+                    CardCollection(listOf(cardStack[2], cardStack[7], cardStack[8])),
+                    playerBattleSlot = CardSlot(
+                        cardStack[3], contentState = QuestionFace.Answering
                     ),
-                    opponentBattleSlot = PlayTableState.CardSlot(
-                        cardStack[4], PlayTableSegmentType.TOP_OPPONENT_HAND, 0, contentState = PlayCardContentUiState.QuestionRace.Answering
+                    opponentBattleSlot = CardSlot(
+                        cardStack[4], contentState = QuestionFace.Answering
                     )
                 )
             )

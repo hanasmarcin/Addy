@@ -1,57 +1,65 @@
 package com.hanas.addy.view.playTable.model
 
 import com.hanas.addy.model.PlayCardData
+import com.hanas.addy.view.playTable.view.uistate.PlayCardUiPlacement
+import com.hanas.addy.view.playTable.view.uistate.PlayCardUiState
 
-enum class PlayTableSegmentType {
-    UNUSED_STACK,
-    PLAYER_HAND,
-    TOP_OPPONENT_HAND,
-}
+data class CardCollection(
+    val cards: List<PlayCardData>,
+    val size: Int = cards.size,
+)
+
+data class CardSlot(
+    val card: PlayCardData,
+    val contentState: PlayCardContentState,
+)
 
 data class PlayTableState(
-    val unusedStack: Segment,
-    val playerHand: Segment,
-    val opponentHand: Segment,
+    val deck: CardCollection,
+    val playerHand: CardCollection,
+    val opponentHand: CardCollection,
     val closeUp: CardSlot? = null,
     val playerBattleSlot: CardSlot? = null,
     val opponentBattleSlot: CardSlot? = null,
 ) {
-    data class Segment(
-        val cards: List<PlayCardData>,
-        val availableSlots: Int = cards.size,
-    )
-
-    data class CardSlot(
-        val card: PlayCardData,
-        val originSegment: PlayTableSegmentType,
-        val positionWithinOriginSegment: Int,
-        val contentState: PlayCardContentUiState = PlayCardContentUiState.AttributesDisplay.Initial,
-    )
-
-    fun toCardStateMap() = mutableMapOf<PlayCardData, PlayCardUiState>().apply {
-        if (playerBattleSlot != null) {
-            set(playerBattleSlot.card, PlayCardUiState.OnBattleSlotForPlayer(0, 1, playerBattleSlot.contentState))
+    fun toCardStateMap() = mutableMapOf<Long, PlayCardUiState>().apply {
+        playerBattleSlot?.let { slot ->
+            this[slot.card.id] = PlayCardUiState(
+                data = slot.card,
+                placement = PlayCardUiPlacement.PlayerBattleSlot,
+                contentState = slot.contentState
+            )
         }
-        if (opponentBattleSlot != null) {
-            set(opponentBattleSlot.card, PlayCardUiState.OnBattleSlotForOpponent(0, 1, opponentBattleSlot.contentState))
+        opponentBattleSlot?.let { slot ->
+            this[slot.card.id] = PlayCardUiState(
+                data = slot.card,
+                placement = PlayCardUiPlacement.OpponentBattleSlot,
+                contentState = slot.contentState
+            )
         }
-        if (closeUp != null) {
-            set(closeUp.card, PlayCardUiState.OnCloseUp(closeUp.positionWithinOriginSegment, closeUp.contentState))
+        closeUp?.let { slot ->
+            this[slot.card.id] = PlayCardUiState(
+                data = slot.card,
+                placement = PlayCardUiPlacement.CloseUp,
+                contentState = slot.contentState
+            )
         }
-        unusedStack.cards.onEachIndexed { index, card ->
-            if (card.isNotInSlot()) set(card, PlayCardUiState.OnUnusedStack(index, unusedStack.availableSlots))
+        deck.cards.filter { it.isNotInSlot() }.onEachIndexed { index, card ->
+            if (card.isNotInSlot()) {
+                this[card.id] = PlayCardUiState(card, PlayCardUiPlacement.Deck(index), BackFace.BackCover)
+            }
         }
         playerHand.cards.onEachIndexed { index, card ->
-            val isClickAvailable = closeUp == null || closeUp.contentState is PlayCardContentUiState.AttributesDisplay
-            if (card.isNotInSlot()) set(card, PlayCardUiState.InHand(index, playerHand.availableSlots, isClickAvailable))
+            if (card.isNotInSlot()) {
+                this[card.id] = PlayCardUiState(card, PlayCardUiPlacement.PlayerHand(index, playerHand.size), AttributesFace.CardPreview)
+            }
         }
         opponentHand.cards.onEachIndexed { index, card ->
-            if (card.isNotInSlot()) set(card, PlayCardUiState.InTopOpponentHand(index, opponentHand.availableSlots))
+            if (card.isNotInSlot()) {
+                this[card.id] = PlayCardUiState(card, PlayCardUiPlacement.OpponentHand(index, playerHand.size), BackFace.BackCover)
+            }
         }
     }
 
     private fun PlayCardData.isNotInSlot() = this != closeUp?.card && this != playerBattleSlot?.card && this != opponentBattleSlot?.card
 }
-
-
-fun <E> Collection<E>.indexOfOrNull(element: E): Int? = indexOf(element).takeIf { it != -1 }

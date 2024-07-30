@@ -1,4 +1,4 @@
-package com.hanas.addy.view.playTable.view
+package com.hanas.addy.view.playTable.view.cardcontent
 
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
@@ -15,10 +15,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +32,9 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -35,14 +42,21 @@ import androidx.compose.ui.zIndex
 import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayCardData
-import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
-import com.hanas.addy.view.playTable.model.PlayCardContentUiState
-import com.hanas.addy.view.playTable.model.PlayCardUiState
+import com.hanas.addy.ui.samplePlayCard
+import com.hanas.addy.ui.theme.AppTheme
+import com.hanas.addy.view.playTable.model.AttributesFace
+import com.hanas.addy.view.playTable.model.BackFace
+import com.hanas.addy.view.playTable.model.PlayCardContentState
+import com.hanas.addy.view.playTable.model.QuestionFace
+import com.hanas.addy.view.playTable.view.animateOffset
+import com.hanas.addy.view.playTable.view.animateOrientation
+import com.hanas.addy.view.playTable.view.animateRotationZ
+import com.hanas.addy.view.playTable.view.animateWidth
+import com.hanas.addy.view.playTable.view.uistate.PlayCardUiState
 
 @Composable
 fun CardOnTableLayout(
     screenSizeInDp: DpSize,
-    data: PlayCardData,
     state: PlayCardUiState,
     modifier: Modifier = Modifier,
     onSelectAnswer: (Answer) -> Unit,
@@ -51,13 +65,14 @@ fun CardOnTableLayout(
     onClickCard: () -> Unit
 ) {
     val unscaledCardSizeInDp = DpSize(screenSizeInDp.width, screenSizeInDp.width / 0.6f)
-    val transition = updateTransition(state, label = "Animate transition")
-    val orientation by animateOrientation(transition)
-    val rotationOnZ by animateRotationZ(transition)
-    val width by animateWidth(transition, screenSizeInDp)
-    val offset by animateOffset(transition, screenSizeInDp, unscaledCardSizeInDp)
+    val placementTransition = updateTransition(state.placement, label = "Animate placement")
+    val contentTransition = updateTransition(state.contentState, label = "Animate content state")
+    val orientation by animateOrientation(contentTransition)
+    val rotationOnZ by animateRotationZ(placementTransition)
+    val width by animateWidth(placementTransition, screenSizeInDp)
+    val offset by animateOffset(placementTransition, screenSizeInDp, unscaledCardSizeInDp)
     Box(modifier = modifier
-        .zIndex(state.targetIndexZ())
+        .zIndex(state.placement.targetZIndex())
         .offset {
             IntOffset(offset.x.dp.roundToPx(), offset.y.dp.roundToPx())
         }
@@ -82,13 +97,12 @@ fun CardOnTableLayout(
 
     ) {
 
-        val contentState =
-            transition.currentState.content.takeIf { it.type == orientation.contentType } ?: transition.targetState.content
+        val contentState = contentTransition.currentState.takeIf { it.rotation::class == orientation::class } ?: contentTransition.targetState
 
         CardOnTableContent(
-            data = data,
+            data = state.data,
             contentState = contentState,
-            isClickable = transition.isRunning.not() && state.clickOrigin != ClickOrigin.NOT_CLICKABLE,
+            isClickable = placementTransition.isRunning.not(),
             onClickCard = onClickCard,
             onSelectToBattle = onSelectToBattle,
             onSelectAnswer = onSelectAnswer,
@@ -100,7 +114,7 @@ fun CardOnTableLayout(
 @Composable
 fun CardOnTableContent(
     data: PlayCardData,
-    contentState: PlayCardContentUiState,
+    contentState: PlayCardContentState,
     isClickable: Boolean,
     onClickCard: () -> Unit,
     onSelectToBattle: () -> Unit,
@@ -111,23 +125,18 @@ fun CardOnTableContent(
         onClickCard()
     }
     when (contentState) {
-        is PlayCardContentUiState.AttributesDisplay -> {
+        is AttributesFace -> {
             PlayCardAttributes(contentState, data, cardModifier, onSelectToBattle)
         }
-        PlayCardContentUiState.BackCover -> {
-            CardBack(cardModifier)
+        is BackFace -> {
+            when (contentState) {
+                BackFace.BackCover -> CardBack(cardModifier)
+                BackFace.OpponentAnswering -> PlayCardOpponentOnBattleSlot(cardModifier, null)
+                BackFace.OpponentWaitingForAttributeBattle -> PlayCardOpponentOnBattleSlot(cardModifier, true)
+            }
         }
-        is PlayCardContentUiState.QuestionRace -> {
+        is QuestionFace -> {
             PlayCardQuestion(data, contentState, cardModifier.graphicsLayer { scaleX = -1f }, startAnswering, onSelectAnswer)
-        }
-        PlayCardContentUiState.OpponentAnswering -> {
-            PlayCardOpponentOnBattleSlot(cardModifier, null)
-        }
-        PlayCardContentUiState.OpponentWaitingForAttributeBattle -> {
-            PlayCardOpponentOnBattleSlot(cardModifier, true)
-        }
-        PlayCardContentUiState.ChooseActiveAttribute -> {
-            CardBack(cardModifier)
         }
     }
 }
@@ -151,16 +160,62 @@ fun PlayCardOpponentOnBattleSlot(modifier: Modifier, answeredCorrectly: Boolean?
             modifier = Modifier.fillMaxSize()
         )
         when (answeredCorrectly) {
-            true -> Icon(Icons.Default.Done, null, tint = Color.Green, modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f, false))
-            false -> Icon(Icons.Default.Clear, null, tint = Color.Red, modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f, false))
-            null -> Icon(Icons.Default.Lock, null, tint = Color.White, modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f, false))
+            true -> Icon(
+                Icons.Default.Done, null, tint = Color.Green, modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f, false)
+            )
+            false -> Icon(
+                Icons.Default.Clear, null, tint = Color.Red, modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f, false)
+            )
+            null -> Icon(
+                Icons.Default.Lock, null, tint = Color.White, modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f, false)
+            )
         }
     }
 
+}
+
+class PlayCardProvider : PreviewParameterProvider<PlayCardContentState> {
+    override val values = sequenceOf(
+        AttributesFace.CardPreview,
+        QuestionFace.ReadyToAnswer,
+        QuestionFace.Answering,
+        QuestionFace.AnswerScored(Answer.B, true),
+        QuestionFace.AnswerScored(Answer.C, false),
+        AttributesFace.AddingBoost(3, 0, -1),
+        AttributesFace.WaitingForAttributeBattle,
+        BackFace.BackCover,
+        BackFace.OpponentAnswering,
+        BackFace.OpponentWaitingForAttributeBattle
+    )
+}
+
+@Preview
+@Composable
+fun PlayCardAnimationPreview() {
+    AppTheme {
+        var state by remember { mutableStateOf<QuestionFace>(QuestionFace.ReadyToAnswer) }
+        Card(shape = RoundedCornerShape(24.dp)) {
+            CardOnTableContent(samplePlayCard, state, false, {}, {}, {
+                state = QuestionFace.AnswerScored(it, it == Answer.A)
+            }) {
+                state = QuestionFace.Answering
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PlayCardPreview(@PreviewParameter(PlayCardProvider::class) state: PlayCardContentState) {
+    AppTheme {
+        Card(shape = RoundedCornerShape(24.dp)) {
+            CardOnTableContent(samplePlayCard, state, false, {}, {}, {}, {})
+        }
+    }
 }

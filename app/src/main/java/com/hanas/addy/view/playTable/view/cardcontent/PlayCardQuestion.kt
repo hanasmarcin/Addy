@@ -1,4 +1,4 @@
-package com.hanas.addy.view.playTable.view
+package com.hanas.addy.view.playTable.view.cardcontent
 
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.updateTransition
@@ -55,15 +55,15 @@ import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.ui.samplePlayCard
 import com.hanas.addy.ui.theme.AppTheme
-import com.hanas.addy.view.playTable.model.PlayCardContentUiState
-import com.hanas.addy.view.playTable.model.PlayCardContentUiState.QuestionRace.Answering
-import com.hanas.addy.view.playTable.model.PlayCardContentUiState.QuestionRace.Initial
-import com.hanas.addy.view.playTable.model.PlayCardContentUiState.QuestionRace.Result
+import com.hanas.addy.view.playTable.model.AttributesFace
+import com.hanas.addy.view.playTable.model.BackFace
+import com.hanas.addy.view.playTable.model.PlayCardContentState
+import com.hanas.addy.view.playTable.model.QuestionFace
 
 @Composable
 fun PlayCardQuestion(
     card: PlayCardData,
-    state: PlayCardContentUiState.QuestionRace,
+    state: QuestionFace,
     modifier: Modifier = Modifier,
     startAnswering: () -> Unit,
     onSelectAnswer: (Answer) -> Unit,
@@ -81,15 +81,15 @@ fun PlayCardQuestion(
         }
         val imagePadding by transition.animateDp(label = "") {
             when (it) {
-                Answering -> 0.dp
-                Initial -> 16.dp
-                is Result -> 0.dp
+                QuestionFace.Answering -> 0.dp
+                QuestionFace.ReadyToAnswer -> 16.dp
+                is QuestionFace.AnswerScored -> 0.dp
             }
         }
         CardImageWithTitle(imageHeight, imagePadding, card, brush)
         QuestionWithAnswers(brush) {
             when (state) {
-                Initial -> {
+                QuestionFace.ReadyToAnswer -> {
                     AnswerBox(
                         color1 = Color(0xFF333333),
                         innerPadding = PaddingValues(end = 8.dp, bottom = 8.dp, start = 4.dp, top = 4.dp),
@@ -108,7 +108,7 @@ fun PlayCardQuestion(
                         )
                     }
                 }
-                is Answering, is Result -> {
+                is QuestionFace.Answering, is QuestionFace.AnswerScored -> {
                     Text(
                         card.question.text,
                         style = MaterialTheme.typography.titleMedium,
@@ -119,8 +119,8 @@ fun PlayCardQuestion(
                     )
                     AnswersGrid(
                         card,
-                        isCorrectAnswer = (state as? Result)?.isAnswerCorrect,
-                        selectedAnswer = (state as? Result)?.answer,
+                        isCorrectAnswer = (state as? QuestionFace.AnswerScored)?.isAnswerCorrect,
+                        selectedAnswer = (state as? QuestionFace.AnswerScored)?.answer,
                         onSelectAnswer = onSelectAnswer
                     )
                 }
@@ -317,40 +317,3 @@ fun Modifier.paperBackground(brush: Brush, color: Color) = drawBehind {
     drawRect(color, blendMode = BlendMode.Overlay)
 }
 
-class PlayCardProvider : PreviewParameterProvider<PlayCardContentUiState> {
-    override val values = sequenceOf(
-        PlayCardContentUiState.AttributesDisplay.Initial,
-        Initial,
-        Answering,
-        Result(Answer.B, true),
-        Result(Answer.C, false),
-        PlayCardContentUiState.AttributesDisplay.AddingBoost(3, 0, -1),
-        PlayCardContentUiState.AttributesDisplay.WaitingForAttributeBattle,
-        PlayCardContentUiState.BackCover,
-    )
-}
-
-@Preview
-@Composable
-fun PlayCardAnimationPreview() {
-    AppTheme {
-        var state by remember { mutableStateOf<PlayCardContentUiState.QuestionRace>(Initial) }
-        Card(shape = RoundedCornerShape(24.dp)) {
-            CardOnTableContent(samplePlayCard, state, false, {}, {}, {
-                state = Result(it, it == Answer.A)
-            }) {
-                state = Answering
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun PlayCardPreview(@PreviewParameter(PlayCardProvider::class) state: PlayCardContentUiState) {
-    AppTheme {
-        Card(shape = RoundedCornerShape(24.dp)) {
-            CardOnTableContent(samplePlayCard, state, false, {}, {}, {}, {})
-        }
-    }
-}

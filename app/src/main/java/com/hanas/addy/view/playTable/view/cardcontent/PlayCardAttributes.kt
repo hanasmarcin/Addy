@@ -1,5 +1,6 @@
-package com.hanas.addy.view.playTable.view
+package com.hanas.addy.view.playTable.view.cardcontent
 
+import android.graphics.Path
 import android.graphics.RectF
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,13 +37,13 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.res.ResourcesCompat
 import com.hanas.addy.R
 import com.hanas.addy.model.PlayCardData
-import com.hanas.addy.view.playTable.model.PlayCardContentUiState
+import com.hanas.addy.view.playTable.model.AttributesFace
 import kotlin.math.min
 import kotlin.math.sqrt
 
 @Composable
 fun PlayCardAttributes(
-    state: PlayCardContentUiState.AttributesDisplay,
+    state: AttributesFace,
     card: PlayCardData,
     modifier: Modifier = Modifier,
     onSelectToBattle: () -> Unit,
@@ -62,7 +63,7 @@ fun PlayCardAttributes(
 @Composable
 fun Attributes(
     card: PlayCardData,
-    state: PlayCardContentUiState.AttributesDisplay,
+    state: AttributesFace,
     brush: ShaderBrush,
     onSelectToBattle: () -> Unit,
 ) {
@@ -118,7 +119,7 @@ fun Attributes(
                     .drawBehind {
                         drawRect(Color(0xFFD7D7D7), blendMode = BlendMode.Softlight)
                         drawIntoCanvas {
-                            val path = android.graphics.Path()
+                            val path = Path()
                             path.addArc(RectF(16.dp.toPx(), 16.dp.toPx(), size.width - 10.dp.toPx(), size.height - 10.dp.toPx()), 180f, 360f)
                             it.nativeCanvas.drawTextOnPath(card.attributes.red.name, path, 0f, 0f, paint)
                         }
@@ -131,7 +132,7 @@ fun Attributes(
                 contentAlignment = Alignment.Center
             ) {
                 Text(card.attributes.red.value.toString(), style = MaterialTheme.typography.headlineLarge)
-                if (state is PlayCardContentUiState.AttributesDisplay.AddingBoost && state.boostForRed != 0) {
+                if (state is AttributesFace.AddingBoost && state.boostForRed != 0) {
                     BoostText(state.boostForRed, MaterialTheme.colorScheme.primaryContainer)
                 }
             }
@@ -141,7 +142,7 @@ fun Attributes(
                     .drawBehind {
                         drawRect(Color(0xFFD7D7D7), blendMode = BlendMode.Softlight)
                         drawIntoCanvas {
-                            val path = android.graphics.Path()
+                            val path = Path()
                             path.addArc(RectF(16.dp.toPx(), 16.dp.toPx(), size.width - 10.dp.toPx(), size.height - 10.dp.toPx()), 180f, 360f)
                             it.nativeCanvas.drawTextOnPath(card.attributes.green.name, path, 0f, 0f, paint)
                         }
@@ -154,7 +155,7 @@ fun Attributes(
                 contentAlignment = Alignment.Center
             ) {
                 Text(card.attributes.green.value.toString(), style = MaterialTheme.typography.headlineLarge)
-                if (state is PlayCardContentUiState.AttributesDisplay.AddingBoost && state.boostForGreen != 0) {
+                if (state is AttributesFace.AddingBoost && state.boostForGreen != 0) {
                     BoostText(state.boostForGreen, MaterialTheme.colorScheme.primaryContainer)
                 }
             }
@@ -164,7 +165,7 @@ fun Attributes(
                     .drawBehind {
                         drawRect(Color(0xFFD7D7D7), blendMode = BlendMode.Softlight)
                         drawIntoCanvas {
-                            val path = android.graphics.Path()
+                            val path = Path()
                             path.addArc(RectF(16.dp.toPx(), 16.dp.toPx(), size.width - 10.dp.toPx(), size.height - 10.dp.toPx()), 180f, 360f)
                             it.nativeCanvas.drawTextOnPath(card.attributes.blue.name, path, 0f, 0f, paint)
                         }
@@ -177,7 +178,7 @@ fun Attributes(
                 contentAlignment = Alignment.Center
             ) {
                 Text(card.attributes.blue.value.toString(), style = MaterialTheme.typography.headlineLarge)
-                if (state is PlayCardContentUiState.AttributesDisplay.AddingBoost && state.boostForBlue != 0) {
+                if (state is AttributesFace.AddingBoost && state.boostForBlue != 0) {
                     BoostText(state.boostForBlue, MaterialTheme.colorScheme.primaryContainer)
                 }
             }

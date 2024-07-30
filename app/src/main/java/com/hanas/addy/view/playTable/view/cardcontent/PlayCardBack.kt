@@ -1,4 +1,4 @@
-package com.hanas.addy.view.playTable.view
+package com.hanas.addy.view.playTable.view.cardcontent
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
