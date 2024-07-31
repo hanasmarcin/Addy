@@ -3,12 +3,14 @@ package com.hanas.addy.view.playTable.view.cardcontent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,7 +79,7 @@ fun PlayCardAttributes(
     }
     Box(
         Modifier
-            .fillMaxSize()
+            .aspectRatio(CARD_ASPECT_RATIO)
             .background(color)
     )
 }
@@ -111,11 +113,26 @@ fun Attributes(
         Spacer(Modifier.size(16.dp))
 
         // Create attribute rows using the function
-        AttributeRow(card.attributes.red, state, (state as? AttributesFace.AddingBoost)?.boostForRed) { onSelectAttribute(0) }
+        AttributeRow(
+            attribute = card.attributes.red,
+            state = state,
+            booster = (state as? AttributesFace.AddingBoost)?.boostForRed,
+            isSelectedAsActive = (state as? AttributesFace.ActiveAttributeSelected)?.attribute == "red"
+        ) { onSelectAttribute(0) }
         Spacer(Modifier.size(16.dp))
-        AttributeRow(card.attributes.green, state, (state as? AttributesFace.AddingBoost)?.boostForGreen) { onSelectAttribute(1) }
+        AttributeRow(
+            attribute = card.attributes.green,
+            state = state,
+            booster = (state as? AttributesFace.AddingBoost)?.boostForGreen,
+            isSelectedAsActive = (state as? AttributesFace.ActiveAttributeSelected)?.attribute == "green"
+        ) { onSelectAttribute(1) }
         Spacer(Modifier.size(16.dp))
-        AttributeRow(card.attributes.blue, state, (state as? AttributesFace.AddingBoost)?.boostForBlue) { onSelectAttribute(2) }
+        AttributeRow(
+            attribute = card.attributes.blue,
+            state = state,
+            booster = (state as? AttributesFace.AddingBoost)?.boostForBlue,
+            isSelectedAsActive = (state as? AttributesFace.ActiveAttributeSelected)?.attribute == "blue"
+        ) { onSelectAttribute(2) }
         Spacer(Modifier.size(16.dp))
 
         Row(
@@ -137,13 +154,26 @@ fun Attributes(
 }
 
 @Composable
-fun AttributeRow(attribute: Attribute, state: AttributesFace, booster: Int?, onSelectAttribute: () -> Unit) {
+fun AttributeRow(
+    attribute: Attribute,
+    state: AttributesFace,
+    booster: Int?,
+    isSelectedAsActive: Boolean,
+    onSelectAttribute: () -> Unit
+) {
     val brush = rememberPaperBrush()
-
+    var targetBorderWidth by remember { mutableStateOf(0.dp) }
+    LaunchedEffect(isSelectedAsActive) {
+        if (isSelectedAsActive) {
+            targetBorderWidth = 5.dp
+        }
+    }
+    val borderWidth by animateDpAsState(targetBorderWidth, label = "", animationSpec = tween(2000))
     Row(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
+            .border(borderWidth, MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(16.dp))
             .paperBackground(brush, MaterialTheme.colorScheme.primaryContainer)
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable(state is AttributesFace.ChooseActiveAttribute) { onSelectAttribute() }
@@ -199,7 +229,8 @@ class AttributesFacePreviewProvider : PreviewParameterProvider<AttributesFace> {
         AttributesFace.AddingBoost(1, 2, 3),
         AttributesFace.AddingBoost(-1, 0, -3),
         AttributesFace.ChooseActiveAttribute,
-        AttributesFace.WaitingForAttributeBattle,
+        AttributesFace.WaitingForActiveAttributeSelected,
+        AttributesFace.ActiveAttributeSelected("green"),
         AttributesFace.BattleResult(true),
         AttributesFace.BattleResult(false),
     )

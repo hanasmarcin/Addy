@@ -25,9 +25,10 @@ sealed class AttributesFace : PlayCardContentState(
     data object StaticPreview : AttributesFace()
     data object ChoosingToBattle : AttributesFace()
     data class AddingBoost(val boostForRed: Int, val boostForGreen: Int, val boostForBlue: Int) : AttributesFace()
-    class BattleResult(val isWon: Boolean) : AttributesFace()
-    data object WaitingForAttributeBattle : AttributesFace()
+    data object WaitingForActiveAttributeSelected : AttributesFace()
     data object ChooseActiveAttribute : AttributesFace()
+    data class ActiveAttributeSelected(val attribute: String) : AttributesFace()
+    class BattleResult(val isWon: Boolean) : AttributesFace()
 }
 
 sealed class QuestionFace(

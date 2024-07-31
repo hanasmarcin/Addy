@@ -193,7 +193,7 @@ class PlayCardProvider : PreviewParameterProvider<PlayCardContentState> {
         QuestionFace.AnswerScored(Answer.B, true),
         QuestionFace.AnswerScored(Answer.C, false),
         AttributesFace.AddingBoost(3, 0, -1),
-        AttributesFace.WaitingForAttributeBattle,
+        AttributesFace.WaitingForActiveAttributeSelected,
         BackFace.BackCover,
         BackFace.OpponentAnswering,
         BackFace.OpponentWaitingForAttributeBattle

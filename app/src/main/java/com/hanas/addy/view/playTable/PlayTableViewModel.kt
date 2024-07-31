@@ -55,8 +55,6 @@ class PlayTableViewModel(
         .onEach { batchActions ->
             handledActions.addAll(batchActions.map { it.actionId })
         }
-    //.buffer()
-//.shareIn(viewModelScope, SharingStarted.Eagerly, replay = 0)
 
     private fun isActionHandled(actionId: String) = actionId in handledActions
 
@@ -81,8 +79,14 @@ class PlayTableViewModel(
         viewModelScope.launch {
             gameSession.flatMapConcat { gameSession ->
                 handleGameSession(gameSession)
-            }.collect { batchAction ->
-                handleBatchAction(batchAction)
+            }.flatMapConcat { it.unitActions.asFlow() }.collect { batchAction ->
+                try {
+                    Log.d("HANASSS", "START Handling action: $batchAction")
+                    handleBatchAction(batchAction)
+                    Log.d("HANASSS", "FINISH Handling action: $batchAction")
+                } catch (e: Exception) {
+                    Log.e("HANASSS", "ERROR handling action: $batchAction", e)
+                }
             }
         }
     }
@@ -97,23 +101,20 @@ class PlayTableViewModel(
         }
     }
 
-    private suspend fun handleBatchAction(batchAction: GameActionsBatch) {
-        batchAction.unitActions.forEach { action ->
-            delay(1000)
-            Log.d("HANASSS", "Performing action: $action")
-            when (action) {
-                is GameAction.MoveCard -> handleMoveCardAction(action)
-                is GameAction.FinishAnsweringQuestion -> handleFinishAnsweringQuestion(action)
-                is GameAction.StartAnsweringQuestion -> handleStartAnsweringQuestion(action)
-                is GameAction.AddCard -> handleAddCardAction(action)
-                is GameAction.QuestionRaceResult -> handleQuestionRaceResult(action)
-                is GameAction.SelectActiveAttribute -> handleSelectActiveAttribute(action)
-                is GameAction.AttributeBattleResult -> handleAttributeBattleResult(action)
-            }
+    private suspend fun handleBatchAction(action: GameAction) {
+        Log.d("HANASSS", "Performing action: $action")
+        when (action) {
+            is GameAction.MoveCard -> handleMoveCardAction(action)
+            is GameAction.FinishAnsweringQuestion -> handleFinishAnsweringQuestion(action)
+            is GameAction.StartAnsweringQuestion -> handleStartAnsweringQuestion(action)
+            is GameAction.AddCard -> handleAddCardAction(action)
+            is GameAction.QuestionRaceResult -> handleQuestionRaceResult(action)
+            is GameAction.SelectActiveAttribute -> handleSelectActiveAttribute(action)
+            is GameAction.AttributeBattleResult -> handleAttributeBattleResult(action)
         }
     }
 
-    private fun handleAttributeBattleResult(action: GameAction.AttributeBattleResult) {
+    private suspend fun handleAttributeBattleResult(action: GameAction.AttributeBattleResult) {
         val hasPlayerWon = Firebase.auth.currentUser?.uid in action.winnerIds
         val hasOpponentWon = (hasPlayerWon && action.winnerIds.size > 1) || (hasPlayerWon.not() && action.winnerIds.isNotEmpty())
         tableState = tableState.copy(
@@ -121,29 +122,39 @@ class PlayTableViewModel(
             playerBattleSlot = tableState.playerBattleSlot?.copy(contentState = AttributesFace.BattleResult(hasPlayerWon)),
             opponentBattleSlot = tableState.opponentBattleSlot?.copy(contentState = AttributesFace.BattleResult(hasOpponentWon))
         )
+        delay(3000)
     }
 
-    private fun handleSelectActiveAttribute(action: GameAction.SelectActiveAttribute) {
+    private suspend fun handleSelectActiveAttribute(action: GameAction.SelectActiveAttribute) {
         tableState.playerBattleSlot?.let {
-            tableState = tableState.copy(closeUp = it)
+            val updatedSlot = it.copy(contentState = AttributesFace.ActiveAttributeSelected(action.attribute))
+            tableState = tableState.copy(
+                playerBattleSlot = updatedSlot,
+                closeUp = updatedSlot
+            )
+            delay(3000)
         }
     }
 
-    private fun handleQuestionRaceResult(action: GameAction.QuestionRaceResult) {
+    private suspend fun handleQuestionRaceResult(action: GameAction.QuestionRaceResult) {
         if (Firebase.auth.currentUser?.uid == action.playerId) {
             val winningCard = tableState.playerBattleSlot?.card
             if (winningCard != null) {
+                val newSlot = CardSlot(winningCard, contentState = AttributesFace.ChooseActiveAttribute)
                 tableState = tableState.copy(
-                    closeUp = CardSlot(winningCard, contentState = AttributesFace.ChooseActiveAttribute)
+                    playerBattleSlot = newSlot,
+                    closeUp = newSlot
                 )
             }
+            delay(3000)
         }
     }
 
-    private fun handleMoveCardAction(action: GameAction.MoveCard) {
+    private suspend fun handleMoveCardAction(action: GameAction.MoveCard) {
         val (removedCard, stateWithRemovedCard) = removeCardFromCurrentPlacement(action)
         val stateWithMovedCard = placeCardToTargetPlacement(action, removedCard, stateWithRemovedCard)
         tableState = stateWithMovedCard
+        delay(600)
     }
 
     private fun removeCardFromCurrentPlacement(action: GameAction.MoveCard): Pair<PlayCardData, PlayTableState> {
@@ -240,6 +251,7 @@ class PlayTableViewModel(
             playerHand = CardCollection(emptyList()),
             opponentHand = CardCollection(emptyList())
         )
+        delay(600)
     }
 
 
@@ -293,7 +305,7 @@ class PlayTableViewModel(
                 tableState = tableState.copy(
                     closeUp = null,
                     playerBattleSlot = slot.copy(
-                        contentState = AttributesFace.WaitingForAttributeBattle
+                        contentState = AttributesFace.WaitingForActiveAttributeSelected
                     )
                 )
             }
@@ -358,7 +370,8 @@ class PlayTableViewModel(
                 repository.sendSingleAction(action, navArgs.gameSessionId)
             }
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
-                tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionFace.Answering))
+                val newSlot = slot.copy(contentState = QuestionFace.Answering)
+                tableState = tableState.copy(closeUp = newSlot, playerBattleSlot = newSlot)
                 answerStartTimestamp = System.currentTimeMillis()
             }
             //TODO Send to firebase

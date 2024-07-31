@@ -199,7 +199,7 @@ fun AnswersGrid(card: PlayCardData, selectedAnswer: Answer?, isCorrectAnswer: Bo
         Column(Modifier.padding(4.dp)) {
             Row(Modifier.weight(1f)) {
                 AnswerItem(
-                    answerText = card.question.a,
+                    answerText = card.question.a + if (card.question.answer == Answer.A) " +" else "",
                     onClick = { onSelectAnswer(Answer.A) },
                     color1 = color1,
                     isSelected = selectedAnswer == Answer.A,
@@ -207,7 +207,7 @@ fun AnswersGrid(card: PlayCardData, selectedAnswer: Answer?, isCorrectAnswer: Bo
                     innerPadding = PaddingValues(end = 8.dp, bottom = 8.dp, start = 4.dp, top = 4.dp)
                 )
                 AnswerItem(
-                    answerText = card.question.b,
+                    answerText = card.question.b + if (card.question.answer == Answer.B) " +" else "",
                     onClick = { onSelectAnswer(Answer.B) },
                     color1 = color1,
                     isSelected = selectedAnswer == Answer.B,
@@ -217,7 +217,7 @@ fun AnswersGrid(card: PlayCardData, selectedAnswer: Answer?, isCorrectAnswer: Bo
             }
             Row(Modifier.weight(1f)) {
                 AnswerItem(
-                    answerText = card.question.c,
+                    answerText = card.question.c + if (card.question.answer == Answer.C) " +" else "",
                     onClick = { onSelectAnswer(Answer.C) },
                     color1 = color1,
                     isSelected = selectedAnswer == Answer.C,
@@ -225,7 +225,7 @@ fun AnswersGrid(card: PlayCardData, selectedAnswer: Answer?, isCorrectAnswer: Bo
                     innerPadding = PaddingValues(end = 8.dp, bottom = 4.dp, start = 4.dp, top = 8.dp)
                 )
                 AnswerItem(
-                    answerText = card.question.d,
+                    answerText = card.question.d + if (card.question.answer == Answer.D) " +" else "",
                     onClick = { onSelectAnswer(Answer.D) },
                     color1 = color1,
                     isSelected = selectedAnswer == Answer.D,
