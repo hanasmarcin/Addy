@@ -88,4 +88,5 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(kotlin("reflect"))
+    implementation(libs.lottie.compose)
 }
