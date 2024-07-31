@@ -200,6 +200,7 @@ data class GameActionDTO(
     val attribute: String? = null,
     val currentSegment: CardPositionDTO? = null,
     val targetSegment: CardPositionDTO? = null,
+    val winnerIds: List<String>? = null,
     val msDelay: Long = 0,
 )
 
@@ -242,14 +243,18 @@ sealed class GameAction(open val msDelay: Long) {
     ) : GameAction(msDelay)
 
     data class QuestionRaceResult(
-        val cardId: Long,
-        val playerId: String,
+        val cardId: Long, // Id of the winning card
+        val playerId: String, // Id of the winning player, that will choose active attribute
         override val msDelay: Long
     ) : GameAction(msDelay)
 
     data class SelectActiveAttribute(
-        val attribute: String,
+        val attribute: String, // Selected active attribute, "red", "green", "blue"
         override val msDelay: Long
+    ) : GameAction(msDelay)
+
+    class AttributeBattleResult(
+        val winnerIds: List<String>, msDelay: Long
     ) : GameAction(msDelay)
 }
 
@@ -327,6 +332,7 @@ fun GameActionDTO.toDomain(): GameAction {
         "finishAnsweringQuestion" -> GameAction.FinishAnsweringQuestion(requireNotNull(cardId), requireNotNull(playerId), msDelay)
         "questionRaceResult" -> GameAction.QuestionRaceResult(requireNotNull(cardId), requireNotNull(playerId), msDelay)
         "selectActiveAttribute" -> GameAction.SelectActiveAttribute(requireNotNull(attribute), msDelay)
+        "attributeBattleResult" -> GameAction.AttributeBattleResult(requireNotNull(winnerIds), msDelay)
         else -> throw InvalidParameterException("Unknown player action type: $type")
     }
 }
@@ -358,4 +364,5 @@ fun GameAction.toDTO() = when (this) {
     is GameAction.StartAnsweringQuestion -> GameActionDTO("startAnsweringQuestion", cardId, playerId, msDelay = msDelay)
     is GameAction.QuestionRaceResult -> GameActionDTO("questionRaceResult", cardId, playerId, msDelay = msDelay)
     is GameAction.SelectActiveAttribute -> GameActionDTO("selectActiveAttribute", attribute = attribute, msDelay = msDelay)
+    is GameAction.AttributeBattleResult -> GameActionDTO("attributeBattleResult", winnerIds = winnerIds, msDelay = msDelay)
 }

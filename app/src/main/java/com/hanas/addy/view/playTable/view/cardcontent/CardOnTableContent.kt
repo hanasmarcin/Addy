@@ -187,7 +187,7 @@ fun PlayCardOpponentOnBattleSlot(modifier: Modifier, answeredCorrectly: Boolean?
 
 class PlayCardProvider : PreviewParameterProvider<PlayCardContentState> {
     override val values = sequenceOf(
-        AttributesFace.CardPreview,
+        AttributesFace.StaticPreview,
         QuestionFace.ReadyToAnswer,
         QuestionFace.Answering,
         QuestionFace.AnswerScored(Answer.B, true),

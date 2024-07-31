@@ -108,6 +108,14 @@ class GameSessionRepository {
             blueBooster = data["blueBooster"] as Int,
         )
     }
+
+    suspend fun selectActiveAttribute(gameSessionId: String, attribute: String) {
+        val args = mapOf(
+            "gameSessionId" to gameSessionId,
+            "attribute" to attribute,
+        )
+        functions.getHttpsCallable("select_attribute").call(args).await()
+    }
 }
 
 data class AnswerScoreResult(

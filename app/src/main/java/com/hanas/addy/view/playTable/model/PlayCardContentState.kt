@@ -3,7 +3,6 @@ package com.hanas.addy.view.playTable.model
 import androidx.compose.animation.core.AnimationVector2D
 import androidx.compose.animation.core.TwoWayConverter
 import com.hanas.addy.model.Answer
-import com.hanas.addy.model.Attribute
 
 sealed class PlayCardContentState(
     open val isClickable: Boolean,
@@ -23,10 +22,12 @@ sealed class AttributesFace : PlayCardContentState(
     isClickable = true,
     rotation = CardRotation.FrontDefault() // Assuming attributes are displayed in the default front rotation
 ) {
-    data object CardPreview : AttributesFace()
+    data object StaticPreview : AttributesFace()
+    data object ChoosingToBattle : AttributesFace()
     data class AddingBoost(val boostForRed: Int, val boostForGreen: Int, val boostForBlue: Int) : AttributesFace()
+    class BattleResult(val isWon: Boolean) : AttributesFace()
     data object WaitingForAttributeBattle : AttributesFace()
-    data class ChooseActiveAttribute(val selectedAttribute: Attribute? = null) : AttributesFace()
+    data object ChooseActiveAttribute : AttributesFace()
 }
 
 sealed class QuestionFace(

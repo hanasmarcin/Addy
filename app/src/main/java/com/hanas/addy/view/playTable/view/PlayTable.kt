@@ -51,7 +51,7 @@ fun PlayTable(
     onSelectToBattle: (Long) -> Unit,
     onClickCard: (Long, ClickOrigin) -> Unit,
     onStartAnswer: (Long) -> Unit,
-    onSelectAttribute: (Long, Int) -> Unit,
+    onSelectAttribute: (Int) -> Unit,
 ) {
     val cards = data.toCardStateMap()
     var scrimSize by remember { mutableStateOf(IntSize.Zero) }
@@ -81,7 +81,7 @@ fun PlayTable(
                     onSelectToBattle = { onSelectToBattle(cardId) },
                     onClickCard = { onClickCard(cardId, ClickOrigin.PLAYER_HAND) },
                     startAnswer = { onStartAnswer(cardId) },
-                    onSelectAttribute = { onSelectAttribute(cardId, it) }
+                    onSelectAttribute = onSelectAttribute
                 )
             }
         }
@@ -164,7 +164,7 @@ fun PlayTablePreview() {
                 Modifier
                     .fillMaxSize()
                     .padding(32.dp),
-                {}, { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> })
+                {}, { _, _ -> }, {}, { _, _ -> }, {}, { })
         }
     }
 }

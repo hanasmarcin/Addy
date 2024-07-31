@@ -8,7 +8,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -57,6 +59,13 @@ fun PlayCardAttributes(
     onSelectAttribute: (Int) -> Unit,
 ) {
     val brush = rememberPaperBrush()
+    var targetColor by remember { mutableStateOf(Color.Transparent) }
+    LaunchedEffect(state) {
+        if (state is AttributesFace.BattleResult) {
+            targetColor = if (state.isWon) Color.Green else Color.Red
+        }
+    }
+    val color by animateColorAsState(targetColor, label = "", animationSpec = tween(2000))
     Column(
         modifier
             .aspectRatio(CARD_ASPECT_RATIO)
@@ -66,6 +75,11 @@ fun PlayCardAttributes(
         CardImageWithTitle(card = card, brush = brush)
         Attributes(card, state, brush, onSelectAttribute, onSelectCardToBattle)
     }
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(color)
+    )
 }
 
 @Composable
@@ -89,7 +103,11 @@ fun Attributes(
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(12.dp))
     ) {
-        Text(card.description, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
+        Text(
+            if (state is AttributesFace.ChooseActiveAttribute) "Select active attribute" else card.description,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
         Spacer(Modifier.size(16.dp))
 
         // Create attribute rows using the function
@@ -108,7 +126,7 @@ fun Attributes(
                     brush,
                     MaterialTheme.colorScheme.primaryContainer
                 )
-                .clickable { onSelectToBattle() }
+                .clickable(state is AttributesFace.ChoosingToBattle) { onSelectToBattle() }
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .clip(RoundedCornerShape(12.dp)),
             verticalAlignment = Alignment.CenterVertically
@@ -177,11 +195,13 @@ private fun AttributeValue(value: Int, booster: Int?, style: TextStyle) {
 
 class AttributesFacePreviewProvider : PreviewParameterProvider<AttributesFace> {
     override val values = sequenceOf(
-        AttributesFace.CardPreview,
+        AttributesFace.StaticPreview,
         AttributesFace.AddingBoost(1, 2, 3),
         AttributesFace.AddingBoost(-1, 0, -3),
-        AttributesFace.ChooseActiveAttribute(),
-        AttributesFace.WaitingForAttributeBattle
+        AttributesFace.ChooseActiveAttribute,
+        AttributesFace.WaitingForAttributeBattle,
+        AttributesFace.BattleResult(true),
+        AttributesFace.BattleResult(false),
     )
 
 }

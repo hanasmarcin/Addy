@@ -108,8 +108,19 @@ class PlayTableViewModel(
                 is GameAction.AddCard -> handleAddCardAction(action)
                 is GameAction.QuestionRaceResult -> handleQuestionRaceResult(action)
                 is GameAction.SelectActiveAttribute -> handleSelectActiveAttribute(action)
+                is GameAction.AttributeBattleResult -> handleAttributeBattleResult(action)
             }
         }
+    }
+
+    private fun handleAttributeBattleResult(action: GameAction.AttributeBattleResult) {
+        val hasPlayerWon = Firebase.auth.currentUser?.uid in action.winnerIds
+        val hasOpponentWon = (hasPlayerWon && action.winnerIds.size > 1) || (hasPlayerWon.not() && action.winnerIds.isNotEmpty())
+        tableState = tableState.copy(
+            closeUp = null,
+            playerBattleSlot = tableState.playerBattleSlot?.copy(contentState = AttributesFace.BattleResult(hasPlayerWon)),
+            opponentBattleSlot = tableState.opponentBattleSlot?.copy(contentState = AttributesFace.BattleResult(hasOpponentWon))
+        )
     }
 
     private fun handleSelectActiveAttribute(action: GameAction.SelectActiveAttribute) {
@@ -123,7 +134,7 @@ class PlayTableViewModel(
             val winningCard = tableState.playerBattleSlot?.card
             if (winningCard != null) {
                 tableState = tableState.copy(
-                    closeUp = CardSlot(winningCard, contentState = AttributesFace.ChooseActiveAttribute())
+                    closeUp = CardSlot(winningCard, contentState = AttributesFace.ChooseActiveAttribute)
                 )
             }
         }
@@ -272,9 +283,9 @@ class PlayTableViewModel(
                 tableState = tableState.copy(
                     closeUp = slot.copy(
                         contentState = AttributesFace.AddingBoost(
-                            result?.redBooster ?: 0,
-                            result?.greenBooster ?: 0,
-                            result?.blueBooster ?: 0,
+                            result.redBooster,
+                            result.greenBooster,
+                            result.blueBooster,
                         )
                     )
                 )
@@ -316,7 +327,8 @@ class PlayTableViewModel(
 
     private fun closeUpTheCardFromPlayerHand(position: Int) {
         val card = tableState.playerHand.cards[position]
-        tableState = tableState.copy(closeUp = CardSlot(card, AttributesFace.CardPreview))
+        val contentState = if (tableState.playerBattleSlot == null) AttributesFace.ChoosingToBattle else AttributesFace.StaticPreview
+        tableState = tableState.copy(closeUp = CardSlot(card, contentState))
     }
 
 //    private fun moveCloseUpToNextCardInPlayerHand(): Boolean {
@@ -353,8 +365,15 @@ class PlayTableViewModel(
         }
     }
 
-    fun onSelectAttribute(cardId: Long, attributeId: Int) {
-
+    fun onSelectAttribute(attributeId: Int) {
+        viewModelScope.launch {
+            val attribute = when (attributeId) {
+                0 -> "red"
+                1 -> "green"
+                else -> "blue"
+            }
+            repository.selectActiveAttribute(navArgs.gameSessionId, attribute)
+        }
     }
 
 }

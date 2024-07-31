@@ -55,7 +55,7 @@ fun PlayTableScreen(
     onSelectAnswer: (Long, Answer) -> Unit,
     onSelectToBattle: (Long) -> Unit,
     onStartAnswer: (Long) -> Unit,
-    onSelectAttribute: (Long, Int) -> Unit,
+    onSelectAttribute: (Int) -> Unit,
 ) {
     Surface {
         PlayTable(
@@ -97,7 +97,7 @@ fun PlayTableScreenPreview2() {
                 delay(1000)
             }
         }
-        PlayTableScreen(playTableState, {}, { _, _ -> }, { _, _ -> }, {}, {}) { _, _ -> }
+        PlayTableScreen(playTableState, {}, { _, _ -> }, { _, _ -> }, {}, {}) {}
     }
 }
 
@@ -115,6 +115,6 @@ fun PlayTableScreenPreview() {
                 )
             )
         }
-        PlayTableScreen(playTableState, {}, { _, _ -> }, { _, _ -> }, {}, {}) { _, _ -> }
+        PlayTableScreen(playTableState, {}, { _, _ -> }, { _, _ -> }, {}, {}) { }
     }
 }
