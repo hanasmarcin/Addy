@@ -1,10 +1,7 @@
 package com.hanas.addy.ui.components
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
@@ -30,6 +27,7 @@ fun PrimaryButton(
     content: @Composable RowScope.() -> Unit
 ) {
     Button(
+        enabled = isLoading.not(),
         modifier = modifier,
         onClick = onClick
     ) {
@@ -38,6 +36,8 @@ fun PrimaryButton(
                 with(LocalDensity.current) {
                     CircularProgressIndicator(
                         Modifier.size(MaterialTheme.typography.labelLarge.lineHeight.toDp()),
+                        strokeWidth = 3.dp,
+                        //color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             } else {
