@@ -10,6 +10,7 @@ import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.Attributes
+import com.hanas.addy.model.DataHolder
 import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.model.PlayCardStackGeminiResponse
@@ -24,27 +25,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-
-sealed class DataHolder<T>(
-    open val data: T?,
-    open val error: Throwable?
-) {
-    class Idle<T> : DataHolder<T>(null, null)
-
-    data class Loading<T>(
-        val cachedData: T? = null,
-        val cachedError: Throwable? = null
-    ) : DataHolder<T>(cachedData, cachedError)
-
-    data class Success<T>(
-        override val data: T
-    ) : DataHolder<T>(data, null)
-
-    data class Error<T>(
-        override val error: Throwable,
-        val cachedData: T? = null
-    ) : DataHolder<T>(cachedData, error)
-}
 
 
 class CreateNewCardStackViewModel(

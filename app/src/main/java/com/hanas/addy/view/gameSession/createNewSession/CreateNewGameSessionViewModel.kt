@@ -5,30 +5,40 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.hanas.addy.model.DataHolder
+import com.hanas.addy.model.wrapInDataHolder
 import com.hanas.addy.view.gameSession.GameSessionRepository
 import com.hanas.addy.view.gameSession.GameSessionState
+import com.hanas.addy.view.gameSession.chooseGameSession.NavigationRequester
+import com.hanas.addy.view.playTable.PlayTable
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class CreateNewGameSessionViewModel(
     private val gameSessionRepository: GameSessionRepository,
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
+) : ViewModel(), NavigationRequester by NavigationRequester() {
     private val navArgs by lazy { savedStateHandle.toRoute<CreateNewGameSession>() }
-    val gameSessionStateFlow: StateFlow<GameSessionState> = gameSessionRepository
-        .getGameSessionFlow(navArgs.gameSessionId)
+    val gameSessionStateFlow = gameSessionRepository.getGameSessionFlow(navArgs.gameSessionId)
         .filterNotNull()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, GameSessionState("", emptyList(), null))
+        .onEach {
+            if (it is GameSessionState.GameInProgress) {
+                requestNavigation(PlayTable(navArgs.gameSessionId))
+            }
+        }
+        .wrapInDataHolder()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, DataHolder.Loading())
 
     fun startGame() {
         viewModelScope.launch {
-            gameSessionRepository.startGame(navArgs.gameSessionId).catch { Log.e("HANASSS", it.stackTraceToString()) }.collect {
-                Log.d("HANASSS", "gameSessionId: $it")
-            }
+            gameSessionRepository
+                .startGame(navArgs.gameSessionId)
+                .catch { Log.e("HANASSS", it.stackTraceToString()) }
+                .collect {}
         }
     }
 }

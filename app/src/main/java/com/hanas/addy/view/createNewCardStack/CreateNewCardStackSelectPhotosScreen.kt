@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,7 +40,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
@@ -48,10 +48,11 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.hanas.addy.R
+import com.hanas.addy.model.DataHolder
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.components.shapes.BlobShape
-import com.hanas.addy.ui.drawPattern
+import com.hanas.addy.ui.theme.AppColors
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.gameSession.chooseGameSession.observeNavigation
 import com.hanas.addy.view.home.NavigationHandler
@@ -119,31 +120,27 @@ private fun CreateNewCardStackSelectPhotosScreen(
                     Column {
                         Image(painterResource(R.drawable.girl_photographing_book), null)
                         Spacer(Modifier.size(16.dp))
-                        Card(
-                            Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(AppColors.containerFor(AppColors.pink))
+                                .padding(16.dp),
                         ) {
-                            Column(
-                                Modifier
-                                    .drawPattern(R.drawable.hideout, MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f))
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
+                            PrimaryButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = pickImages,
+                                isLoading = isLoading,
                             ) {
-                                PrimaryButton(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    onClick = pickImages,
-                                    isLoading = isLoading,
-                                ) {
-                                    Text("Choose from gallery")
-                                }
-                                Spacer(Modifier.size(8.dp))
-                                PrimaryButton(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    onClick = takePhoto,
-                                    isLoading = isLoading,
-                                ) {
-                                    Text("Take a photo")
-                                }
+                                Text("Choose from gallery")
+                            }
+                            Spacer(Modifier.size(8.dp))
+                            PrimaryButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = takePhoto,
+                                isLoading = isLoading,
+                            ) {
+                                Text("Take a photo")
                             }
                         }
                     }
@@ -185,14 +182,16 @@ private fun GenerateStackCard(isLoading: Boolean, generateStack: () -> Unit) {
     ) {
         Column(
             Modifier
-                .drawPattern(R.drawable.hideout, MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f))
                 .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(AppColors.containerFor(AppColors.yellow))
                 .padding(16.dp),
         ) {
             PrimaryButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = generateStack,
                 isLoading = isLoading,
+                color = AppColors.yellow,
             ) {
                 Icon(painter = painterResource(R.drawable.auto_fix), null)
                 Spacer(Modifier.size(8.dp))

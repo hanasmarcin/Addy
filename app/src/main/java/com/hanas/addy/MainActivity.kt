@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.ktx.auth
@@ -42,7 +43,11 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navigate = NavigationHandler { action ->
                     when (action) {
-                        is NavScreen -> navController.navigate(action)
+                        is NavScreen -> {
+                            if (navController.currentDestination?.hasRoute(action::class) != true) {
+                                navController.navigate(action)
+                            }
+                        }
                         is GoBack -> navController.navigateUp()
                     }
                 }

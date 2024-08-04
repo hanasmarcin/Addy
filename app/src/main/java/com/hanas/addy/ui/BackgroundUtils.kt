@@ -4,7 +4,6 @@ import androidx.annotation.DrawableRes
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.translate
@@ -38,10 +37,4 @@ fun Modifier.drawPattern(
             }
         }
     }
-}
-
-fun Modifier.drawInvertedColors(color: Color) = drawBehind {
-    drawRect(Color.White, blendMode = BlendMode.Difference)
-    drawRect(color, blendMode = BlendMode.Plus)
-    drawRect(color, blendMode = BlendMode.Color)
 }

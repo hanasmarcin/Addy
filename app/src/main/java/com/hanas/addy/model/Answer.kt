@@ -41,7 +41,7 @@ data class PlayCardStack(
 
 @Serializable
 data class PlayCardData(
-    val id: Int = 0,
+    val id: Long = 0,
     val question: Question = Question(),
     val title: String = "",
     val description: String = "",
@@ -83,5 +83,5 @@ data class Attributes(
 @Serializable
 data class Attribute(
     val name: String = "",
-    @IntRange(from = 1, to = 10) val value: Int = 1
+    @IntRange(from = 1, to = 10) val value: Int = 1,
 )

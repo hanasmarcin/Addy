@@ -3,13 +3,15 @@ package com.hanas.addy.view.login
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,6 +19,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,10 +31,10 @@ import androidx.navigation.compose.composable
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.PrimaryButton
+import com.hanas.addy.ui.theme.AppColors
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.home.Home
 import com.hanas.addy.view.home.NavigationHandler
-import com.hanas.addy.view.playTable.PlayTable
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -102,29 +106,31 @@ fun LoginScreen(
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.Center
         )
         {
-            PrimaryButton(
-                onClick = {
-                    navHandler.navigate(PlayTable)
-                },
-                modifier = Modifier.fillMaxWidth(),
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        AppColors
+                            .containerFor(AppColors.pink)
+                            .compositeOver(MaterialTheme.colorScheme.background)
+                    )
+                    .padding(16.dp)
             ) {
-                Text("Play")
-            }
-            Spacer(Modifier.size(16.dp))
-            PrimaryButton(
-                onClick = {
-                    coroutineScope.launch(errorHandler) {
-                        login()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                isLoading = loginState is LoginState.LoggingIn
-            ) {
-                Text("Login")
+                PrimaryButton(
+                    onClick = {
+                        coroutineScope.launch(errorHandler) {
+                            login()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    isLoading = loginState is LoginState.LoggingIn
+                ) {
+                    Text("Login")
+                }
             }
         }
     }
