@@ -1,32 +1,30 @@
 package com.hanas.addy.view.playTable.view.cardcontent
 
-import androidx.compose.animation.AnimatedContent
+import android.util.Log
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -42,11 +40,22 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayCardData
+import com.hanas.addy.ui.components.PrimaryButton
+import com.hanas.addy.ui.drawPattern
+import com.hanas.addy.ui.samplePlayCard
+import com.hanas.addy.ui.theme.AppColors
+import com.hanas.addy.ui.theme.AppColors.blue
+import com.hanas.addy.ui.theme.AppColors.green
+import com.hanas.addy.ui.theme.AppColors.pink
+import com.hanas.addy.ui.theme.AppColors.yellow
+import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.model.QuestionFace
 
 @Composable
@@ -57,62 +66,58 @@ fun PlayCardQuestion(
     startAnswering: () -> Unit,
     onSelectAnswer: (Answer) -> Unit,
 ) {
-    val brush = rememberPaperBrush()
     Column(
         modifier
             .aspectRatio(CARD_ASPECT_RATIO)
-            .paperBackground(brush, MaterialTheme.colorScheme.primary)
-            .padding(16.dp)
+            .background(
+                green
+                    .copy(alpha = 0.7f)
+                    .compositeOver(MaterialTheme.colorScheme.surface)
+            )
+            .drawPattern(
+                R.drawable.hideout,
+                green
+                    .copy(alpha = 0.5f)
+                    .compositeOver(MaterialTheme.colorScheme.surface)
+            )
+            .padding(12.dp)
     ) {
-        val transition = updateTransition(state, label = "")
-        val imagePadding by transition.animateDp(label = "") {
-            when (it) {
-                QuestionFace.Answering -> 0.dp
-                QuestionFace.ReadyToAnswer -> 16.dp
-                is QuestionFace.AnswerScored -> 0.dp
-            }
-        }
-        CardImageWithTitle(imagePadding, card, brush)
-        QuestionWithAnswers(brush) {
-            AnimatedContent(state, label = "") {
-                when (it) {
-                    QuestionFace.ReadyToAnswer -> {
-                        AnswerBox(
-                            color1 = Color(0xFF333333),
-                            innerPadding = PaddingValues(end = 8.dp, bottom = 8.dp, start = 4.dp, top = 4.dp),
-                            onClick = { startAnswering() },
-                            modifier = Modifier
-                                .align(CenterHorizontally)
-                                .animateContentSize()
-                                .weight(1f)
-                                .wrapContentSize()
-                                .padding(4.dp),
-                        ) {
-                            Text(
-                                "Reveal the question!",
-                                color = contentColorFor(MaterialTheme.colorScheme.tertiaryContainer),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
+        LaunchedEffect(state) { Log.d("HANASSS", "LaunchedEffect $state") }
+        CardImageWithTitle(card)
+        Spacer(Modifier.size(8.dp))
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center)
+        {
+            when (state) {
+                QuestionFace.ReadyToAnswer -> {
+                    PrimaryButton(
+                        onClick = startAnswering,
+                        modifier = Modifier
+                    ) {
+                        Text("Reveal the question!")
                     }
-                    is QuestionFace.Answering, is QuestionFace.AnswerScored -> {
-                        Column {
-                            Text(
-                                card.question.text,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = contentColorFor(MaterialTheme.colorScheme.secondaryContainer),
-                                modifier = Modifier
-                                    .padding(horizontal = 12.dp, vertical = 12.dp)
-                                    .fillMaxWidth()
-                            )
-                            AnswersGrid(
-                                card,
-                                isCorrectAnswer = (state as? QuestionFace.AnswerScored)?.isAnswerCorrect,
-                                selectedAnswer = (state as? QuestionFace.AnswerScored)?.answer,
-                                onSelectAnswer = onSelectAnswer
-                            )
-                        }
+                }
+                is QuestionFace.Answering, is QuestionFace.AnswerScored -> {
+                    Column {
+                        Text(
+                            card.question.text,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = contentColorFor(MaterialTheme.colorScheme.secondaryContainer),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(AppColors.orange)
+                                .padding(4.dp, 2.dp, 4.dp, 8.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(MaterialTheme.colorScheme.surface)
+                                .padding(horizontal = 12.dp, vertical = 12.dp)
+                                .fillMaxWidth()
+                        )
+                        Spacer(Modifier.size(8.dp))
+                        AnswersGrid(
+                            card,
+                            isCorrectAnswer = (state as? QuestionFace.AnswerScored)?.isAnswerCorrect,
+                            selectedAnswer = (state as? QuestionFace.AnswerScored)?.answer,
+                            onSelectAnswer = onSelectAnswer
+                        )
                     }
                 }
             }
@@ -122,31 +127,30 @@ fun PlayCardQuestion(
 
 @Composable
 fun CardImageWithTitle(
-    imagePadding: Dp = 16.dp,
     card: PlayCardData,
-    brush: ShaderBrush,
 ) {
     Column {
         Image(
             modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .paperBackground(
-                    brush,
-                    Color.White
-                        .copy(alpha = 0.2f)
-                        .compositeOver(MaterialTheme.colorScheme.primary)
-                )
-                .padding(horizontal = 8.dp, vertical = imagePadding)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(8.dp))
+                .background(green)
+                .padding(4.dp, 2.dp, 4.dp, 8.dp)
+                .clip(RoundedCornerShape(6.dp))
                 .aspectRatio(16 / 9f),
             painter = painterResource(R.drawable.sample_card_image_bauhaus_imagen),
             contentDescription = null
         )
+        Spacer(Modifier.size(8.dp))
         Text(
             card.title,
-            style = MaterialTheme.typography.headlineMedium,
-            color = contentColorFor(MaterialTheme.colorScheme.primary),
+            style = MaterialTheme.typography.headlineSmall,
+            color = contentColorFor(MaterialTheme.colorScheme.surface),
             modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(green)
+                .padding(4.dp, 2.dp, 4.dp, 8.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(horizontal = 8.dp, vertical = 12.dp)
                 .fillMaxWidth(),
             textAlign = TextAlign.Center
@@ -162,7 +166,7 @@ fun QuestionWithAnswers(
     Box(
         Modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(8.dp))
             .animateContentSize()
             .paperBackground(
                 brush,
@@ -186,51 +190,38 @@ fun QuestionWithAnswers(
 
 @Composable
 fun AnswersGrid(card: PlayCardData, selectedAnswer: Answer?, isCorrectAnswer: Boolean?, onSelectAnswer: (Answer) -> Unit) {
-    val color1 = Color(0xFF333333)
-    Box(
-        Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .drawBehind {
-                drawRect(Color(0xFFC8C8C8), blendMode = BlendMode.Overlay)
-            }
-    ) {
-        Column(Modifier.padding(4.dp)) {
-            Row(Modifier.weight(1f)) {
+    Box(Modifier.fillMaxSize()) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AnswerItem(
                     answerText = card.question.a + if (card.question.answer == Answer.A) " +" else "",
                     onClick = { onSelectAnswer(Answer.A) },
-                    color1 = color1,
+                    color = blue,
                     isSelected = selectedAnswer == Answer.A,
                     isCorrect = isCorrectAnswer.takeIf { selectedAnswer == Answer.A },
-                    innerPadding = PaddingValues(end = 8.dp, bottom = 8.dp, start = 4.dp, top = 4.dp)
                 )
                 AnswerItem(
                     answerText = card.question.b + if (card.question.answer == Answer.B) " +" else "",
                     onClick = { onSelectAnswer(Answer.B) },
-                    color1 = color1,
+                    color = pink,
                     isSelected = selectedAnswer == Answer.B,
                     isCorrect = isCorrectAnswer.takeIf { selectedAnswer == Answer.B },
-                    innerPadding = PaddingValues(end = 4.dp, bottom = 8.dp, start = 8.dp, top = 4.dp)
                 )
             }
-            Row(Modifier.weight(1f)) {
+            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AnswerItem(
                     answerText = card.question.c + if (card.question.answer == Answer.C) " +" else "",
                     onClick = { onSelectAnswer(Answer.C) },
-                    color1 = color1,
+                    color = yellow,
                     isSelected = selectedAnswer == Answer.C,
                     isCorrect = isCorrectAnswer.takeIf { selectedAnswer == Answer.C },
-                    innerPadding = PaddingValues(end = 8.dp, bottom = 4.dp, start = 4.dp, top = 8.dp)
                 )
                 AnswerItem(
                     answerText = card.question.d + if (card.question.answer == Answer.D) " +" else "",
                     onClick = { onSelectAnswer(Answer.D) },
-                    color1 = color1,
+                    color = green,
                     isSelected = selectedAnswer == Answer.D,
                     isCorrect = isCorrectAnswer.takeIf { selectedAnswer == Answer.D },
-                    innerPadding = PaddingValues(end = 4.dp, bottom = 4.dp, start = 8.dp, top = 8.dp)
                 )
             }
         }
@@ -243,17 +234,14 @@ fun RowScope.AnswerItem(
     isSelected: Boolean,
     isCorrect: Boolean? = null,
     onClick: () -> Unit,
-    color1: Color,
-    innerPadding: PaddingValues
+    color: Color,
 ) {
     AnswerBox(
-        color1 = color1,
-        innerPadding = innerPadding,
         onClick = onClick,
         modifier = Modifier
             .weight(1f)
-            .fillMaxSize()
-            .padding(4.dp),
+            .fillMaxSize(),
+        color = color
     ) {
         Text(
             answerText,
@@ -271,8 +259,6 @@ fun RowScope.AnswerItem(
 
 @Composable
 fun AnswerBox(
-    color1: Color,
-    innerPadding: PaddingValues,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.tertiaryContainer,
@@ -282,13 +268,9 @@ fun AnswerBox(
         modifier
             .clip(RoundedCornerShape(8.dp))
             .background(color)
-            .drawBehind {
-                drawRect(color1, blendMode = BlendMode.Overlay)
-            }
-            .padding(innerPadding)
-            .clip(RoundedCornerShape(4.dp))
-            .background(color)
-            .padding(4.dp)
+            .padding(4.dp, 2.dp, 4.dp, 8.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(MaterialTheme.colorScheme.surface)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -308,3 +290,23 @@ fun Modifier.paperBackground(brush: Brush, color: Color) = drawBehind {
     drawRect(color, blendMode = BlendMode.Overlay)
 }
 
+class QuestionFacePreviewProvider : PreviewParameterProvider<QuestionFace> {
+    override val values = sequenceOf(
+        QuestionFace.ReadyToAnswer,
+        QuestionFace.Answering,
+        QuestionFace.AnswerScored(Answer.A, true),
+        QuestionFace.AnswerScored(Answer.B, false)
+    )
+
+}
+
+@Preview
+@Composable
+fun PlayCardQuestionsProvider(
+    @PreviewParameter(QuestionFacePreviewProvider::class) state: QuestionFace
+) {
+    val data = samplePlayCard
+    AppTheme {
+        PlayCardQuestion(data, state, Modifier, {}) { }
+    }
+}

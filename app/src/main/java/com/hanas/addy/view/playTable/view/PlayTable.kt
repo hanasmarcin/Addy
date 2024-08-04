@@ -1,13 +1,17 @@
 package com.hanas.addy.view.playTable.view
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -20,7 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onPlaced
@@ -28,13 +34,18 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.repository.gemini.samplePlayCardStack
+import com.hanas.addy.ui.drawPattern
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
+import com.hanas.addy.view.playTable.PlayerState
+import com.hanas.addy.view.playTable.PositionOnTable
 import com.hanas.addy.view.playTable.model.AttributesFace
 import com.hanas.addy.view.playTable.model.CardCollection
 import com.hanas.addy.view.playTable.model.CardSlot
@@ -44,7 +55,7 @@ import com.hanas.addy.view.playTable.view.cardcontent.CardOnTableLayout
 
 @Composable
 fun PlayTable(
-    data: PlayTableState,
+    state: PlayTableState,
     modifier: Modifier = Modifier,
     onClickAwayFromCloseUp: () -> Unit,
     onSelectAnswer: (Long, Answer) -> Unit,
@@ -53,7 +64,7 @@ fun PlayTable(
     onStartAnswer: (Long) -> Unit,
     onSelectAttribute: (Int) -> Unit,
 ) {
-    val cards = data.toCardStateMap()
+    val cards = state.toCardStateMap()
     var scrimSize by remember { mutableStateOf(IntSize.Zero) }
     BoxWithConstraints(modifier
         .onPlaced {
@@ -64,8 +75,8 @@ fun PlayTable(
             DpSize(constraints.maxWidth.toDp(), constraints.maxHeight.toDp())
         }
         Scrim(
-            enabled = data.closeUp != null,
-            isClickAvailable = (data.closeUp?.contentState is AttributesFace),
+            enabled = state.closeUp != null,
+            isClickAvailable = (state.closeUp?.contentState is AttributesFace),
             scrimSize = scrimSize,
             onClickAwayFromCloseUp = onClickAwayFromCloseUp
         )
@@ -76,7 +87,7 @@ fun PlayTable(
                     screenSizeInDp = screenSizeInDp,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .layoutId(data.hashCode()),
+                        .layoutId(state.hashCode()),
                     onSelectAnswer = { onSelectAnswer(cardId, it) },
                     onSelectToBattle = { onSelectToBattle(cardId) },
                     onClickCard = { onClickCard(cardId, ClickOrigin.PLAYER_HAND) },
@@ -85,8 +96,54 @@ fun PlayTable(
                 )
             }
         }
-        val message = data.playerBattleSlot?.contentState?.toString() ?: data.closeUp?.contentState?.toString() ?: "NO STATE"
-        Text(message, modifier = Modifier.background(Color.White), style = MaterialTheme.typography.headlineMedium)
+        state.players.forEach { (position, player) ->
+            key(position) {
+                PlayerLabel(position, player)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BoxWithConstraintsScope.PlayerLabel(
+    position: PositionOnTable,
+    player: PlayerState,
+) {
+    Row(Modifier
+        .zIndex(700f)
+        .align(Alignment.CenterEnd)
+        .offset {
+            when (position) {
+                PositionOnTable.BOTTOM -> IntOffset(0, (maxHeight / 2 - 120.dp).roundToPx())
+                PositionOnTable.TOP -> IntOffset(0, -(maxHeight / 2 - 120.dp).roundToPx())
+                PositionOnTable.START -> TODO()
+                PositionOnTable.END -> TODO()
+            }
+        }
+        .clip(RoundedCornerShape(8.dp))
+        .background(position.color)
+        .padding(4.dp, 2.dp, 4.dp, 8.dp)
+        .clip(RoundedCornerShape(6.dp)),
+        horizontalArrangement = spacedBy(2.dp)
+    ) {
+        Text(
+            player.name,
+            Modifier
+                .clip(RoundedCornerShape(2.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(vertical = 4.dp, horizontal = 8.dp)
+        )
+        Text(
+            player.points.toString(),
+            Modifier
+                .clip(RoundedCornerShape(2.dp))
+                .background(
+                    position.color
+                        .copy(alpha = 0.7f)
+                        .compositeOver(MaterialTheme.colorScheme.surface)
+                )
+                .padding(vertical = 4.dp, horizontal = 8.dp)
+        )
     }
 }
 
@@ -102,7 +159,6 @@ private fun Scrim(
         .zIndex(700f)
         .layout { measurable, constraints ->
             val size = scrimSize
-            Log.d("HANASSS", "constraints: $constraints")
             val placeable = measurable.measure(
                 Constraints.fixed(size.width, size.height)
             )
@@ -120,7 +176,7 @@ private fun Scrim(
     }
 }
 
-@Preview
+@Preview(showSystemUi = true)
 @Composable
 fun PlayTablePreview() {
     AppTheme {
@@ -128,6 +184,10 @@ fun PlayTablePreview() {
         var playTableState by remember {
             mutableStateOf(
                 PlayTableState(
+                    mapOf(
+                        PositionOnTable.BOTTOM to PlayerState("a", "Marcin", 1),
+                        PositionOnTable.TOP to PlayerState("n", "Edward", 2)
+                    ),
                     CardCollection(listOf(cardStack[0])),
                     CardCollection(listOf(cardStack[1], cardStack[5], cardStack[6])),
                     CardCollection(listOf(cardStack[2], cardStack[7], cardStack[8])),
@@ -162,6 +222,7 @@ fun PlayTablePreview() {
             PlayTable(
                 playTableState,
                 Modifier
+                    .drawPattern(R.drawable.graph_paper, tint = Color.Black.copy(alpha = 0.05f))
                     .fillMaxSize()
                     .padding(32.dp),
                 {}, { _, _ -> }, {}, { _, _ -> }, {}, { })

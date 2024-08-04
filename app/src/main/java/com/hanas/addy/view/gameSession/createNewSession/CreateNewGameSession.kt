@@ -8,17 +8,21 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Done
@@ -34,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -53,6 +58,7 @@ import com.hanas.addy.ui.components.AppListItem
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.components.itemsWithPosition
+import com.hanas.addy.ui.theme.AppColors
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.gameSession.GameSessionState
 import com.hanas.addy.view.gameSession.Player
@@ -66,8 +72,7 @@ import java.util.Date
 
 @Serializable
 data class CreateNewGameSession(
-    val gameSessionId: String,
-    val selectedCardStackId: String?
+    val gameSessionId: String, val selectedCardStackId: String?
 ) : NavScreen
 
 fun NavGraphBuilder.createNewSessionComposable(navHandler: NavigationHandler) {
@@ -81,79 +86,104 @@ fun NavGraphBuilder.createNewSessionComposable(navHandler: NavigationHandler) {
 
 @Composable
 fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: NavigationHandler, startGame: () -> Unit) {
-    AppScaffold(
-        navHandler = navHandler,
-        topBarTitle = { Text("Create New Table") },
-        bottomBar = {
-            Surface(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
-                    .navigationBarsPadding()
-            ) {
-                PrimaryButton(onClick = startGame) { Text("Start game") }
-            }
+    AppScaffold(navHandler = navHandler, topBarTitle = { Text("Create New Table") }, bottomBar = {
+        Surface(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
+                .navigationBarsPadding()
+        ) {
+            PrimaryButton(onClick = startGame) { Text("Start game") }
         }
-    ) {
+    }) {
         Column(Modifier.padding(16.dp)) {
-            Text("Invite code", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.size(8.dp))
-            Card {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shimmerLoadingAnimation(state is DataHolder.Loading),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, CenterHorizontally)
-                ) {
-                    ((state.data as? GameSessionState.WaitingForPlayers)?.inviteCode ?: "000000").forEach { digit ->
-                        Text(
-                            digit.toString(),
-                            Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                                .padding(12.dp),
-                            style = MaterialTheme.typography.headlineSmall,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
+            InviteCode(state)
             Spacer(Modifier.size(16.dp))
-            Text("Players", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.size(8.dp))
-            Card {
-                LazyColumn(Modifier.padding(16.dp)) {
+            Column(
+                Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(AppColors.containerFor(AppColors.yellow))
+                    .padding(16.dp)
+            ) {
+                Text("Players", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.size(8.dp))
+                LazyColumn {
                     itemsWithPosition(state.data?.players ?: emptyList()) { player, position, _ ->
-                        AppListItem(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            onClick = {},
-                            position = position,
-                            trailingContent = {
-                                when (player.invitationStatus) {
-                                    PlayerInvitationState.WAITING_FOR_RESPONSE -> CircularProgressIndicator(
-                                        Modifier
-                                            .size(24.dp)
-                                            .padding(2.dp),
-                                        strokeWidth = 2.dp
-                                    )
-                                    PlayerInvitationState.ACCEPTED -> Icon(Icons.Default.Done, null)
-                                    PlayerInvitationState.DECLINED -> Icon(Icons.Default.Clear, null)
-                                }
+                        AppListItem(color = AppColors.yellow, onClick = {}, position = position, trailingContent = {
+                            when (player.invitationStatus) {
+                                PlayerInvitationState.WAITING_FOR_RESPONSE -> CircularProgressIndicator(
+                                    Modifier
+                                        .size(24.dp)
+                                        .padding(2.dp), strokeWidth = 2.dp
+                                )
+                                PlayerInvitationState.ACCEPTED -> Icon(Icons.Default.Done, null)
+                                PlayerInvitationState.DECLINED -> Icon(Icons.Default.Clear, null)
                             }
-                        ) {
+                        }) {
                             Text(player.displayName)
                         }
                     }
                 }
             }
             Spacer(Modifier.size(16.dp))
-            Text("Card stack", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.size(8.dp))
-            LazyRow(contentPadding = PaddingValues(16.dp)) {
-                items(state.data?.cardStackInGame?.cards ?: emptyList()) {
-                    Card {
-                        Text(it.title)
+            Column(
+                Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF0E4820))
+                    .padding(16.dp)
+            ) {
+                Text("Card stack", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.surface)
+                Spacer(Modifier.size(8.dp))
+                LazyRow(contentPadding = PaddingValues(16.dp)) {
+                    items(state.data?.cardStackInGame?.cards ?: emptyList()) {
+                        Card {
+                            Text(it.title)
+                        }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InviteCode(state: DataHolder<GameSessionState>, color: Color = AppColors.orange) {
+    Column(
+        Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(AppColors.containerFor(color))
+            .padding(16.dp)
+    ) {
+        Text("Invite code", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.size(8.dp))
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Max)
+                .clip(RoundedCornerShape(8.dp))
+                .background(color)
+                .padding(top = 2.dp, bottom = 8.dp, start = 4.dp, end = 4.dp)
+                .clip(RoundedCornerShape(6.dp))
+        ) {
+            Row(
+                modifier = Modifier
+                    .background(color)
+                    .fillMaxWidth()
+                    .shimmerLoadingAnimation(state is DataHolder.Loading),
+                horizontalArrangement = Arrangement.spacedBy(2.dp, CenterHorizontally)
+            ) {
+                ((state.data as? GameSessionState.WaitingForPlayers)?.inviteCode ?: "000000").forEach { digit ->
+                    Text(
+                        digit.toString(),
+                        Modifier
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(12.dp),
+                        style = MaterialTheme.typography.headlineSmall,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }
@@ -163,8 +193,7 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: Navi
 
 class GameSessionStateProvider : PreviewParameterProvider<DataHolder<GameSessionState>> {
     override val values = sequenceOf(
-        DataHolder.Loading(),
-        DataHolder.Success<GameSessionState>(
+        DataHolder.Loading(), DataHolder.Success<GameSessionState>(
             GameSessionState.WaitingForPlayers(
                 "123456",
                 listOf(
@@ -174,8 +203,7 @@ class GameSessionStateProvider : PreviewParameterProvider<DataHolder<GameSession
                 ),
                 samplePlayCardStack,
             )
-        ),
-        DataHolder.Error(Throwable("Something went wrong"))
+        ), DataHolder.Error(Throwable("Something went wrong"))
     )
 }
 
@@ -189,8 +217,7 @@ fun CreateNewTableScreenPreview(@PreviewParameter(GameSessionStateProvider::clas
 }
 
 data class GameActionsBatchDTO(
-    val items: List<GameActionDTO> = emptyList(),
-    val timestamp: Timestamp = Timestamp.now()
+    val items: List<GameActionDTO> = emptyList(), val timestamp: Timestamp = Timestamp.now()
 )
 
 data class GameActionDTO(
@@ -231,15 +258,11 @@ sealed class GameAction(open val msDelay: Long) {
     ) : GameAction(msDelay)
 
     data class StartAnsweringQuestion(
-        val cardId: Long,
-        val playerId: String,
-        override val msDelay: Long
+        val cardId: Long, val playerId: String, override val msDelay: Long
     ) : GameAction(msDelay)
 
     data class FinishAnsweringQuestion(
-        val cardId: Long,
-        val playerId: String,
-        override val msDelay: Long
+        val cardId: Long, val playerId: String, override val msDelay: Long
     ) : GameAction(msDelay)
 
     data class QuestionRaceResult(
@@ -255,6 +278,12 @@ sealed class GameAction(open val msDelay: Long) {
 
     class AttributeBattleResult(
         val winnerIds: List<String>, msDelay: Long
+    ) : GameAction(msDelay)
+
+    class SwapCard(
+        val cardId: Long,
+        val targetPlacement: CardPosition,
+        override val msDelay: Long
     ) : GameAction(msDelay)
 }
 
@@ -310,21 +339,22 @@ fun Modifier.shimmerLoadingAnimation(
 
 
 fun GameActionsBatchDTO.toDomain(actionId: String) = GameActionsBatch(
-    unitActions = items.map { it.toDomain() },
-    actionId = actionId,
-    timestamp = timestamp.toDate()
+    unitActions = items.map { it.toDomain() }, actionId = actionId, timestamp = timestamp.toDate()
 )
 
 fun GameActionDTO.toDomain(): GameAction {
     return when (type) {
         "add" -> GameAction.AddCard(
-            cardId = requireNotNull(cardId),
-            targetPlacement = requireNotNull(targetSegment).toDomain(),
-            msDelay = msDelay
+            cardId = requireNotNull(cardId), targetPlacement = requireNotNull(targetSegment).toDomain(), msDelay = msDelay
         )
         "move" -> GameAction.MoveCard(
             cardId = requireNotNull(cardId),
             currentPlacement = requireNotNull(currentSegment).toDomain(),
+            targetPlacement = requireNotNull(targetSegment).toDomain(),
+            msDelay = msDelay
+        )
+        "swap" -> GameAction.SwapCard(
+            cardId = requireNotNull(cardId),
             targetPlacement = requireNotNull(targetSegment).toDomain(),
             msDelay = msDelay
         )
@@ -340,13 +370,13 @@ fun GameActionDTO.toDomain(): GameAction {
 private fun CardPositionDTO.toDomain() = when (type) {
     "unusedStack" -> CardPosition.UnusedStack(requireNotNull(positionInSegment))
     "inHand" -> CardPosition.InHand(requireNotNull(positionInSegment), requireNotNull(forPlayerId))
-    "onBattleSlot" -> CardPosition.OnBattleSlot(requireNotNull(forPlayerId))
+    "battleSlot" -> CardPosition.OnBattleSlot(requireNotNull(forPlayerId))
     else -> throw InvalidParameterException("Unknown card placement type: $type")
 }
 
 private fun CardPosition.toDTO() = when (this) {
     is CardPosition.InHand -> CardPositionDTO("inHand", forPlayerId, positionInSegment)
-    is CardPosition.OnBattleSlot -> CardPositionDTO("onBattleSlot", forPlayerId)
+    is CardPosition.OnBattleSlot -> CardPositionDTO("battleSlot", forPlayerId)
     is CardPosition.UnusedStack -> CardPositionDTO("unusedStack", positionInSegment = positionInSegment)
 }
 
@@ -355,14 +385,12 @@ fun GameAction.toDTO() = when (this) {
     is GameAction.AddCard -> GameActionDTO("add", cardId, targetSegment = targetPlacement.toDTO(), msDelay = msDelay)
     is GameAction.FinishAnsweringQuestion -> GameActionDTO("finishAnsweringQuestion", cardId, playerId, msDelay = msDelay)
     is GameAction.MoveCard -> GameActionDTO(
-        "move",
-        cardId,
-        currentSegment = currentPlacement.toDTO(),
-        targetSegment = targetPlacement.toDTO(),
-        msDelay = msDelay
+        "move", cardId, currentSegment = currentPlacement.toDTO(), targetSegment = targetPlacement.toDTO(), msDelay = msDelay
     )
     is GameAction.StartAnsweringQuestion -> GameActionDTO("startAnsweringQuestion", cardId, playerId, msDelay = msDelay)
     is GameAction.QuestionRaceResult -> GameActionDTO("questionRaceResult", cardId, playerId, msDelay = msDelay)
     is GameAction.SelectActiveAttribute -> GameActionDTO("selectActiveAttribute", attribute = attribute, msDelay = msDelay)
     is GameAction.AttributeBattleResult -> GameActionDTO("attributeBattleResult", winnerIds = winnerIds, msDelay = msDelay)
+    is GameAction.SwapCard -> GameActionDTO("swap", cardId, targetSegment = targetPlacement.toDTO(), msDelay = msDelay)
+
 }

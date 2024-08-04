@@ -61,7 +61,6 @@ class CardStackRepository {
             .map {
                 it.toObject<PlayCardStack>()
             }
-            .onEach { Log.d("HANASSS", "aaa: $it") }
             .filterNotNull()
             .take(1)
     }

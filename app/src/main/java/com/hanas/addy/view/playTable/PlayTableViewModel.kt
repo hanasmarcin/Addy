@@ -1,6 +1,7 @@
 package com.hanas.addy.view.playTable
 
 import android.util.Log
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,8 +10,13 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayCardData
+import com.hanas.addy.ui.theme.AppColors.blue
+import com.hanas.addy.ui.theme.AppColors.orange
+import com.hanas.addy.ui.theme.AppColors.pink
+import com.hanas.addy.ui.theme.AppColors.yellow
 import com.hanas.addy.view.gameSession.GameSessionRepository
 import com.hanas.addy.view.gameSession.GameSessionState
+import com.hanas.addy.view.gameSession.Player
 import com.hanas.addy.view.gameSession.createNewSession.CardPosition
 import com.hanas.addy.view.gameSession.createNewSession.GameAction
 import com.hanas.addy.view.gameSession.createNewSession.GameActionsBatch
@@ -37,6 +43,16 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 
+enum class PositionOnTable(val color: Color) {
+    TOP(pink), BOTTOM(orange), START(blue), END(yellow)
+}
+
+data class PlayerState(
+    val id: String,
+    val name: String,
+    val points: Int = 0,
+)
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayTableViewModel(
     savedStateHandle: SavedStateHandle,
@@ -60,6 +76,7 @@ class PlayTableViewModel(
 
     val playTableStateFlow = MutableStateFlow(
         PlayTableState(
+            players = emptyMap(),
             deck = CardCollection(emptyList()),
             playerHand = CardCollection(emptyList()),
             opponentHand = CardCollection(emptyList()),
@@ -79,7 +96,10 @@ class PlayTableViewModel(
         viewModelScope.launch {
             gameSession.flatMapConcat { gameSession ->
                 handleGameSession(gameSession)
-            }.flatMapConcat { it.unitActions.asFlow() }.collect { batchAction ->
+            }.flatMapConcat {
+                Log.d("HANASSS", "Game session flow: $it")
+                it.unitActions.asFlow()
+            }.collect { batchAction ->
                 try {
                     Log.d("HANASSS", "START Handling action: $batchAction")
                     handleBatchAction(batchAction)
@@ -91,9 +111,35 @@ class PlayTableViewModel(
         }
     }
 
-    private suspend fun handleGameSession(gameSession: GameSessionState): Flow<GameActionsBatch> {
+    fun List<Player>.reorder(startPlayerId: String): List<Player> {
+        val startIndex = indexOfFirst { it.id == startPlayerId }
+        if (startIndex == -1) throw Exception("Player wasn't found")  // Return the original list if the player ID is not found
+
+        // Split the list into two parts: from startIndex to end, and from 0 to startIndex
+        val part1 = subList(startIndex, size)
+        val part2 = subList(0, startIndex)
+
+        // Concatenate the two parts to form the reordered list
+        return part1 + part2
+    }
+
+
+    private fun handleGameSession(gameSession: GameSessionState): Flow<GameActionsBatch> {
         cards.clear()
         cards.addAll(gameSession.cardStackInGame.cards)
+        val players = gameSession.players.reorder(Firebase.auth.currentUser?.uid ?: throw Exception("User not found")).take(4)
+        tableState = tableState.copy(
+            players =
+            players.mapIndexed { index, player ->
+                val position = when {
+                    index == 0 -> PositionOnTable.BOTTOM
+                    index == 1 && players.size > 2 -> PositionOnTable.START
+                    index == 1 && players.size == 2 || index == 2 -> PositionOnTable.TOP
+                    else -> PositionOnTable.END
+                }
+                position to PlayerState(player.id, player.displayName)
+            }.toMap()
+        )
         return if (cards.isNotEmpty()) {
             gameActions.flatMapConcat { batchActions -> batchActions.asFlow() }
         } else {
@@ -104,14 +150,39 @@ class PlayTableViewModel(
     private suspend fun handleBatchAction(action: GameAction) {
         Log.d("HANASSS", "Performing action: $action")
         when (action) {
+            is GameAction.AddCard -> handleAddCardAction(action)
             is GameAction.MoveCard -> handleMoveCardAction(action)
+            is GameAction.SwapCard -> handleSwapCardAction(action)
             is GameAction.FinishAnsweringQuestion -> handleFinishAnsweringQuestion(action)
             is GameAction.StartAnsweringQuestion -> handleStartAnsweringQuestion(action)
-            is GameAction.AddCard -> handleAddCardAction(action)
             is GameAction.QuestionRaceResult -> handleQuestionRaceResult(action)
             is GameAction.SelectActiveAttribute -> handleSelectActiveAttribute(action)
             is GameAction.AttributeBattleResult -> handleAttributeBattleResult(action)
         }
+    }
+
+    private fun handleSwapCardAction(action: GameAction.SwapCard) {
+        when (action.targetPlacement) {
+            is CardPosition.InHand -> {
+
+            }
+            is CardPosition.OnBattleSlot -> {
+
+            }
+            is CardPosition.UnusedStack -> {
+                tableState = tableState.copy(
+                    deck = tableState.deck.copy(
+                        cards = tableState.deck.cards.subList(
+                            0,
+                            action.targetPlacement.positionInSegment
+                        ) + cards.first { it.id == action.cardId } + tableState.deck.cards.subList(
+                            action.targetPlacement.positionInSegment + 1,
+                            tableState.deck.size
+                        )),
+                )
+            }
+        }
+
     }
 
     private suspend fun handleAttributeBattleResult(action: GameAction.AttributeBattleResult) {
@@ -119,6 +190,7 @@ class PlayTableViewModel(
         val hasOpponentWon = (hasPlayerWon && action.winnerIds.size > 1) || (hasPlayerWon.not() && action.winnerIds.isNotEmpty())
         tableState = tableState.copy(
             closeUp = null,
+            players = tableState.players.mapValues { (_, state) -> if (state.id in action.winnerIds) state.copy(points = state.points + 1) else state },
             playerBattleSlot = tableState.playerBattleSlot?.copy(contentState = AttributesFace.BattleResult(hasPlayerWon)),
             opponentBattleSlot = tableState.opponentBattleSlot?.copy(contentState = AttributesFace.BattleResult(hasOpponentWon))
         )
@@ -151,17 +223,31 @@ class PlayTableViewModel(
     }
 
     private suspend fun handleMoveCardAction(action: GameAction.MoveCard) {
-        val (removedCard, stateWithRemovedCard) = removeCardFromCurrentPlacement(action)
+        val (removedCard, stateWithRemovedCard) = removeCardFromCurrentPlacement(action.currentPlacement, action.cardId)
         val stateWithMovedCard = placeCardToTargetPlacement(action, removedCard, stateWithRemovedCard)
         tableState = stateWithMovedCard
         delay(600)
     }
 
-    private fun removeCardFromCurrentPlacement(action: GameAction.MoveCard): Pair<PlayCardData, PlayTableState> {
-        return when (action.currentPlacement) {
-            is CardPosition.InHand -> removeCardFromHand(action.currentPlacement, action.cardId)
-            is CardPosition.OnBattleSlot -> TODO()
-            is CardPosition.UnusedStack -> removeCardFromUnusedStack(action)
+    private fun removeCardFromCurrentPlacement(currentPlacement: CardPosition, cardId: Long): Pair<PlayCardData, PlayTableState> {
+        return when (currentPlacement) {
+            is CardPosition.InHand -> removeCardFromHand(currentPlacement, cardId)
+            is CardPosition.OnBattleSlot -> removeCardFromBattleSlot(currentPlacement, cardId)
+            is CardPosition.UnusedStack -> removeCardFromUnusedStack(cardId)
+        }
+    }
+
+    private fun removeCardFromBattleSlot(currentPlacement: CardPosition.OnBattleSlot, cardId: Long): Pair<PlayCardData, PlayTableState> {
+        return if (currentPlacement.forPlayerId == Firebase.auth.currentUser?.uid) {
+            requireNotNull(tableState.playerBattleSlot?.card) to tableState.copy(
+                playerHand = CardCollection(tableState.playerHand.cards.filter { it.id != cardId }),
+                playerBattleSlot = null
+            )
+        } else {
+            requireNotNull(tableState.opponentBattleSlot?.card) to tableState.copy(
+                opponentHand = CardCollection(tableState.opponentHand.cards.filter { it.id != cardId }),
+                opponentBattleSlot = null
+            )
         }
     }
 
@@ -177,8 +263,8 @@ class PlayTableViewModel(
         }
     }
 
-    private fun removeCardFromUnusedStack(action: GameAction.MoveCard): Pair<PlayCardData, PlayTableState> {
-        val removedCard = tableState.deck.cards.first { it.id == action.cardId }
+    private fun removeCardFromUnusedStack(cardId: Long): Pair<PlayCardData, PlayTableState> {
+        val removedCard = tableState.deck.cards.first { it.id == cardId }
         val id = tableState.deck.cards.indexOf(removedCard)
         return removedCard to tableState.copy(
             deck = CardCollection(tableState.deck.cards.dropAt(id))
@@ -193,7 +279,7 @@ class PlayTableViewModel(
         return when (action.targetPlacement) {
             is CardPosition.InHand -> placeCardInHand(action.targetPlacement, removedCard, stateWithRemovedCard)
             is CardPosition.OnBattleSlot -> TODO()
-            is CardPosition.UnusedStack -> placeCardInUnusedStack(removedCard, stateWithRemovedCard)
+            is CardPosition.UnusedStack -> placeCardInUnusedStack(removedCard, stateWithRemovedCard, action.targetPlacement.positionInSegment)
         }
     }
 
@@ -219,10 +305,13 @@ class PlayTableViewModel(
         }
     }
 
-    private fun placeCardInUnusedStack(removedCard: PlayCardData, stateWithRemovedCard: PlayTableState): PlayTableState {
+    private fun placeCardInUnusedStack(removedCard: PlayCardData, stateWithRemovedCard: PlayTableState, positionInSegment: Int): PlayTableState {
         return stateWithRemovedCard.copy(
             deck = CardCollection(
-                stateWithRemovedCard.deck.cards + removedCard,
+                stateWithRemovedCard.deck.cards.subList(0, positionInSegment) + removedCard + stateWithRemovedCard.deck.cards.subList(
+                    positionInSegment,
+                    stateWithRemovedCard.deck.size
+                ),
                 stateWithRemovedCard.deck.size + 1
             )
         )
@@ -238,6 +327,7 @@ class PlayTableViewModel(
 
     private suspend fun handleStartAnsweringQuestion(action: GameAction.StartAnsweringQuestion) {
         if (action.playerId == Firebase.auth.currentUser?.uid) return // Skip if our own event
+        Log.d("HANASSS", "handleStartAnsweringQuestion")
         tableState.opponentHand.cards.firstOrNull { it.id == action.cardId }?.let { card ->
             tableState = tableState.copy(
                 opponentBattleSlot = CardSlot(card, BackFace.OpponentAnswering)
@@ -246,10 +336,8 @@ class PlayTableViewModel(
     }
 
     private suspend fun handleAddCardAction(action: GameAction.AddCard) {
-        tableState = PlayTableState(
+        tableState = tableState.copy(
             deck = CardCollection(tableState.deck.cards + cards.first { it.id == action.cardId }),
-            playerHand = CardCollection(emptyList()),
-            opponentHand = CardCollection(emptyList())
         )
         delay(600)
     }
@@ -314,6 +402,7 @@ class PlayTableViewModel(
 
     fun onSelectToBattle(cardId: Long) {
         viewModelScope.launch {
+            Log.d("HANASSS", "onSelectToBattle")
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
                 tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionFace.ReadyToAnswer))
             }
@@ -373,8 +462,8 @@ class PlayTableViewModel(
                 val newSlot = slot.copy(contentState = QuestionFace.Answering)
                 tableState = tableState.copy(closeUp = newSlot, playerBattleSlot = newSlot)
                 answerStartTimestamp = System.currentTimeMillis()
+                Log.d("HANASSS", "onStartAnswer: $newSlot")
             }
-            //TODO Send to firebase
         }
     }
 

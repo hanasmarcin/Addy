@@ -19,6 +19,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
@@ -59,10 +60,13 @@ class GameSessionRepository {
         .snapshots()
         .map {
             val cardStackDocument = it.get("cardStack") as? DocumentReference
-            val selected = cardStackDocument?.snapshots()?.first()?.toObject<PlayCardStack>()
-            if (selected != null) {
-                it.toObject<GameSessionStateDTO>()?.toDomain(cardStacks = selected)
+            val cardStack = cardStackDocument?.snapshots()?.first()?.toObject<PlayCardStack>()
+            if (cardStack != null) {
+                it.toObject<GameSessionStateDTO>()?.toDomain(cardStacks = cardStack)
             } else null
+        }
+        .catch {
+            Log.e("HANASSS", it.stackTraceToString())
         }
 
     fun getGameActionsFlow(gameSessionId: String, isHandled: (String) -> Boolean) = actionsCollectionReference(gameSessionId).snapshots()
@@ -84,7 +88,7 @@ class GameSessionRepository {
         .call(mapOf("gameSessionId" to gameSessionId))
         .asFlow()
         .map { result ->
-            result.data as? String ?: throw Exception("data is null")
+            //result.data as? String ?: throw Exception("data is null")
         }
 
     fun sendSingleAction(action: GameAction, gameSessionId: String) = actionsCollectionReference(gameSessionId).add(

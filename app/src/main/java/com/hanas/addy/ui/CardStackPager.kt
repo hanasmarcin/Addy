@@ -35,7 +35,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.Attributes
@@ -90,7 +89,6 @@ fun PlayCardBack(card: PlayCardData, modifier: Modifier = Modifier) {
     Column(
         modifier
             .background(MaterialTheme.colorScheme.primary)
-            .drawPattern(R.drawable.melt, MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
             .padding(16.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
@@ -119,7 +117,6 @@ fun PlayCardFront(card: PlayCardData, modifier: Modifier = Modifier) {
         modifier
             .aspectRatio(CARD_ASPECT_RATIO)
             .background(MaterialTheme.colorScheme.primary)
-            .drawPattern(R.drawable.melt, MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
             .padding(16.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)

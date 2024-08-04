@@ -1,7 +1,6 @@
 package com.hanas.addy.view.gameSession
 
 import com.google.firebase.Timestamp
-import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.model.PlayCardStack
 import java.util.Date
 
@@ -15,7 +14,7 @@ sealed class GameSessionState(open val players: List<Player>, open val cardStack
     data class GameInProgress(
         override val players: List<Player>,
         override val cardStackInGame: PlayCardStack,
-        val unusedStack: List<PlayCardData>,
+        val unusedStack: List<Long>,
         val startGameTimestamp: Date,
     ) : GameSessionState(players, cardStackInGame)
 }
@@ -30,7 +29,7 @@ data class Player(
 data class GameSessionStateDTO(
     val inviteCode: String? = null,
     val players: List<PlayerDTO> = emptyList(),
-    val unusedStack: List<PlayCardData> = emptyList(),
+    val unusedStack: List<Long> = emptyList(),
     val startGameTimestamp: Timestamp? = null,
 )
 

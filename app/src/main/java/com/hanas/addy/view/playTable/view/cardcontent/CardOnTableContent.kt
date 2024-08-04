@@ -18,7 +18,9 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -43,6 +44,7 @@ import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.ui.samplePlayCard
+import com.hanas.addy.ui.theme.AppColors.green
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.model.AttributesFace
 import com.hanas.addy.view.playTable.model.BackFace
@@ -74,34 +76,36 @@ fun CardOnTableLayout(
     val rotationOnZ by animateRotationZ(placementTransition)
     val width by animateWidth(placementTransition, screenSizeInDp)
     val offset by animateOffset(placementTransition, screenSizeInDp, unscaledCardSizeInDp)
-    Box(modifier = modifier
-        .zIndex(state.placement.targetZIndex())
-        .offset {
-            IntOffset(offset.x.dp.roundToPx(), offset.y.dp.roundToPx())
-        }
-        .graphicsLayer {
-            val scale = width.toPx() / screenSizeInDp.width.toPx()
-            scaleX = scale
-            scaleY = scale
-            rotationX = orientation.rotationX
-            rotationY = orientation.rotationY
-            rotationZ = rotationOnZ
-            cameraDistance = (8 + 20 * (1 - scale)) * density
+    Surface(
+        modifier = modifier
+            .zIndex(state.placement.targetZIndex())
+            .offset {
+                IntOffset(offset.x.dp.roundToPx(), offset.y.dp.roundToPx())
+            }
+            .graphicsLayer {
+                val scale = width.toPx() / screenSizeInDp.width.toPx()
+                scaleX = scale
+                scaleY = scale
+                rotationX = orientation.rotationX
+                rotationY = orientation.rotationY
+                rotationZ = rotationOnZ
+                cameraDistance = (8 + 20 * (1 - scale)) * density
 
-        }
-        .clip(RoundedCornerShape(26.dp))
-        .background(
-            Color.Companion.Black
-                .copy(alpha = 0.3f)
-                .compositeOver(MaterialTheme.colorScheme.tertiary)
-        )
-        .padding(start = 2.dp, top = 2.dp)
-        .clip(RoundedCornerShape(24.dp))
-
+            }
+            .clip(RoundedCornerShape(14.dp))
+            .background(green)
+            .padding(start = 2.dp, bottom = 2.dp)
+            .clip(RoundedCornerShape(12.dp)),
     ) {
-
-        val contentState = contentTransition.currentState.takeIf { it.rotation::class == orientation::class } ?: contentTransition.targetState
-
+        val contentState by remember(contentTransition.targetState, contentTransition.currentState, orientation) {
+            derivedStateOf {
+                when {
+                    contentTransition.targetState.rotation::class == orientation::class -> contentTransition.targetState
+                    contentTransition.currentState.rotation::class == orientation::class -> contentTransition.currentState
+                    else -> contentTransition.targetState
+                }
+            }
+        }
         CardOnTableContent(
             data = state.data,
             contentState = contentState,

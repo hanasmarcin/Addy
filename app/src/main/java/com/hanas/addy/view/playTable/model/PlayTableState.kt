@@ -1,6 +1,8 @@
 package com.hanas.addy.view.playTable.model
 
 import com.hanas.addy.model.PlayCardData
+import com.hanas.addy.view.playTable.PlayerState
+import com.hanas.addy.view.playTable.PositionOnTable
 import com.hanas.addy.view.playTable.view.uistate.PlayCardUiPlacement
 import com.hanas.addy.view.playTable.view.uistate.PlayCardUiState
 
@@ -15,6 +17,7 @@ data class CardSlot(
 )
 
 data class PlayTableState(
+    val players: Map<PositionOnTable, PlayerState>,
     val deck: CardCollection,
     val playerHand: CardCollection,
     val opponentHand: CardCollection,
