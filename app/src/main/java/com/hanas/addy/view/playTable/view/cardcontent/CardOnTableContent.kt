@@ -1,5 +1,6 @@
 package com.hanas.addy.view.playTable.view.cardcontent
 
+import android.util.Log
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -105,6 +107,12 @@ fun CardOnTableLayout(
                     else -> contentTransition.targetState
                 }
             }
+        }
+        LaunchedEffect(contentState, contentTransition.targetState, contentTransition.currentState, orientation) {
+            Log.d(
+                "HANASSS",
+                "contentState: $contentState,\ncontentTransition.targetState: ${contentTransition.targetState},\ncontentTransition.currentState: ${contentTransition.currentState},\norientation: $orientation"
+            )
         }
         CardOnTableContent(
             data = state.data,

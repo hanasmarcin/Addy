@@ -69,6 +69,7 @@ class PlayTableViewModel(
     private val gameActions = repository.getGameActionsFlow(navArgs.gameSessionId, ::isActionHandled)
         .filterNotNull()
         .onEach { batchActions ->
+            Log.d("HANASSS", "Batchactions: $batchActions")
             handledActions.addAll(batchActions.map { it.actionId })
         }
 
@@ -170,16 +171,14 @@ class PlayTableViewModel(
 
             }
             is CardPosition.UnusedStack -> {
-                tableState = tableState.copy(
-                    deck = tableState.deck.copy(
-                        cards = tableState.deck.cards.subList(
-                            0,
-                            action.targetPlacement.positionInSegment
-                        ) + cards.first { it.id == action.cardId } + tableState.deck.cards.subList(
-                            action.targetPlacement.positionInSegment + 1,
-                            tableState.deck.size
-                        )),
-                )
+                action.targetPlacement.positionInSegment?.let { position ->
+                    tableState = tableState.copy(
+                        deck = tableState.deck.copy(
+                            cards = tableState.deck.cards.subList(0, position) +
+                                cards.first { it.id == action.cardId } +
+                                tableState.deck.cards.subList(position + 1, tableState.deck.size)),
+                    )
+                }
             }
         }
 
@@ -210,6 +209,7 @@ class PlayTableViewModel(
 
     private suspend fun handleQuestionRaceResult(action: GameAction.QuestionRaceResult) {
         if (Firebase.auth.currentUser?.uid == action.playerId) {
+            delay(2000)
             val winningCard = tableState.playerBattleSlot?.card
             if (winningCard != null) {
                 val newSlot = CardSlot(winningCard, contentState = AttributesFace.ChooseActiveAttribute)
@@ -254,11 +254,11 @@ class PlayTableViewModel(
     private fun removeCardFromHand(currentPlacement: CardPosition.InHand, cardId: Long): Pair<PlayCardData, PlayTableState> {
         return if (currentPlacement.forPlayerId == Firebase.auth.currentUser?.uid) {
             tableState.playerHand.cards.first { it.id == cardId } to tableState.copy(
-                playerHand = CardCollection(tableState.playerHand.cards.dropAt(currentPlacement.positionInSegment))
+                playerHand = CardCollection(tableState.playerHand.cards.dropAt(requireNotNull(currentPlacement.positionInSegment)))
             )
         } else {
             tableState.opponentHand.cards.first { it.id == cardId } to tableState.copy(
-                opponentHand = CardCollection(tableState.opponentHand.cards.dropAt(currentPlacement.positionInSegment))
+                opponentHand = CardCollection(tableState.opponentHand.cards.dropAt(requireNotNull(currentPlacement.positionInSegment)))
             )
         }
     }
@@ -279,7 +279,11 @@ class PlayTableViewModel(
         return when (action.targetPlacement) {
             is CardPosition.InHand -> placeCardInHand(action.targetPlacement, removedCard, stateWithRemovedCard)
             is CardPosition.OnBattleSlot -> TODO()
-            is CardPosition.UnusedStack -> placeCardInUnusedStack(removedCard, stateWithRemovedCard, action.targetPlacement.positionInSegment)
+            is CardPosition.UnusedStack -> placeCardInUnusedStack(
+                removedCard,
+                stateWithRemovedCard,
+                requireNotNull(action.targetPlacement.positionInSegment)
+            )
         }
     }
 
@@ -378,7 +382,6 @@ class PlayTableViewModel(
                 val deferred = async { repository.finishAnsweringQuestion(navArgs.gameSessionId, cardId, isAnswerCorrect, answerTimeInMs) }
 
                 tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionFace.AnswerScored(answer, isAnswerCorrect)))
-                delay(1500)
                 val result = deferred.await()
                 tableState = tableState.copy(
                     closeUp = slot.copy(

@@ -288,8 +288,8 @@ sealed class GameAction(open val msDelay: Long) {
 }
 
 sealed class CardPosition {
-    data class UnusedStack(val positionInSegment: Int) : CardPosition()
-    data class InHand(val positionInSegment: Int, val forPlayerId: String) : CardPosition()
+    data class UnusedStack(val positionInSegment: Int?) : CardPosition()
+    data class InHand(val positionInSegment: Int?, val forPlayerId: String) : CardPosition()
     data class OnBattleSlot(val forPlayerId: String) : CardPosition()
 }
 
@@ -369,7 +369,7 @@ fun GameActionDTO.toDomain(): GameAction {
 
 private fun CardPositionDTO.toDomain() = when (type) {
     "unusedStack" -> CardPosition.UnusedStack(requireNotNull(positionInSegment))
-    "inHand" -> CardPosition.InHand(requireNotNull(positionInSegment), requireNotNull(forPlayerId))
+    "inHand" -> CardPosition.InHand(positionInSegment, requireNotNull(forPlayerId))
     "battleSlot" -> CardPosition.OnBattleSlot(requireNotNull(forPlayerId))
     else -> throw InvalidParameterException("Unknown card placement type: $type")
 }

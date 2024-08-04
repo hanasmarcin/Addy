@@ -45,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
@@ -83,7 +82,6 @@ fun PlayCardAttributes(
     onSelectCardToBattle: () -> Unit,
     onSelectAttribute: (Int) -> Unit,
 ) {
-    val brush = rememberPaperBrush()
     var targetColor by remember { mutableStateOf(Color.Transparent) }
     LaunchedEffect(state) {
         if (state is AttributesFace.BattleResult) {
@@ -107,7 +105,7 @@ fun PlayCardAttributes(
             .padding(12.dp)
     ) {
         CardImageWithTitle(card)
-        Attributes(card, state, brush, onSelectAttribute, onSelectCardToBattle)
+        Attributes(card, state, onSelectAttribute, onSelectCardToBattle)
     }
 //    Box(
 //        Modifier
@@ -138,7 +136,6 @@ fun PlayCardAttributes(
 fun Attributes(
     card: PlayCardData,
     state: AttributesFace,
-    brush: ShaderBrush,
     onSelectAttribute: (Int) -> Unit,
     onSelectToBattle: () -> Unit,
 ) {
@@ -166,30 +163,30 @@ fun Attributes(
 //            .padding(8.dp)
 //            .clip(RoundedCornerShape(12.dp))
 //    ) {
-        // Create attribute rows using the function
-        AttributeRow(
-            attribute = card.attributes.red,
-            state = state,
-            booster = (state as? AttributesFace.AddingBoost)?.boostForRed,
-            isSelectedAsActive = (state as? AttributesFace.ActiveAttributeSelected)?.attribute == "red",
-            color = pink,
-        ) { onSelectAttribute(0) }
+    // Create attribute rows using the function
+    AttributeRow(
+        attribute = card.attributes.red,
+        state = state,
+        booster = (state as? AttributesFace.AddingBoost)?.boostForRed,
+        isSelectedAsActive = (state as? AttributesFace.ActiveAttributeSelected)?.attribute == "red",
+        color = pink,
+    ) { onSelectAttribute(0) }
     Spacer(Modifier.size(8.dp))
-        AttributeRow(
-            attribute = card.attributes.green,
-            state = state,
-            booster = (state as? AttributesFace.AddingBoost)?.boostForGreen,
-            isSelectedAsActive = (state as? AttributesFace.ActiveAttributeSelected)?.attribute == "green",
-            color = blue
-        ) { onSelectAttribute(1) }
+    AttributeRow(
+        attribute = card.attributes.green,
+        state = state,
+        booster = (state as? AttributesFace.AddingBoost)?.boostForGreen,
+        isSelectedAsActive = (state as? AttributesFace.ActiveAttributeSelected)?.attribute == "green",
+        color = blue
+    ) { onSelectAttribute(1) }
     Spacer(Modifier.size(8.dp))
-        AttributeRow(
-            attribute = card.attributes.blue,
-            state = state,
-            booster = (state as? AttributesFace.AddingBoost)?.boostForBlue,
-            isSelectedAsActive = (state as? AttributesFace.ActiveAttributeSelected)?.attribute == "blue",
-            color = yellow
-        ) { onSelectAttribute(2) }
+    AttributeRow(
+        attribute = card.attributes.blue,
+        state = state,
+        booster = (state as? AttributesFace.AddingBoost)?.boostForBlue,
+        isSelectedAsActive = (state as? AttributesFace.ActiveAttributeSelected)?.attribute == "blue",
+        color = yellow
+    ) { onSelectAttribute(2) }
 //    }
 }
 
