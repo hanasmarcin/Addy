@@ -84,12 +84,15 @@ fun CardStackPager(
                         onSelectCardToBattle = {}
                     )
                 } else {
+                    var questionState by remember { mutableStateOf<QuestionFace>(QuestionFace.Answering) }
                     PlayCardQuestion(
                         modifier = Modifier.graphicsLayer { scaleX = -1f },
-                        state = QuestionFace.Answering,
+                        state = questionState,
                         card = card,
                         startAnswering = {},
-                        onSelectAnswer = {}
+                        onSelectAnswer = {
+                            questionState = QuestionFace.AnswerScored(it, it == card.question.answer)
+                        }
                     )
                 }
             }

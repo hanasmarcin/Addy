@@ -116,7 +116,7 @@ fun PlayCardQuestion(
                             card,
                             isCorrectAnswer = (state as? QuestionFace.AnswerScored)?.isAnswerCorrect,
                             selectedAnswer = (state as? QuestionFace.AnswerScored)?.answer,
-                            onSelectAnswer = onSelectAnswer
+                            onSelectAnswer = onSelectAnswer,
                         )
                     }
                 }
@@ -195,17 +195,17 @@ fun AnswersGrid(card: PlayCardData, selectedAnswer: Answer?, isCorrectAnswer: Bo
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AnswerItem(
                     answerText = card.question.a + if (card.question.answer == Answer.A) " +" else "",
-                    onClick = { onSelectAnswer(Answer.A) },
-                    color = blue,
                     isSelected = selectedAnswer == Answer.A,
                     isCorrect = isCorrectAnswer.takeIf { selectedAnswer == Answer.A },
+                    onClick = { onSelectAnswer(Answer.A) },
+                    color = blue,
                 )
                 AnswerItem(
                     answerText = card.question.b + if (card.question.answer == Answer.B) " +" else "",
-                    onClick = { onSelectAnswer(Answer.B) },
-                    color = pink,
                     isSelected = selectedAnswer == Answer.B,
                     isCorrect = isCorrectAnswer.takeIf { selectedAnswer == Answer.B },
+                    onClick = { onSelectAnswer(Answer.B) },
+                    color = pink,
                 )
             }
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -218,10 +218,10 @@ fun AnswersGrid(card: PlayCardData, selectedAnswer: Answer?, isCorrectAnswer: Bo
                 )
                 AnswerItem(
                     answerText = card.question.d + if (card.question.answer == Answer.D) " +" else "",
-                    onClick = { onSelectAnswer(Answer.D) },
-                    color = green,
                     isSelected = selectedAnswer == Answer.D,
                     isCorrect = isCorrectAnswer.takeIf { selectedAnswer == Answer.D },
+                    onClick = { onSelectAnswer(Answer.D) },
+                    color = green,
                 )
             }
         }
