@@ -43,7 +43,11 @@ import com.hanas.addy.model.Question
 import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.theme.AppTheme
+import com.hanas.addy.view.playTable.model.AttributesFace
+import com.hanas.addy.view.playTable.model.QuestionFace
 import com.hanas.addy.view.playTable.view.cardcontent.CARD_ASPECT_RATIO
+import com.hanas.addy.view.playTable.view.cardcontent.PlayCardAttributes
+import com.hanas.addy.view.playTable.view.cardcontent.PlayCardQuestion
 
 @Composable
 fun CardStackPager(
@@ -53,7 +57,7 @@ fun CardStackPager(
     HorizontalPager(pagerState, contentPadding = PaddingValues(horizontal = 32.dp), pageSpacing = 16.dp) { page ->
         val card = PlayCards[page]
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            var rotated by remember { mutableStateOf(true) }
+            var rotated by remember { mutableStateOf(false) }
             val rotation by animateFloatAsState(
                 targetValue = if (rotated) 180f else 0f,
                 animationSpec = tween(500), label = ""
@@ -73,11 +77,20 @@ fun CardStackPager(
                 shape = RoundedCornerShape(24.dp)
             ) {
                 if (isFrontVisible) {
-                    PlayCardFront(card)
+                    PlayCardAttributes(
+                        state = AttributesFace.StaticPreview,
+                        card = card,
+                        onSelectAttribute = {},
+                        onSelectCardToBattle = {}
+                    )
                 } else {
-                    PlayCardBack(card, Modifier.graphicsLayer {
-                        rotationY = 180f
-                    })
+                    PlayCardQuestion(
+                        modifier = Modifier.graphicsLayer { scaleX = -1f },
+                        state = QuestionFace.Answering,
+                        card = card,
+                        startAnswering = {},
+                        onSelectAnswer = {}
+                    )
                 }
             }
         }
@@ -212,6 +225,7 @@ val samplePlayCard = PlayCardData(
         d = "Arid conditions that allow for efficient water management.",
         answer = Answer.D,
     ),
+    id = 0,
     title = "The Monsoon Whisperer",
     description = "This wise character knows the secrets of the monsoon winds and their influence on Southeast Asia's agricultural bounty.",
     attributes = Attributes(

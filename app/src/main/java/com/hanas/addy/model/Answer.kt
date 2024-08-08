@@ -1,61 +1,64 @@
 package com.hanas.addy.model
 
 import androidx.annotation.IntRange
+import com.google.firebase.Timestamp
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.util.Date
 
-@Serializable
-data class PlayCardStackGeminiResponse(
-    val title: String,
-    val greenName: String,
-    val redName: String,
-    val blueName: String,
-    val cards: List<PlayCardGeminiResponse>,
-)
-
-@Serializable
-data class PlayCardGeminiResponse(
-    val question: String,
-    val a: String,
-    val b: String,
-    val c: String,
-    val d: String,
-    val answer: String,
-    val title: String,
-    val description: String,
-    val greenValue: Int,
-    val redValue: Int,
-    val blueValue: Int,
-    val imagePrompt: String,
-)
-
-
-@Serializable
-data class PlayCardStack(
+data class PlayCardStackDTO(
     val title: String = "",
-    val cards: List<PlayCardData> = emptyList(),
-    val createdBy: String? = null,
-    val creationTimestamp: Long = System.currentTimeMillis(),
-    val id: String? = null,
+    val greenName: String = "",
+    val redName: String = "",
+    val blueName: String = "",
+    val cards: List<PlayCardDataDTO> = emptyList(),
+    val creationTimestamp: Timestamp = Timestamp.now(),
+    val createdBy: String = "",
 )
 
-@Serializable
-data class PlayCardData(
-    val id: Long = 0,
-    val question: Question = Question(),
-    val title: String = "",
-    val description: String = "",
-    val attributes: Attributes = Attributes(Attribute(), Attribute(), Attribute())
-)
-
-@Serializable
-data class Question(
-    val text: String = "",
+data class PlayCardDataDTO(
+    val id: Long = -1,
+    val question: String = "",
     val a: String = "",
     val b: String = "",
     val c: String = "",
     val d: String = "",
-    val answer: Answer = Answer.A
+    val answer: String = "",
+    val title: String = "",
+    val description: String = "",
+    val greenValue: Int = 0,
+    val redValue: Int = 0,
+    val blueValue: Int = 0,
+    val imagePrompt: String = "",
+    val imagePath: String? = null,
+)
+
+
+data class PlayCardStack(
+    val title: String,
+    val cards: List<PlayCardData>,
+    val createdBy: String?,
+    val creationTimestamp: Date,
+    val id: String?,
+)
+
+@Serializable
+data class PlayCardData(
+    val id: Long,
+    val question: Question,
+    val title: String,
+    val description: String,
+    val attributes: Attributes
+)
+
+@Serializable
+data class Question(
+    val text: String,
+    val a: String,
+    val b: String,
+    val c: String,
+    val d: String,
+    val answer: Answer
 )
 
 @Serializable
@@ -75,9 +78,9 @@ enum class Answer(val value: String) {
 
 @Serializable
 data class Attributes(
-    val green: Attribute = Attribute(),
-    val blue: Attribute = Attribute(),
-    val red: Attribute = Attribute()
+    val green: Attribute,
+    val blue: Attribute,
+    val red: Attribute
 )
 
 @Serializable

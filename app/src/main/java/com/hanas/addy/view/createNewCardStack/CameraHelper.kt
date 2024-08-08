@@ -3,7 +3,6 @@ package com.hanas.addy.view.createNewCardStack
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Environment
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -19,8 +18,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import coil.imageLoader
-import coil.request.ImageRequest
 import com.hanas.addy.BuildConfig
 import kotlinx.coroutines.launch
 import java.io.File
@@ -33,7 +30,7 @@ fun interface CameraHelper {
 }
 
 @Composable
-fun rememberCameraHelper(onPhotoTaken: suspend (Drawable) -> Unit): CameraHelper {
+fun rememberCameraHelper(onPhotoTaken: suspend (Uri) -> Unit): CameraHelper {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var uriPhotoToCapture by rememberSaveable { mutableStateOf<Uri?>(null) }
@@ -41,13 +38,7 @@ fun rememberCameraHelper(onPhotoTaken: suspend (Drawable) -> Unit): CameraHelper
         if (success) {
             uriPhotoToCapture?.let {
                 coroutineScope.launch {
-                    val request = ImageRequest.Builder(context).data(it).build()
-                    val drawable = context.imageLoader.execute(request).drawable
-                    if (drawable != null) {
-                        onPhotoTaken(drawable)
-                    } else {
-                        uriPhotoToCapture = null
-                    }
+                    onPhotoTaken(it)
                 }
             }
             uriPhotoToCapture = null

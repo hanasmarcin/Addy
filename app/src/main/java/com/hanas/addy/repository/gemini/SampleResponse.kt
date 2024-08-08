@@ -1,6 +1,6 @@
 package com.hanas.addy.repository.gemini
 
-import com.hanas.addy.model.PlayCardStackGeminiResponse
+import com.hanas.addy.model.PlayCardStackDTO
 import com.hanas.addy.view.createNewCardStack.mapToPlayCardStack
 import kotlinx.serialization.json.Json
 
@@ -225,9 +225,9 @@ const val SAMPLE_RESPONSE = """
 }
 """
 
-val samplePlayCardStackJsonResponse = Json.decodeFromString<PlayCardStackGeminiResponse>(SAMPLE_RESPONSE)
+val samplePlayCardStackJsonResponse = Json.decodeFromString<PlayCardStackDTO>(SAMPLE_RESPONSE)
 val samplePlayCardStack = samplePlayCardStackJsonResponse
-    .mapToPlayCardStack("")
+    .mapToPlayCardStack("abc")
     .let {
         it.copy(cards = it.cards.mapIndexed { id, data ->
             data.copy(id = id.toLong())

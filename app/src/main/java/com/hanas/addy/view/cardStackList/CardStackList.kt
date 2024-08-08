@@ -36,13 +36,13 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
 import com.hanas.addy.model.PlayCardStack
+import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppListItem
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.components.itemsWithPosition
 import com.hanas.addy.ui.components.shapes.BlobShape
-import com.hanas.addy.ui.samplePlayCard
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.cardStackDetail.CardStackDetail
 import com.hanas.addy.view.createNewCardStack.CreateNewCardStack
@@ -157,9 +157,7 @@ private fun NoCardStacksContent(navHandler: NavigationHandler) {
 class SamplePlayCardStackListProvider : PreviewParameterProvider<List<PlayCardStack>> {
     override val values = sequenceOf(
         emptyList(), listOf(
-            PlayCardStack(
-                "ABC", listOf(samplePlayCard, samplePlayCard, samplePlayCard),
-            ),
+            samplePlayCardStack,
 //            PlayCardStack(
 //                "DEF", listOf(samplePlayCard, samplePlayCard),
 //            ),

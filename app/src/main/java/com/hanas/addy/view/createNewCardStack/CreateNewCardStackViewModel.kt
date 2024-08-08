@@ -1,47 +1,51 @@
 package com.hanas.addy.view.createNewCardStack
 
-import android.graphics.drawable.Drawable
+import android.content.Context
+import android.net.Uri
 import android.util.Log
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import androidx.work.await
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.Attributes
 import com.hanas.addy.model.DataHolder
 import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.model.PlayCardStack
-import com.hanas.addy.model.PlayCardStackGeminiResponse
+import com.hanas.addy.model.PlayCardStackDTO
 import com.hanas.addy.model.Question
-import com.hanas.addy.repository.gemini.GeminiRepository
 import com.hanas.addy.view.cardStackList.CardStackRepository
 import com.hanas.addy.view.gameSession.chooseGameSession.NavigationRequester
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
+import com.hanas.addy.worker.GenerateCardStackWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 
 
 class CreateNewCardStackViewModel(
-    private val geminiRepository: GeminiRepository,
     private val cardStackRepository: CardStackRepository,
+    private val context: Context,
 ) : ViewModel(), NavigationRequester by NavigationRequester() {
-    val cardStackFlow = MutableStateFlow<DataHolder<PlayCardStack>>(DataHolder.Idle())
-    val photoUrisFlow: StateFlow<List<Drawable>>
+    val cardStackFlow = MutableStateFlow<DataHolder<Unit>>(DataHolder.Idle())
+    val photoUrisFlow: StateFlow<List<Uri>>
         get() = _photoUrisFlow
 
-    private val _photoUrisFlow = MutableStateFlow<List<Drawable>>(emptyList())
+    private val _photoUrisFlow = MutableStateFlow<List<Uri>>(emptyList())
 
-    fun addPhoto(uri: Drawable) {
+    fun addPhoto(uri: Uri) {
         _photoUrisFlow.value = _photoUrisFlow.value.toMutableList().apply { add(uri) }
     }
 
-    fun addAllPhotos(uris: Collection<Drawable>) {
+    fun addAllPhotos(uris: Collection<Uri>) {
         _photoUrisFlow.value = _photoUrisFlow.value.toMutableList().apply { addAll(uris) }
     }
 
@@ -50,48 +54,63 @@ class CreateNewCardStackViewModel(
     }
 
     fun generateStack() {
-        val errorHandler = CoroutineExceptionHandler { _, throwable ->
-            Log.e("HANASSS", "Error generating stack", throwable)
-            cardStackFlow.value = DataHolder.Error(throwable, cachedData = cardStackFlow.value.data)
-        }
-        viewModelScope.launch(Dispatchers.IO + errorHandler) {
-            cardStackFlow.value = DataHolder.Loading(cachedData = cardStackFlow.value.data, cachedError = cardStackFlow.value.error)
-            val bitmaps = _photoUrisFlow.value.map { it.toBitmap() }
-            val response = geminiRepository.generateCardStack(bitmaps)
-            val generatedText = response.text
-            if (generatedText.isNullOrBlank()) throw Throwable("Wrong data")
-            val cleanString =
-                generatedText.replaceFirst("```json", "").replaceFirst("```", "").replace(Regex("(?<=:\\s?)\"(.*?)(?<!\\\\)\""), "\"$1\"")
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
 
-            val playCards = (try {
-                Json.decodeFromString<PlayCardStackGeminiResponse>(cleanString)
-            } catch (e: Throwable) {
-                Log.e("HANASSS", "Failed to parse JSON", e)
-                val correctedResponse = geminiRepository.correctCardStackJsonResponse(bitmaps, cleanString, e.message ?: e.toString())
-                val generatedCorrectedText = correctedResponse.text
-                if (generatedCorrectedText.isNullOrBlank()) throw Throwable("Wrong data")
-                val cleanCorrectedString =
-                    generatedText.replaceFirst("```json", "").replaceFirst("```", "").replace(Regex("(?<=:\\s?)\"(.*?)(?<!\\\\)\""), "\"$1\"")
-                Json.decodeFromString<PlayCardStackGeminiResponse>(cleanCorrectedString)
-            }).mapToPlayCardStack(Firebase.auth.currentUser?.uid)
-            cardStackRepository.savePlayCardStack(playCards).collectLatest {
-                it.onSuccess {
-                    cardStackFlow.value = DataHolder.Success(playCards)
-                    requestNavigation(CreateNewCardStack.PreviewNewStack)
-                }.onFailure {
-                    cardStackFlow.value = DataHolder.Error(it, cachedData = cardStackFlow.value.data)
+        val request = OneTimeWorkRequestBuilder<GenerateCardStackWorker>()
+            .setInputData(
+                Data.Builder()
+                    .putStringArray("imagesUri", _photoUrisFlow.value.map { it.toString() }.toTypedArray())
+                    .build()
+            )
+            .setConstraints(constraints)
+            .addTag("GenerateCardStackWorker")
+            .build()
+
+        viewModelScope.launch {
+            val workManager = WorkManager.getInstance(context)
+            val result = workManager
+                .enqueue(request)
+                .await()
+            Log.d("HANASSS", result.toString())
+            workManager.getWorkInfoByIdLiveData(request.id).asFlow()
+                .onEach { workInfo ->
+                    when (workInfo.state) {
+                        WorkInfo.State.SUCCEEDED -> {
+                            Log.d("CreateNewCardStackViewModel", "Work succeeded")
+                            val outputData = workInfo.outputData
+//                             val generatedStack = outputData.getString("generatedStackId") // Example of retrieving output data
+                            cardStackFlow.value = DataHolder.Success(Unit)
+                        }
+                        WorkInfo.State.FAILED -> {
+                            Log.e("CreateNewCardStackViewModel", "Work failed")
+                            cardStackFlow.value = DataHolder.Error(Throwable("Failed to generate stack"))
+                        }
+                        WorkInfo.State.RUNNING -> {
+                            Log.d("CreateNewCardStackViewModel", "Work running")
+                            cardStackFlow.value = DataHolder.Loading()
+                        }
+                        else -> {
+                            // Handle other states like ENQUEUED, CANCELLED, etc., if necessary
+                            Log.d("CreateNewCardStackViewModel", "Work state: ${workInfo.state}")
+                        }
+                    }
                 }
-            }
+                .launchIn(viewModelScope) // Launch the flow collection in the ViewModel's scope
+
         }
     }
 }
 
-fun PlayCardStackGeminiResponse.mapToPlayCardStack(createdBy: String?) = PlayCardStack(
+fun PlayCardStackDTO.mapToPlayCardStack(id: String) = PlayCardStack(
+    id = id,
     title = title,
     createdBy = createdBy,
-    creationTimestamp = System.currentTimeMillis(),
+    creationTimestamp = creationTimestamp.toDate(),
     cards = cards.map {
         PlayCardData(
+            id = it.id,
             title = it.title,
             description = it.description,
             question = Question(
