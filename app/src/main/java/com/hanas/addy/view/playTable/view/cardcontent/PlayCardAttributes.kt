@@ -1,10 +1,11 @@
 package com.hanas.addy.view.playTable.view.cardcontent
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateInt
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
@@ -13,6 +14,8 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -30,6 +33,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -48,6 +52,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -61,11 +66,13 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.hanas.addy.R
 import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.PlayCardData
+import com.hanas.addy.ui.components.animateClickablePadding
 import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.drawPattern
 import com.hanas.addy.ui.samplePlayCard
 import com.hanas.addy.ui.theme.AppColors
 import com.hanas.addy.ui.theme.AppColors.blue
+import com.hanas.addy.ui.theme.AppColors.containerFor
 import com.hanas.addy.ui.theme.AppColors.green
 import com.hanas.addy.ui.theme.AppColors.pink
 import com.hanas.addy.ui.theme.AppColors.yellow
@@ -199,7 +206,7 @@ private fun PlayButton(enabled: Boolean, modifier: Modifier, onSelectToBattle: (
             .background(AppColors.orange)
             .padding(4.dp, 2.dp, 4.dp, 8.dp)
             .clip(BlobShape(60f))
-            .background(AppColors.containerFor(AppColors.orange))
+            .background(containerFor(AppColors.orange))
             .clickable(enabled) { onSelectToBattle() }
 
     ) {
@@ -216,89 +223,58 @@ fun AttributeRow(
     color: Color = pink,
     onSelectAttribute: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressedTransition = updateTransition(isPressed || isSelectedAsActive, label = "")
+    val containerColor by pressedTransition.animateColor(label = "") { pressed ->
+        if (pressed) containerFor(color) else MaterialTheme.colorScheme.surface
+    }
+    val fontWeight by pressedTransition.animateInt(label = "") { pressed ->
+        if (pressed) FontWeight.Bold.weight else FontWeight.Normal.weight
+    }
+    val attributeValueColor by pressedTransition.animateColor(label = "") { pressed ->
+        if (pressed) color else color
+            .copy(alpha = 0.7f)
+            .compositeOver(MaterialTheme.colorScheme.surface)
+    }
+    val (innerPadding, outerPadding) = pressedTransition.animateClickablePadding()
+
     Row(
         Modifier
-            .height(IntrinsicSize.Min)
             .fillMaxWidth()
+            .padding(outerPadding)
             .clip(RoundedCornerShape(8.dp))
             .background(color)
+            .padding(innerPadding)
             .heightIn(min = 48.dp)
-            .clickable(state is AttributesFace.ChooseActiveAttribute) { onSelectAttribute() }
-            .padding(4.dp, 2.dp, 4.dp, 8.dp)
-            .clip(RoundedCornerShape(6.dp)),
+            .clickable(
+                interactionSource = interactionSource,
+                indication = rememberRipple(),
+                enabled = state is AttributesFace.ChooseActiveAttribute,
+            ) { onSelectAttribute() }
+            .clip(RoundedCornerShape(6.dp))
+            .height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AttributeValue(
             attribute.value,
             booster,
-            style = MaterialTheme.typography.titleLarge,
-            color = color
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight(fontWeight)),
+            color = attributeValueColor
         )
         Spacer(Modifier.size(2.dp))
         Box(
             Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(2.dp))
-                .background(MaterialTheme.colorScheme.surface)
+                .background(containerColor)
                 .padding(horizontal = 8.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(attribute.name)
+            Text(attribute.name, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight(fontWeight)))
         }
     }
 }
-
-@Preview
-@Composable
-fun AttributeRowPreview() {
-    var start by remember { mutableStateOf(false) }
-    val transition = updateTransition(start, label = "")
-    val paddingBottom by transition.animateDp(label = "", transitionSpec = { tween(2000) }) {
-        if (it) 12.dp else 2.dp
-    }
-    val paddingSide by transition.animateDp(label = "", transitionSpec = { tween(2000) }) {
-        if (it) 6.dp else 2.dp
-    }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            start = !start
-        }
-    }
-    AppTheme {
-        Surface {
-            Box(Modifier.padding(16.dp)) {
-                Box(
-                    Modifier
-                        .padding(start = 6.dp - paddingSide, end = 6.dp - paddingSide, bottom = 12.dp - paddingBottom)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.Black)
-                        .padding(start = paddingSide, end = paddingSide, bottom = paddingBottom, top = 2.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
-                ) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AttributeValue(
-                            8,
-                            0,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = pink
-                        )
-                        Spacer(Modifier.size(8.dp))
-                        Text("Abc")
-                    }
-
-                }
-            }
-        }
-    }
-}
-
 
 @Composable
 private fun AttributeValue(value: Int, booster: Int?, style: TextStyle, color: Color) {
@@ -318,11 +294,7 @@ private fun AttributeValue(value: Int, booster: Int?, style: TextStyle, color: C
         modifier = Modifier
             .fillMaxHeight()
             .clip(RoundedCornerShape(2.dp))
-            .background(
-                color
-                    .copy(alpha = 0.7f)
-                    .compositeOver(MaterialTheme.colorScheme.surface)
-            )
+            .background(color)
             .padding(horizontal = 8.dp, vertical = 2.dp),
         targetState = aaa,
         transitionSpec = {
