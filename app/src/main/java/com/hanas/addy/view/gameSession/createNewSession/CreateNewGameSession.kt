@@ -88,7 +88,7 @@ fun NavGraphBuilder.createNewSessionComposable(navHandler: NavigationHandler) {
 fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: NavigationHandler, startGame: () -> Unit) {
     AppScaffold(navHandler = navHandler, topBarTitle = { Text("Create New Table") }, bottomBar = {
         Surface(
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
                 .navigationBarsPadding()
@@ -100,7 +100,7 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: Navi
             InviteCode(state)
             Spacer(Modifier.size(16.dp))
             Column(
-                Modifier
+                modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(AppColors.containerFor(AppColors.yellow))
                     .padding(16.dp)
@@ -109,17 +109,23 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: Navi
                 Spacer(Modifier.size(8.dp))
                 LazyColumn {
                     itemsWithPosition(state.data?.players ?: emptyList()) { player, position, _ ->
-                        AppListItem(color = AppColors.yellow, onClick = {}, position = position, trailingContent = {
+                        AppListItem(position = position, trailingContent = {
                             when (player.invitationStatus) {
                                 PlayerInvitationState.WAITING_FOR_RESPONSE -> CircularProgressIndicator(
-                                    Modifier
+                                    modifier = Modifier
                                         .size(24.dp)
-                                        .padding(2.dp), strokeWidth = 2.dp
+                                        .padding(2.dp),
+                                    strokeWidth = 2.dp
                                 )
                                 PlayerInvitationState.ACCEPTED -> Icon(Icons.Default.Done, null)
                                 PlayerInvitationState.DECLINED -> Icon(Icons.Default.Clear, null)
                             }
-                        }) {
+                        },
+                            color = AppColors.yellow,
+                            enabled = true,
+                            isLoading = false,
+                            onClick = {}
+                        ) {
                             Text(player.displayName)
                         }
                     }
@@ -149,7 +155,7 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: Navi
 @Composable
 private fun InviteCode(state: DataHolder<GameSessionState>, color: Color = AppColors.orange) {
     Column(
-        Modifier
+        modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
             .background(AppColors.containerFor(color))
             .padding(16.dp)
@@ -157,7 +163,7 @@ private fun InviteCode(state: DataHolder<GameSessionState>, color: Color = AppCo
         Text("Invite code", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.size(8.dp))
         Box(
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .height(IntrinsicSize.Max)
                 .clip(RoundedCornerShape(8.dp))

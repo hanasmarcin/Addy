@@ -24,6 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -93,7 +96,7 @@ private fun CardStackListScreen(
             if (isEmpty) {
                 NoCardStacksContent(navHandler)
             } else {
-                CardStacksListContent(cardStacks) { id ->
+                CardStacksListContent(cardStacks, false, false) { id ->
                     navHandler.navigate(CardStackDetail(id))
                 }
             }
@@ -102,7 +105,13 @@ private fun CardStackListScreen(
 }
 
 @Composable
-fun CardStacksListContent(cardStacks: List<PlayCardStack>, onClick: (String) -> Unit) {
+fun CardStacksListContent(
+    cardStacks: List<PlayCardStack>,
+    areCardStacksLoading: Boolean,
+    isGameCreationInProgress: Boolean,
+    onClick: (String) -> Unit
+) {
+    var selectedStackId by rememberSaveable { mutableStateOf<String?>(null) }
     LazyColumn(
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp)
@@ -113,7 +122,14 @@ fun CardStacksListContent(cardStacks: List<PlayCardStack>, onClick: (String) -> 
                 trailingContent = {
                     CardStackSizePill(cardStack.cards.size)
                 },
-                onClick = { cardStack.id?.let { onClick(it) } }
+                enabled = isGameCreationInProgress.not(),
+                onClick = {
+                    cardStack.id?.let {
+                        selectedStackId = it
+                        onClick(it)
+                    }
+                },
+                isLoading = isGameCreationInProgress && selectedStackId == cardStack.id,
             ) {
                 Text(cardStack.title, Modifier.padding(horizontal = 4.dp))
             }

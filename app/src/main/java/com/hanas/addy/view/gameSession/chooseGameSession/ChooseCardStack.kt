@@ -6,10 +6,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.hanas.addy.R
+import com.hanas.addy.model.DataHolder
 import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppScaffold
@@ -26,23 +29,29 @@ object ChooseCardStack : NavScreen
 fun NavGraphBuilder.chooseCardStackComposable(navHandler: NavigationHandler) {
     composable<ChooseCardStack> {
         val viewModel: ChooseCardStackViewModel = koinNavViewModel()
-        val state by viewModel.cardStacksFlow.collectAsState()
+        val state by viewModel.stateFlow.collectAsState()
+        val (createGameState, cardStacksState) = state
         viewModel.observeNavigation(navHandler)
-        ChooseCardStackScreen(state, navHandler, viewModel::onChooseCardStack)
+        ChooseCardStackScreen(cardStacksState, createGameState, navHandler, viewModel::onChooseCardStack)
     }
 }
 
 @Composable
 fun ChooseCardStackScreen(
-    cardStacks: List<PlayCardStack>,
+    cardStacks: DataHolder<List<PlayCardStack>>,
+    createGameState: DataHolder<String>,
     navHandler: NavigationHandler,
     onChooseCardStack: (String) -> Unit
 ) {
     AppScaffold(
         navHandler = navHandler,
-        topBarTitle = { Text("Choose Card Stack") }
+        topBarTitle = { Text(stringResource(R.string.choose_card_stack_screen_title)) }
     ) {
-        CardStacksListContent(cardStacks) { id ->
+        CardStacksListContent(
+            cardStacks = cardStacks.data.orEmpty(),
+            areCardStacksLoading = cardStacks is DataHolder.Loading,
+            isGameCreationInProgress = createGameState is DataHolder.Loading,
+        ) { id ->
             onChooseCardStack(id)
         }
     }
@@ -52,7 +61,7 @@ fun ChooseCardStackScreen(
 @Composable
 fun ChooseCardStackScreenPreview(@PreviewParameter(SamplePlayCardStackListProvider::class) cardStacks: List<PlayCardStack>) {
     AppTheme {
-        ChooseCardStackScreen(cardStacks, {}) {}
+        ChooseCardStackScreen(DataHolder.Success(cardStacks), DataHolder.Idle(), {}) {}
     }
 }
 
