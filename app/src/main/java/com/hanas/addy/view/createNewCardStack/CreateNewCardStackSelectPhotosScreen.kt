@@ -1,6 +1,5 @@
 package com.hanas.addy.view.createNewCardStack
 
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -21,7 +20,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledIconButton
@@ -40,12 +38,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.hanas.addy.R
 import com.hanas.addy.model.DataHolder
@@ -56,7 +52,6 @@ import com.hanas.addy.ui.theme.AppColors
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.gameSession.chooseGameSession.observeNavigation
 import com.hanas.addy.view.home.NavigationHandler
-import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
 fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: NavigationHandler, navController: NavController) {
@@ -87,7 +82,7 @@ fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: Navigat
 @Composable
 private fun CreateNewCardStackSelectPhotosScreen(
     navHandler: NavigationHandler,
-    photoDrawables: List<Drawable>,
+    photoDrawables: List<Uri>,
     isLoading: Boolean,
     pickImages: () -> Unit,
     takePhoto: () -> Unit,
@@ -213,45 +208,10 @@ fun GenerateStackCardPreview() {
 @Composable
 fun AddNewCardStackScreenPreview() {
     AppTheme {
-        val list = listOf<Uri>(
-//            "https://picsum.photos/200/800".toUri(),
-//            "https://picsum.photos/200/800".toUri(),
+        val list = listOf(
+            "https://picsum.photos/200/800".toUri(),
+            "https://picsum.photos/200/800".toUri(),
         )
-        CreateNewCardStackSelectPhotosScreen({ }, emptyList(), false, {}, {}, {})
-    }
-}
-
-@Serializable
-object TestHome
-
-@Serializable
-object TestOther
-
-@Serializable
-object Nested
-
-@Serializable
-object InsideNested
-
-@Preview
-@Composable
-fun NavBackExploration() {
-    AppTheme {
-        val navController = rememberNavController()
-        NavHost(navController, modifier = Modifier.fillMaxSize(), startDestination = TestHome) {
-            composable<TestHome> {
-                Button(onClick = { navController.navigate(TestOther) }) {
-                    Text("to test other")
-                }
-            }
-            composable<TestOther> {
-                Button(onClick = { navController.navigate(Nested) }) {
-                    Text("5o n3w53e")
-                }
-            }
-            navigation<Nested>(startDestination = InsideNested) {
-                composable<InsideNested> { Button(onClick = { navController.navigateUp() }) { Text("Inside nested") } }
-            }
-        }
+        CreateNewCardStackSelectPhotosScreen({ }, list, false, {}, {}, {})
     }
 }

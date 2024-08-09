@@ -10,6 +10,8 @@ import com.google.firebase.firestore.toObject
 import com.google.firebase.functions.ktx.functions
 import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.PlayCardStack
+import com.hanas.addy.model.PlayCardStackDTO
+import com.hanas.addy.view.createNewCardStack.mapToPlayCardStack
 import com.hanas.addy.view.gameSession.createNewSession.GameAction
 import com.hanas.addy.view.gameSession.createNewSession.GameActionsBatchDTO
 import com.hanas.addy.view.gameSession.createNewSession.toDTO
@@ -60,7 +62,7 @@ class GameSessionRepository {
         .snapshots()
         .map {
             val cardStackDocument = it.get("cardStack") as? DocumentReference
-            val cardStack = cardStackDocument?.snapshots()?.first()?.toObject<PlayCardStack>()
+            val cardStack = cardStackDocument?.snapshots()?.first()?.toObject<PlayCardStackDTO>()?.mapToPlayCardStack(it.id)
             if (cardStack != null) {
                 it.toObject<GameSessionStateDTO>()?.toDomain(cardStacks = cardStack)
             } else null

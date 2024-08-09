@@ -148,21 +148,20 @@ private fun BoxWithConstraintsScope.PlayerLabel(
 }
 
 @Composable
-private fun Scrim(
+fun Scrim(
     enabled: Boolean,
     isClickAvailable: Boolean,
-    scrimSize: IntSize,
+    scrimSize: IntSize? = null,
     onClickAwayFromCloseUp: () -> Unit
 ) {
     AnimatedVisibility(enabled, Modifier
         .fillMaxSize()
         .zIndex(700f)
         .layout { measurable, constraints ->
-            val size = scrimSize
             val placeable = measurable.measure(
-                Constraints.fixed(size.width, size.height)
+                scrimSize?.let { Constraints.fixed(it.width, it.height) } ?: constraints
             )
-            layout(size.width, size.height) {
+            layout(placeable.width, placeable.height) {
                 placeable.place(0, 0)
             }
         }

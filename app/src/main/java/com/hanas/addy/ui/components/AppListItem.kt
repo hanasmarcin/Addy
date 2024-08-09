@@ -1,25 +1,39 @@
 package com.hanas.addy.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hanas.addy.ui.theme.AppColors
@@ -29,22 +43,45 @@ import com.hanas.addy.ui.theme.AppTheme
 fun AppListItem(
     modifier: Modifier = Modifier,
     position: ListItemPosition = ListItemPosition.STANDALONE,
-    leadingContent: @Composable (() -> Unit)? = null,
-    trailingContent: @Composable (() -> Unit)? = null,
+    leadingContent: @Composable() (() -> Unit)? = null,
+    trailingContent: @Composable() (() -> Unit)? = null,
     color: Color = AppColors.blue,
+    isLoading: Boolean,
+    enabled: Boolean,
     onClick: () -> Unit,
     content: @Composable () -> Unit,
 
     ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val transition = updateTransition(isPressed, label = "")
+    val elevation by transition.animateDp(label = "") { pressed ->
+        if (pressed) 6.dp else 0.dp
+    }
     ListItem(
         modifier = modifier
             .clip(position.outerShape)
             .background(color)
             .padding(position.padding)
+            .offset(0.dp, elevation)
             .clip(position.innerShape)
-            .clickable(onClick = onClick),
+            .clickable(
+                enabled = enabled,
+                interactionSource = interactionSource,
+                indication = rememberRipple(),
+                onClick = onClick
+            ),
         leadingContent = leadingContent,
-        headlineContent = content,
+        headlineContent = {
+            val height = with(LocalDensity.current) { LocalTextStyle.current.lineHeight.toDp() }
+            AnimatedContent(isLoading, Modifier.heightIn(min = height), label = "") {
+                if (it) {
+                    CircularProgressIndicator(Modifier.size(height))
+                } else {
+                    content()
+                }
+            }
+        },
         trailingContent = trailingContent,
         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
     )
@@ -60,7 +97,9 @@ fun AppListItemPreview() {
                 itemsWithPosition(listOf(1, 2, 3, 4, 5)) { index, position, item ->
                     AppListItem(
                         position = position,
-                        onClick = {}
+                        enabled = true,
+                        isLoading = index == 3,
+                        onClick = {},
                     ) {
                         Text("Item $item")
                     }

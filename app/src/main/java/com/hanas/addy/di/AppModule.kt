@@ -3,7 +3,6 @@ package com.hanas.addy.di
 import android.content.Context
 import androidx.credentials.CredentialManager
 import coil.ImageLoader
-import com.hanas.addy.repository.gemini.GeminiRepository
 import com.hanas.addy.view.cardStackDetail.CardStackDetailViewModel
 import com.hanas.addy.view.cardStackList.CardStackListViewModel
 import com.hanas.addy.view.cardStackList.CardStackRepository
@@ -28,7 +27,6 @@ val appModule = module {
     single {
         provideCredentialManager(androidContext())
     }
-    factoryOf(::GeminiRepository)
     singleOf(::CardStackRepository)
     factoryOf(::GameSessionRepository)
     viewModelOf(::HomeViewModel)

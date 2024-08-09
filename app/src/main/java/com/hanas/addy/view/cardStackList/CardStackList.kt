@@ -24,6 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -36,13 +39,13 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
 import com.hanas.addy.model.PlayCardStack
+import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppListItem
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.components.itemsWithPosition
 import com.hanas.addy.ui.components.shapes.BlobShape
-import com.hanas.addy.ui.samplePlayCard
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.cardStackDetail.CardStackDetail
 import com.hanas.addy.view.createNewCardStack.CreateNewCardStack
@@ -93,7 +96,7 @@ private fun CardStackListScreen(
             if (isEmpty) {
                 NoCardStacksContent(navHandler)
             } else {
-                CardStacksListContent(cardStacks) { id ->
+                CardStacksListContent(cardStacks, false, false) { id ->
                     navHandler.navigate(CardStackDetail(id))
                 }
             }
@@ -102,7 +105,13 @@ private fun CardStackListScreen(
 }
 
 @Composable
-fun CardStacksListContent(cardStacks: List<PlayCardStack>, onClick: (String) -> Unit) {
+fun CardStacksListContent(
+    cardStacks: List<PlayCardStack>,
+    areCardStacksLoading: Boolean,
+    isGameCreationInProgress: Boolean,
+    onClick: (String) -> Unit
+) {
+    var selectedStackId by rememberSaveable { mutableStateOf<String?>(null) }
     LazyColumn(
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp)
@@ -113,7 +122,14 @@ fun CardStacksListContent(cardStacks: List<PlayCardStack>, onClick: (String) -> 
                 trailingContent = {
                     CardStackSizePill(cardStack.cards.size)
                 },
-                onClick = { cardStack.id?.let { onClick(it) } }
+                enabled = isGameCreationInProgress.not(),
+                onClick = {
+                    cardStack.id?.let {
+                        selectedStackId = it
+                        onClick(it)
+                    }
+                },
+                isLoading = isGameCreationInProgress && selectedStackId == cardStack.id,
             ) {
                 Text(cardStack.title, Modifier.padding(horizontal = 4.dp))
             }
@@ -157,9 +173,7 @@ private fun NoCardStacksContent(navHandler: NavigationHandler) {
 class SamplePlayCardStackListProvider : PreviewParameterProvider<List<PlayCardStack>> {
     override val values = sequenceOf(
         emptyList(), listOf(
-            PlayCardStack(
-                "ABC", listOf(samplePlayCard, samplePlayCard, samplePlayCard),
-            ),
+            samplePlayCardStack,
 //            PlayCardStack(
 //                "DEF", listOf(samplePlayCard, samplePlayCard),
 //            ),

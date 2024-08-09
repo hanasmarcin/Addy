@@ -1,12 +1,15 @@
 package com.hanas.addy.view.gameSession.createNewSession
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,14 +17,16 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -33,8 +38,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -43,11 +54,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.google.firebase.Timestamp
@@ -59,12 +74,19 @@ import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.components.itemsWithPosition
 import com.hanas.addy.ui.theme.AppColors
+import com.hanas.addy.ui.theme.AppColors.blue
+import com.hanas.addy.ui.theme.AppColors.containerFor
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.gameSession.GameSessionState
 import com.hanas.addy.view.gameSession.Player
 import com.hanas.addy.view.gameSession.PlayerInvitationState
 import com.hanas.addy.view.gameSession.chooseGameSession.observeNavigation
 import com.hanas.addy.view.home.NavigationHandler
+import com.hanas.addy.view.playTable.model.AttributesFace
+import com.hanas.addy.view.playTable.model.QuestionFace
+import com.hanas.addy.view.playTable.view.Scrim
+import com.hanas.addy.view.playTable.view.cardcontent.PlayCardAttributes
+import com.hanas.addy.view.playTable.view.cardcontent.PlayCardQuestion
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 import java.security.InvalidParameterException
@@ -86,9 +108,10 @@ fun NavGraphBuilder.createNewSessionComposable(navHandler: NavigationHandler) {
 
 @Composable
 fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: NavigationHandler, startGame: () -> Unit) {
+    var isCardPreviewEnabled by remember { mutableStateOf(false) }
     AppScaffold(navHandler = navHandler, topBarTitle = { Text("Create New Table") }, bottomBar = {
         Surface(
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
                 .navigationBarsPadding()
@@ -100,26 +123,32 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: Navi
             InviteCode(state)
             Spacer(Modifier.size(16.dp))
             Column(
-                Modifier
+                modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(AppColors.containerFor(AppColors.yellow))
+                    .background(containerFor(AppColors.yellow))
                     .padding(16.dp)
             ) {
                 Text("Players", style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.size(8.dp))
                 LazyColumn {
                     itemsWithPosition(state.data?.players ?: emptyList()) { player, position, _ ->
-                        AppListItem(color = AppColors.yellow, onClick = {}, position = position, trailingContent = {
+                        AppListItem(position = position, trailingContent = {
                             when (player.invitationStatus) {
                                 PlayerInvitationState.WAITING_FOR_RESPONSE -> CircularProgressIndicator(
-                                    Modifier
+                                    modifier = Modifier
                                         .size(24.dp)
-                                        .padding(2.dp), strokeWidth = 2.dp
+                                        .padding(2.dp),
+                                    strokeWidth = 2.dp
                                 )
                                 PlayerInvitationState.ACCEPTED -> Icon(Icons.Default.Done, null)
                                 PlayerInvitationState.DECLINED -> Icon(Icons.Default.Clear, null)
                             }
-                        }) {
+                        },
+                            color = AppColors.yellow,
+                            enabled = true,
+                            isLoading = false,
+                            onClick = {}
+                        ) {
                             Text(player.displayName)
                         }
                     }
@@ -129,16 +158,71 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: Navi
             Column(
                 Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF0E4820))
+                    .background(containerFor(blue))
                     .padding(16.dp)
             ) {
-                Text("Card stack", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.surface)
+                Text("Card stack", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.size(8.dp))
-                LazyRow(contentPadding = PaddingValues(16.dp)) {
-                    items(state.data?.cardStackInGame?.cards ?: emptyList()) {
-                        Card {
-                            Text(it.title)
+                PrimaryButton(onClick = {
+                    isCardPreviewEnabled = true
+                }, color = blue, modifier = Modifier.fillMaxWidth()) {
+                    Text(state.data?.cardStackInGame?.title ?: "")
+                }
+            }
+        }
+    }
+    Scrim(isCardPreviewEnabled, true) {
+        isCardPreviewEnabled = false
+    }
+    AnimatedVisibility(
+        isCardPreviewEnabled,
+        Modifier
+            .fillMaxSize()
+            .systemBarsPadding()
+            .zIndex(1000f)
+    ) {
+        val PlayCards = state.data?.cardStackInGame?.cards.orEmpty()
+        HorizontalPager(rememberPagerState { PlayCards.size }, contentPadding = PaddingValues(horizontal = 32.dp), pageSpacing = 16.dp) { page ->
+            val card = PlayCards[page]
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                var rotated by remember { mutableStateOf(false) }
+                val rotation by animateFloatAsState(
+                    targetValue = if (rotated) 180f else 0f,
+                    animationSpec = tween(500), label = ""
+                )
+                val isFrontVisible by remember {
+                    derivedStateOf {
+                        rotation < 90f
+                    }
+                }
+                Card(
+                    Modifier
+                        .zIndex(1000f)
+                        .graphicsLayer {
+                            rotationY = rotation
+                            cameraDistance = 8 * density
                         }
+                        .clickable { rotated = !rotated },
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    if (isFrontVisible) {
+                        PlayCardAttributes(
+                            state = AttributesFace.StaticPreview,
+                            card = card,
+                            onSelectAttribute = {},
+                            onSelectCardToBattle = {}
+                        )
+                    } else {
+                        var questionState by remember<MutableState<QuestionFace>> { mutableStateOf(QuestionFace.Answering) }
+                        PlayCardQuestion(
+                            modifier = Modifier.graphicsLayer { scaleX = -1f },
+                            state = questionState,
+                            card = card,
+                            startAnswering = {},
+                            onSelectAnswer = {
+                                questionState = QuestionFace.AnswerScored(it, it == card.question.answer)
+                            }
+                        )
                     }
                 }
             }
@@ -147,17 +231,26 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: Navi
 }
 
 @Composable
+private fun scrimSizeInPx() = with(LocalDensity.current) {
+    IntSize(
+        LocalConfiguration.current.screenWidthDp.dp.roundToPx(),
+        LocalConfiguration.current.screenHeightDp.dp.roundToPx()
+    )
+}
+
+
+@Composable
 private fun InviteCode(state: DataHolder<GameSessionState>, color: Color = AppColors.orange) {
     Column(
-        Modifier
+        modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(AppColors.containerFor(color))
+            .background(containerFor(color))
             .padding(16.dp)
     ) {
         Text("Invite code", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.size(8.dp))
         Box(
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .height(IntrinsicSize.Max)
                 .clip(RoundedCornerShape(8.dp))
