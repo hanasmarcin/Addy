@@ -35,6 +35,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,6 +45,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -87,6 +89,7 @@ import com.hanas.addy.view.playTable.model.QuestionFace
 import com.hanas.addy.view.playTable.view.Scrim
 import com.hanas.addy.view.playTable.view.cardcontent.PlayCardAttributes
 import com.hanas.addy.view.playTable.view.cardcontent.PlayCardQuestion
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 import java.security.InvalidParameterException
@@ -109,16 +112,30 @@ fun NavGraphBuilder.createNewSessionComposable(navHandler: NavigationHandler) {
 @Composable
 fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: NavigationHandler, startGame: () -> Unit) {
     var isCardPreviewEnabled by remember { mutableStateOf(false) }
-    AppScaffold(navHandler = navHandler, topBarTitle = { Text("Create New Table") }, bottomBar = {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
-                .navigationBarsPadding()
-        ) {
-            PrimaryButton(onClick = startGame) { Text("Start game") }
-        }
-    }) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    AppScaffold(
+        navHandler = navHandler,
+        snackbarHostState = snackbarHostState,
+        topBarTitle = { Text("Create New Table") },
+        bottomBar = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
+                    .navigationBarsPadding()
+            ) {
+                PrimaryButton(onClick = {
+                    if (state.data?.players?.size in 2..4) {
+                        startGame()
+                    } else {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("You need from 2 to 4 players to start a game.")
+                        }
+                    }
+                }) { Text("Start game") }
+            }
+        }) {
         Column(Modifier.padding(16.dp)) {
             InviteCode(state)
             Spacer(Modifier.size(16.dp))

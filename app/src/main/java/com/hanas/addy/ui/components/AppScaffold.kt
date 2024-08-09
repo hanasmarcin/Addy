@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.hanas.addy.R
@@ -18,6 +21,7 @@ import com.hanas.addy.view.home.NavigationHandler
 fun AppScaffold(
     navHandler: NavigationHandler,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     hasBackButton: Boolean = true,
     topBarTitle: (@Composable () -> Unit)?,
     bottomBar: @Composable () -> Unit = {},
@@ -26,11 +30,13 @@ fun AppScaffold(
     content: @Composable() (BoxScope.() -> Unit),
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             topBarTitle?.let {
                 AppTopBar(hasBackButton, navHandler, it, actions)
             }
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = floatingActionButton,
         bottomBar = bottomBar,
         containerColor = MaterialTheme.colorScheme.background
