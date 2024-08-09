@@ -297,8 +297,8 @@ fun AnswerBox(
         }
     }
 
-    val fontWeight by pressedTransition.animateInt(label = "") { pressed ->
-        if (pressed) FontWeight.Bold.weight else FontWeight.Normal.weight
+    val fontWeight by answeredTransition.animateInt(label = "") { isCorrect ->
+        if (isCorrect != null) FontWeight.Bold.weight else FontWeight.Normal.weight
     }
     val (innerPadding, outerPadding) = pressedTransition.animateClickablePadding()
     Box(

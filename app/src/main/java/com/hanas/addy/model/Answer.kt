@@ -4,18 +4,21 @@ import androidx.annotation.IntRange
 import com.google.firebase.Timestamp
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import java.util.Date
 
+@Serializable
 data class PlayCardStackDTO(
     val title: String = "",
     val greenName: String = "",
     val redName: String = "",
     val blueName: String = "",
     val cards: List<PlayCardDataDTO> = emptyList(),
-    val creationTimestamp: Timestamp = Timestamp.now(),
+    @Transient val creationTimestamp: Timestamp = Timestamp.now(),
     val createdBy: String = "",
 )
 
+@Serializable
 data class PlayCardDataDTO(
     val id: Long = -1,
     val question: String = "",
