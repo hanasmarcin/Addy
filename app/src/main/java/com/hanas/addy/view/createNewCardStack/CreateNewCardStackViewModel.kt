@@ -127,6 +127,8 @@ fun PlayCardStackDTO.mapToPlayCardStack(id: String) = PlayCardStack(
                     else -> throw Throwable("Invalid answer")
                 }
             ),
+            imagePrompt = it.imagePrompt,
+            imagePath = it.imagePath,
             attributes = Attributes(
                 green = Attribute(greenName, it.greenValue),
                 red = Attribute(redName, it.redValue),

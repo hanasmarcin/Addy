@@ -51,7 +51,9 @@ data class PlayCardData(
     val question: Question,
     val title: String,
     val description: String,
-    val attributes: Attributes
+    val attributes: Attributes,
+    val imagePrompt: String,
+    val imagePath: String?,
 )
 
 @Serializable
