@@ -5,7 +5,6 @@ import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateInt
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -50,13 +49,13 @@ import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayCardData
@@ -145,17 +144,19 @@ fun CardImageWithTitle(
     card: PlayCardData,
 ) {
     Column {
-        Image(
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(green)
-                .padding(4.dp, 2.dp, 4.dp, 8.dp)
-                .clip(RoundedCornerShape(6.dp))
-                .aspectRatio(16 / 9f),
-            painter = painterResource(R.drawable.sample_card_image_bauhaus_imagen),
-            contentDescription = null
-        )
-        Spacer(Modifier.size(8.dp))
+        card.imagePath?.let {
+            AsyncImage(
+                model = card.imagePath,
+                contentDescription = card.imagePrompt,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(green)
+                    .padding(4.dp, 2.dp, 4.dp, 8.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .aspectRatio(16 / 9f),
+            )
+            Spacer(Modifier.size(8.dp))
+        }
         Text(
             card.title,
             style = MaterialTheme.typography.headlineSmall,
