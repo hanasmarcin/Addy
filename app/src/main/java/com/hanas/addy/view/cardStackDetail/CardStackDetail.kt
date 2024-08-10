@@ -13,20 +13,19 @@ import com.hanas.addy.ui.CardStackPager
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.theme.AppTheme
-import com.hanas.addy.view.home.NavigationHandler
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
 @Serializable
 data class CardStackDetail(val id: String) : NavScreen
 
-fun NavGraphBuilder.cardStackDetailComposable() {
+fun NavGraphBuilder.cardStackDetailComposable(navigateBack: () -> Unit) {
     composable<CardStackDetail> {
         val viewModel: CardStackDetailViewModel = koinNavViewModel()
         val cardStack by viewModel.cardStack.collectAsState()
         CardStackDetailScreen(
             cardStack = cardStack,
-            navHandler = {  }
+            navigateBack = navigateBack
         )
     }
 }
@@ -34,10 +33,10 @@ fun NavGraphBuilder.cardStackDetailComposable() {
 @Composable
 fun CardStackDetailScreen(
     cardStack: PlayCardStack?,
-    navHandler: NavigationHandler
+    navigateBack: () -> Unit,
 ) {
     AppScaffold(
-        navHandler = navHandler,
+        navigateBack = navigateBack,
         topBarTitle = { cardStack?.let { Text(cardStack.title) } }
     ) {
         cardStack?.cards?.let {

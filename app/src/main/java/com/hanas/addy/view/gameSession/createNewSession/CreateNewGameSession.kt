@@ -65,9 +65,9 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.google.firebase.Timestamp
 import com.hanas.addy.model.DataHolder
 import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
@@ -83,7 +83,6 @@ import com.hanas.addy.view.gameSession.GameSessionState
 import com.hanas.addy.view.gameSession.Player
 import com.hanas.addy.view.gameSession.PlayerInvitationState
 import com.hanas.addy.view.gameSession.chooseGameSession.observeNavigation
-import com.hanas.addy.view.home.NavigationHandler
 import com.hanas.addy.view.playTable.model.AttributesFace
 import com.hanas.addy.view.playTable.model.QuestionFace
 import com.hanas.addy.view.playTable.view.Scrim
@@ -93,29 +92,28 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 import java.security.InvalidParameterException
-import java.util.Date
 
 @Serializable
 data class CreateNewGameSession(
     val gameSessionId: String, val selectedCardStackId: String?
 ) : NavScreen
 
-fun NavGraphBuilder.createNewSessionComposable(navHandler: NavigationHandler) {
+fun NavGraphBuilder.createNewSessionComposable(navController: NavController, navigateBack: () -> Unit) {
     composable<CreateNewGameSession> {
         val viewModel: CreateNewGameSessionViewModel = koinNavViewModel()
         val state by viewModel.gameSessionStateFlow.collectAsState()
-        viewModel.observeNavigation(navHandler)
-        CreateNewSessionScreen(state, navHandler, viewModel::startGame)
+        viewModel.observeNavigation(navController)
+        CreateNewSessionScreen(state, viewModel::startGame, navigateBack)
     }
 }
 
 @Composable
-fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, navHandler: NavigationHandler, startGame: () -> Unit) {
+fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, startGame: () -> Unit, navigateBack: () -> Unit) {
     var isCardPreviewEnabled by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     AppScaffold(
-        navHandler = navHandler,
+        navigateBack = navigateBack,
         snackbarHostState = snackbarHostState,
         topBarTitle = { Text("Create New Table") },
         bottomBar = {
@@ -327,7 +325,7 @@ fun CreateNewTableScreenPreview(@PreviewParameter(GameSessionStateProvider::clas
 }
 
 data class GameActionsBatchDTO(
-    val items: List<GameActionDTO> = emptyList(), val timestamp: Timestamp = Timestamp.now()
+    val items: List<GameActionDTO> = emptyList(), val timestamp: Long = -1,
 )
 
 data class GameActionDTO(
@@ -350,7 +348,7 @@ data class CardPositionDTO(
 data class GameActionsBatch(
     val unitActions: List<GameAction>,
     val actionId: String,
-    val timestamp: Date,
+    val timestamp: Long,
 )
 
 sealed class GameAction(open val msDelay: Long) {
@@ -449,7 +447,7 @@ fun Modifier.shimmerLoadingAnimation(
 
 
 fun GameActionsBatchDTO.toDomain(actionId: String) = GameActionsBatch(
-    unitActions = items.map { it.toDomain() }, actionId = actionId, timestamp = timestamp.toDate()
+    unitActions = items.map { it.toDomain() }, actionId = actionId, timestamp = timestamp
 )
 
 fun GameActionDTO.toDomain(): GameAction {

@@ -13,22 +13,23 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.hanas.addy.ui.GoBack
-import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.theme.AppTheme
+import com.hanas.addy.view.cardStackDetail.CardStackDetail
 import com.hanas.addy.view.cardStackDetail.cardStackDetailComposable
+import com.hanas.addy.view.cardStackList.CardStackList
 import com.hanas.addy.view.cardStackList.cardStackListComposable
+import com.hanas.addy.view.createNewCardStack.CreateNewCardStack
 import com.hanas.addy.view.createNewCardStack.createNewCardStackNavigation
+import com.hanas.addy.view.gameSession.chooseGameSession.ChooseCardStack
+import com.hanas.addy.view.gameSession.chooseGameSession.ChooseSession
 import com.hanas.addy.view.gameSession.chooseGameSession.chooseCardStackComposable
 import com.hanas.addy.view.gameSession.chooseGameSession.chooseGameSessionComposable
 import com.hanas.addy.view.gameSession.createNewSession.createNewSessionComposable
 import com.hanas.addy.view.home.Home
-import com.hanas.addy.view.home.NavigationHandler
 import com.hanas.addy.view.home.homeComposable
 import com.hanas.addy.view.login.Login
 import com.hanas.addy.view.login.loginComposable
@@ -41,16 +42,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 val navController = rememberNavController()
-                val navigate = NavigationHandler { action ->
-                    when (action) {
-                        is NavScreen -> {
-                            if (navController.currentDestination?.hasRoute(action::class) != true) {
-                                navController.navigate(action)
-                            }
-                        }
-                        is GoBack -> navController.navigateUp()
-                    }
-                }
                 Surface(color = Color.Black) {
                     NavHost(
                         navController,
@@ -62,15 +53,63 @@ class MainActivity : ComponentActivity() {
                         popExitTransition = { slideOutOfContainer(End, tween(300)) },
                         popEnterTransition = { fadeIn(tween(300, easing = LinearEasing), 0.5f) },
                     ) {
-                        loginComposable(navigate)
-                        homeComposable(navigate)
-                        cardStackListComposable(navigate)
-                        cardStackDetailComposable()
-                        createNewCardStackNavigation(navigate, navController)
+                        loginComposable(navController)
+                        homeComposable(
+                            openPlayScreen = {
+                                navController.navigate(ChooseSession)
+                            },
+                            openCardStackList = {
+                                navController.navigate(CardStackList)
+                            },
+                            navigateBackToLogin = {
+                                navController.navigate(Login) {
+                                    popUpTo(Home) {
+                                        inclusive = true
+                                    }
+                                    launchSingleTop = true
+                                }
+                            })
+                        cardStackListComposable(
+                            openCreateNewCardStack = {
+                                navController.navigate(CreateNewCardStack)
+                            },
+                            openCardStackDetail = {
+                                navController.navigate(CardStackDetail(it))
+                            },
+                            navigateBack = {
+                                navController.navigateUp()
+                            }
+                        )
+                        cardStackDetailComposable(
+                            navigateBack = {
+                                navController.navigateUp()
+                            }
+                        )
+                        createNewCardStackNavigation(
+                            navController = navController,
+                            navigateBack = {
+                                navController.navigateUp()
+                            })
                         playTableComposable()
-                        chooseGameSessionComposable(navigate)
-                        createNewSessionComposable(navigate)
-                        chooseCardStackComposable(navigate)
+                        chooseGameSessionComposable(
+                            navController = navController,
+                            navigateBack = {
+                                navController.navigateUp()
+                            },
+                            openChooseCardStack = {
+                                navController.navigate(ChooseCardStack)
+                            }
+                        )
+                        createNewSessionComposable(
+                            navController = navController,
+                            navigateBack = navController::navigateUp
+                        )
+                        chooseCardStackComposable(
+                            navController = navController,
+                            navigateBack = {
+                                navController.navigateUp()
+                            }
+                        )
                     }
                 }
             }

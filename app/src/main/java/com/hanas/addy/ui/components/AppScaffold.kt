@@ -15,14 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.hanas.addy.R
 import com.hanas.addy.ui.drawPattern
-import com.hanas.addy.view.home.NavigationHandler
 
 @Composable
 fun AppScaffold(
-    navHandler: NavigationHandler,
     modifier: Modifier = Modifier,
+    navigateBack: (() -> Unit)? = null,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
-    hasBackButton: Boolean = true,
     topBarTitle: (@Composable () -> Unit)?,
     bottomBar: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
@@ -33,7 +31,7 @@ fun AppScaffold(
         modifier = modifier,
         topBar = {
             topBarTitle?.let {
-                AppTopBar(hasBackButton, navHandler, it, actions)
+                AppTopBar(navigateBack, it, actions)
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },

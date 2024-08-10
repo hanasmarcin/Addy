@@ -9,22 +9,29 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontSynthesis
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hanas.addy.R
 
-val bodyFontFamily = FontFamily(
-    Font(R.font.atkinson_hyperlegible__regular),
-//    Font(R.font.atääkinson_hyperlegible__bold, weight = FontWeight.Bold)
+@OptIn(ExperimentalTextApi::class) val bodyFontFamily = FontFamily(
+    Font(
+        R.font.signika_variable, variationSettings = FontVariation.Settings(
+            FontVariation.weight(400),
+        )
+    )
 )
 
-val displayFontFamily = FontFamily(
-    Font(R.font.odibee)
+@OptIn(ExperimentalTextApi::class) val displayFontFamily = FontFamily(
+    Font(
+        R.font.signika_variable, variationSettings = FontVariation.Settings(
+            FontVariation.weight(600),
+        )
+    )
 )
 
 
@@ -39,7 +46,7 @@ val AppTypography = Typography(
     headlineMedium = baseline.headlineMedium.copy(fontFamily = displayFontFamily),
     headlineSmall = baseline.headlineSmall.copy(fontFamily = displayFontFamily),
     titleLarge = baseline.titleLarge.copy(fontFamily = bodyFontFamily),
-    titleMedium = baseline.titleMedium.copy(fontFamily = bodyFontFamily, fontWeight = FontWeight.SemiBold, fontSynthesis = FontSynthesis.All),
+    titleMedium = baseline.titleMedium.copy(fontFamily = bodyFontFamily),
     titleSmall = baseline.titleSmall.copy(fontFamily = bodyFontFamily),
     bodyLarge = baseline.bodyLarge.copy(fontFamily = bodyFontFamily),
     bodyMedium = baseline.bodyMedium.copy(fontFamily = bodyFontFamily),
@@ -51,8 +58,7 @@ val AppTypography = Typography(
 
 @Composable
 fun TextStyleDisplay(fontName: String, styleName: String, textStyle: TextStyle) {
-    Column(
-    ) {
+    Column {
         Text(
             text = "Font: $fontName\nStyle: $styleName",
             style = textStyle,
