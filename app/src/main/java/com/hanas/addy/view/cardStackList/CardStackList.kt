@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
+import com.hanas.addy.model.DataHolder
 import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
@@ -73,7 +74,7 @@ fun NavGraphBuilder.cardStackListComposable(
 
 @Composable
 private fun CardStackListScreen(
-    cardStacks: List<PlayCardStack>,
+    cardStacks: DataHolder<List<PlayCardStack>>,
     openCreateNewCardStack: () -> Unit,
     openCardStackDetail: (String) -> Unit,
     navigateBack: () -> Unit,
@@ -93,7 +94,7 @@ private fun CardStackListScreen(
         }
     ) {
         AnimatedContent(
-            targetState = cardStacks.isEmpty(),
+            targetState = cardStacks.data?.isEmpty() == true,
             modifier = Modifier
                 .fillMaxSize(),
             label = ""
@@ -101,7 +102,7 @@ private fun CardStackListScreen(
             if (isEmpty) {
                 NoCardStacksContent(openCreateNewCardStack)
             } else {
-                CardStacksListContent(cardStacks, false, false) { id ->
+                CardStacksListContent(cardStacks.data.orEmpty(), false, false) { id ->
                     openCardStackDetail(id)
                 }
             }
@@ -191,6 +192,6 @@ class SamplePlayCardStackListProvider : PreviewParameterProvider<List<PlayCardSt
 @Composable
 fun CardStackListScreenPreview(@PreviewParameter(SamplePlayCardStackListProvider::class) cardStacks: List<PlayCardStack>) {
     AppTheme {
-        CardStackListScreen(cardStacks, {}, {}) { }
+        CardStackListScreen(DataHolder.Success(cardStacks), {}, {}) { }
     }
 }
