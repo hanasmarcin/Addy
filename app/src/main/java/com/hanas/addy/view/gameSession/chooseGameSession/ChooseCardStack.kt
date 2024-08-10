@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
@@ -19,20 +20,19 @@ import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.cardStackList.CardStacksListContent
 import com.hanas.addy.view.cardStackList.SamplePlayCardStackListProvider
-import com.hanas.addy.view.home.NavigationHandler
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
 @Serializable
 object ChooseCardStack : NavScreen
 
-fun NavGraphBuilder.chooseCardStackComposable(navHandler: NavigationHandler) {
+fun NavGraphBuilder.chooseCardStackComposable(navController: NavController, navigateBack: () -> Unit) {
     composable<ChooseCardStack> {
         val viewModel: ChooseCardStackViewModel = koinNavViewModel()
         val state by viewModel.stateFlow.collectAsState()
         val (createGameState, cardStacksState) = state
-        viewModel.observeNavigation(navHandler)
-        ChooseCardStackScreen(cardStacksState, createGameState, navHandler, viewModel::onChooseCardStack)
+        viewModel.observeNavigation(navController)
+        ChooseCardStackScreen(cardStacksState, createGameState, viewModel::onChooseCardStack, navigateBack)
     }
 }
 
@@ -40,11 +40,11 @@ fun NavGraphBuilder.chooseCardStackComposable(navHandler: NavigationHandler) {
 fun ChooseCardStackScreen(
     cardStacks: DataHolder<List<PlayCardStack>>,
     createGameState: DataHolder<String>,
-    navHandler: NavigationHandler,
-    onChooseCardStack: (String) -> Unit
+    onChooseCardStack: (String) -> Unit,
+    navigateBack: () -> Unit,
 ) {
     AppScaffold(
-        navHandler = navHandler,
+        navigateBack = navigateBack,
         topBarTitle = { Text(stringResource(R.string.choose_card_stack_screen_title)) }
     ) {
         CardStacksListContent(
@@ -67,11 +67,11 @@ fun ChooseCardStackScreenPreview(@PreviewParameter(SamplePlayCardStackListProvid
 
 @SuppressLint("ComposableNaming")
 @Composable
-fun NavigationRequester.observeNavigation(navHandler: NavigationHandler) {
+fun NavigationRequester.observeNavigation(navController: NavController) {
     val navigationRequest by navigationRequestFlow.collectAsState(initial = null)
     LaunchedEffect(navigationRequest) {
         navigationRequest?.let {
-            navHandler.navigate(it)
+            navController.navigate(it)
         }
     }
 }

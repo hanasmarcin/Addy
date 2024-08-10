@@ -38,7 +38,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -51,14 +50,13 @@ import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.theme.AppColors
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.gameSession.chooseGameSession.observeNavigation
-import com.hanas.addy.view.home.NavigationHandler
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
-fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: NavigationHandler, navController: NavController) {
+fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navController: NavController, navigateBack: () -> Unit) {
     composable<CreateNewCardStack.SelectPhotos> {
         val parent = remember(it) { navController.getBackStackEntry<CreateNewCardStack>() }
         val viewModel: CreateNewCardStackViewModel = koinNavViewModel(viewModelStoreOwner = parent)
-        viewModel.observeNavigation(navHandler)
+        viewModel.observeNavigation(navController)
         val photoDrawables by viewModel.photoUrisFlow.collectAsState()
         val cardStackFlow by viewModel.cardStackFlow.collectAsState()
         val cameraHelper = rememberCameraHelper {
@@ -68,9 +66,9 @@ fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: Navigat
             viewModel.addAllPhotos(it)
         }
         CreateNewCardStackSelectPhotosScreen(
-            navHandler = navHandler,
             photoDrawables = photoDrawables,
             isLoading = cardStackFlow is DataHolder.Loading,
+            navigateBack = navigateBack,
             pickImages = photoPickerHelper::pickPhotos,
             takePhoto = cameraHelper::takePhoto,
             generateStack = viewModel::generateStack
@@ -81,9 +79,9 @@ fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navHandler: Navigat
 
 @Composable
 private fun CreateNewCardStackSelectPhotosScreen(
-    navHandler: NavigationHandler,
     photoDrawables: List<Uri>,
     isLoading: Boolean,
+    navigateBack: () -> Unit,
     pickImages: () -> Unit,
     takePhoto: () -> Unit,
     generateStack: () -> Unit
@@ -93,7 +91,8 @@ private fun CreateNewCardStackSelectPhotosScreen(
         pagerState.scrollToPage(photoDrawables.lastIndex + 1)
         pagerState.animateScrollToPage(photoDrawables.lastIndex, animationSpec = tween(delayMillis = 100))
     }
-    AppScaffold(navHandler = navHandler,
+    AppScaffold(
+        navigateBack = navigateBack,
         modifier = Modifier.fillMaxSize(),
         topBarTitle = {
             Text("Add New Card Stack")
@@ -112,9 +111,15 @@ private fun CreateNewCardStackSelectPhotosScreen(
                 pageSpacing = 16.dp
             ) { page ->
                 if (page == photoDrawables.lastIndex + 1) {
-                    Column {
-                        Image(painterResource(R.drawable.girl_photographing_book), null)
-                        Spacer(Modifier.size(16.dp))
+                    Column(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)) {
+                        Image(painterResource(R.drawable.boy_camera), null,
+                            Modifier
+                                .padding(vertical = 16.dp)
+                                .weight(1f)
+                                .fillMaxSize())
                         Column(
                             Modifier
                                 .fillMaxWidth()
@@ -208,10 +213,10 @@ fun GenerateStackCardPreview() {
 @Composable
 fun AddNewCardStackScreenPreview() {
     AppTheme {
-        val list = listOf(
-            "https://picsum.photos/200/800".toUri(),
-            "https://picsum.photos/200/800".toUri(),
-        )
-        CreateNewCardStackSelectPhotosScreen({ }, list, false, {}, {}, {})
+//        val list = listOf(
+////            "https://picsum.photos/200/800".toUri(),
+////            "https://picsum.photos/200/800".toUri(),
+//        )
+        CreateNewCardStackSelectPhotosScreen(emptyList(), false, {}, {}, {}, {})
     }
 }

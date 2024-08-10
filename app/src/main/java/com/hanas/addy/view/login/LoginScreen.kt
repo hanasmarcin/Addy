@@ -3,38 +3,42 @@ package com.hanas.addy.view.login
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialResponse
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.hanas.addy.R
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.theme.AppColors
+import com.hanas.addy.ui.theme.AppColors.containerFor
 import com.hanas.addy.ui.theme.AppTheme
-import com.hanas.addy.view.home.Home
-import com.hanas.addy.view.home.NavigationHandler
+import com.hanas.addy.view.gameSession.chooseGameSession.observeNavigation
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -44,12 +48,13 @@ import kotlin.coroutines.CoroutineContext
 @Serializable
 object Login : NavScreen
 
-fun NavGraphBuilder.loginComposable(navigate: NavigationHandler) {
+fun NavGraphBuilder.loginComposable(navController: NavController) {
     composable<Login> {
         val viewModel: LoginViewModel = koinNavViewModel()
         val context = LocalContext.current
         val loginState by viewModel.loginStateFlow.collectAsState()
-        LoginScreen(navigate, loginState) {
+        viewModel.observeNavigation(navController)
+        LoginScreen(loginState) {
             login(
                 context = context,
                 credentialManager = CredentialManager.create(context),
@@ -73,7 +78,6 @@ private suspend fun login(
 
 @Composable
 fun LoginScreen(
-    navHandler: NavigationHandler,
     loginState: LoginState,
     login: suspend () -> Unit
 ) {
@@ -87,9 +91,6 @@ fun LoginScreen(
     }
     LaunchedEffect(loginState) {
         when (loginState) {
-            is LoginState.Success -> {
-                navHandler.navigate(Home)
-            }
             is LoginState.Error -> {
                 Toast.makeText(context, loginState.message, Toast.LENGTH_SHORT).show()
             }
@@ -99,25 +100,26 @@ fun LoginScreen(
         }
     }
     AppScaffold(
-        navHandler = navHandler,
-        topBarTitle = null,
-        hasBackButton = false
+        topBarTitle = { },
     ) {
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.Center
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         )
         {
+            Image(
+                painterResource(R.drawable.kid_login),
+                null,
+                Modifier.weight(1f)
+            )
             Box(
                 Modifier
+                    .padding(bottom = 32.dp)
+                    .height(intrinsicSize = IntrinsicSize.Min)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        AppColors
-                            .containerFor(AppColors.pink)
-                            .compositeOver(MaterialTheme.colorScheme.background)
-                    )
+                    .background(containerFor(AppColors.pink))
                     .padding(16.dp)
             ) {
                 PrimaryButton(
@@ -126,7 +128,7 @@ fun LoginScreen(
                             login()
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.widthIn(min = 160.dp),
                     isLoading = loginState is LoginState.LoggingIn
                 ) {
                     Text("Login")
@@ -140,7 +142,7 @@ fun LoginScreen(
 @Composable
 fun LoginScreenPreview() {
     AppTheme {
-        LoginScreen({ }, LoginState.NotLoggedIn, {})
+        LoginScreen(LoginState.NotLoggedIn, {})
     }
 }
 

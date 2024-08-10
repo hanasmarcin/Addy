@@ -3,6 +3,8 @@ package com.hanas.addy.view.gameSession
 import android.util.Log
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
+import com.google.firebase.database.ktx.database
+import com.google.firebase.database.snapshots
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.snapshots
@@ -29,6 +31,8 @@ import kotlinx.coroutines.tasks.await
 class GameSessionRepository {
     private val functions by lazy { Firebase.functions }
     private val firestore by lazy { Firebase.firestore }
+    private val database by lazy { Firebase.database("https://addy-7f8ed236-default-rtdb.europe-west1.firebasedatabase.app/") }
+
 
     fun createGameSession(selectedCardStackId: String) = callbackFlow {
         functions
@@ -71,20 +75,19 @@ class GameSessionRepository {
             Log.e("HANASSS", it.stackTraceToString())
         }
 
-    fun getGameActionsFlow(gameSessionId: String, isHandled: (String) -> Boolean) = actionsCollectionReference(gameSessionId).snapshots()
+    fun getGameActionsFlow(gameSessionId: String, isHandled: (String) -> Boolean) = actionsCollectionReference(gameSessionId)
+        .snapshots
         .map {
             Log.d("HANASSS", "new game actions snapshot")
-            it.documents.mapNotNull { document ->
-                if (isHandled(document.id).not()) {
-                    document.toObject<GameActionsBatchDTO>()?.toDomain(document.id)
+            it.children.mapNotNull { document ->
+                val key = document.key
+                if (key != null && isHandled(key).not()) {
+                    document.getValue(GameActionsBatchDTO::class.java)?.toDomain(key)
                 } else null
             }.sortedBy { it.timestamp }
         }
 
-    private fun actionsCollectionReference(gameSessionId: String) = firestore
-        .collection("gameSessions")
-        .document(gameSessionId)
-        .collection("actions")
+    private fun actionsCollectionReference(gameSessionId: String) = database.getReference("gameSessions/$gameSessionId/actions")
 
     fun startGame(gameSessionId: String) = functions.getHttpsCallable("start_game")
         .call(mapOf("gameSessionId" to gameSessionId))
@@ -93,11 +96,9 @@ class GameSessionRepository {
             //result.data as? String ?: throw Exception("data is null")
         }
 
-    fun sendSingleAction(action: GameAction, gameSessionId: String) = actionsCollectionReference(gameSessionId).add(
-        GameActionsBatchDTO(items = listOf(action.toDTO()))
-    ).asFlow().map {
-        it.id
-    }
+    fun sendSingleAction(action: GameAction, gameSessionId: String) = actionsCollectionReference(gameSessionId).push().apply {
+        setValue(GameActionsBatchDTO(items = listOf(action.toDTO())))
+    }.key
 
     suspend fun finishAnsweringQuestion(gameSessionId: String, cardId: Long, isAnswerCorrect: Boolean, answerTimeInMs: Long): AnswerScoreResult {
         val args = mapOf(

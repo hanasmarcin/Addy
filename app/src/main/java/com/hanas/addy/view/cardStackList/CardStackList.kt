@@ -47,9 +47,6 @@ import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.components.itemsWithPosition
 import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.theme.AppTheme
-import com.hanas.addy.view.cardStackDetail.CardStackDetail
-import com.hanas.addy.view.createNewCardStack.CreateNewCardStack
-import com.hanas.addy.view.home.NavigationHandler
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -57,13 +54,19 @@ import org.koin.androidx.compose.navigation.koinNavViewModel
 object CardStackList : NavScreen
 
 
-fun NavGraphBuilder.cardStackListComposable(navHandler: NavigationHandler) {
+fun NavGraphBuilder.cardStackListComposable(
+    openCreateNewCardStack: () -> Unit,
+    openCardStackDetail: (String) -> Unit,
+    navigateBack: () -> Unit
+) {
     composable<CardStackList> {
         val viewModel: CardStackListViewModel = koinNavViewModel()
         val cardStacks by viewModel.cardStacksFlow.collectAsState()
         CardStackListScreen(
             cardStacks = cardStacks,
-            navHandler = navHandler,
+            openCreateNewCardStack = openCreateNewCardStack,
+            openCardStackDetail = openCardStackDetail,
+            navigateBack = navigateBack,
         )
     }
 }
@@ -71,14 +74,16 @@ fun NavGraphBuilder.cardStackListComposable(navHandler: NavigationHandler) {
 @Composable
 private fun CardStackListScreen(
     cardStacks: List<PlayCardStack>,
-    navHandler: NavigationHandler,
+    openCreateNewCardStack: () -> Unit,
+    openCardStackDetail: (String) -> Unit,
+    navigateBack: () -> Unit,
 ) {
     AppScaffold(
         topBarTitle = { Text(stringResource(R.string.card_stack_list_screen_title)) },
-        navHandler = navHandler,
+        navigateBack = navigateBack,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navHandler.navigate(CreateNewCardStack) },
+                onClick = openCreateNewCardStack,
                 shape = BlobShape(30f),
                 elevation = FloatingActionButtonDefaults.loweredElevation(),
                 containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -94,10 +99,10 @@ private fun CardStackListScreen(
             label = ""
         ) { isEmpty ->
             if (isEmpty) {
-                NoCardStacksContent(navHandler)
+                NoCardStacksContent(openCreateNewCardStack)
             } else {
                 CardStacksListContent(cardStacks, false, false) { id ->
-                    navHandler.navigate(CardStackDetail(id))
+                    openCardStackDetail(id)
                 }
             }
         }
@@ -149,7 +154,7 @@ private fun CardStackSizePill(size: Int) {
 }
 
 @Composable
-private fun NoCardStacksContent(navHandler: NavigationHandler) {
+private fun NoCardStacksContent(openCreateNewCardStack: () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.Companion
@@ -158,11 +163,11 @@ private fun NoCardStacksContent(navHandler: NavigationHandler) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Image(
-                painter = painterResource(R.drawable.stacks_of_cards_for_a_custom_educational_game___1_), contentDescription = null
+                painter = painterResource(R.drawable.stack_of_cards), contentDescription = null
             )
             Text(stringResource(R.string.card_stack_list_screen_empty_state_description))
             PrimaryButton(
-                onClick = { navHandler.navigate(CreateNewCardStack) },
+                onClick = openCreateNewCardStack,
             ) {
                 Text(stringResource(R.string.card_stack_list_screen_empty_state_button_label))
             }
@@ -186,6 +191,6 @@ class SamplePlayCardStackListProvider : PreviewParameterProvider<List<PlayCardSt
 @Composable
 fun CardStackListScreenPreview(@PreviewParameter(SamplePlayCardStackListProvider::class) cardStacks: List<PlayCardStack>) {
     AppTheme {
-        CardStackListScreen(cardStacks) { }
+        CardStackListScreen(cardStacks, {}, {}) { }
     }
 }

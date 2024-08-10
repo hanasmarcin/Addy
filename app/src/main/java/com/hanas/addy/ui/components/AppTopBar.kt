@@ -12,15 +12,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import com.hanas.addy.ui.GoBack
-import com.hanas.addy.view.home.NavigationHandler
 import com.hanas.addy.ui.components.shapes.BlobShape
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(
-    hasBackButton: Boolean = true,
-    navHandler: NavigationHandler,
+    navigateBack: (() -> Unit)?,
     topBarTitleContent: @Composable () -> Unit,
     actions: @Composable RowScope.() -> Unit
 ) {
@@ -28,11 +25,11 @@ fun AppTopBar(
         title = topBarTitleContent,
         actions = actions,
         navigationIcon = {
-            if (hasBackButton) {
+            if (navigateBack != null) {
                 FilledIconButton(
                     shape = BlobShape(),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                    onClick = { navHandler.navigate(GoBack) },
+                    onClick = navigateBack,
                 ) {
                     Icon(Icons.AutoMirrored.Default.ArrowBack, null)
                 }

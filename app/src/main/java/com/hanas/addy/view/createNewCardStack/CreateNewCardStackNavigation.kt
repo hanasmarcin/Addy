@@ -4,7 +4,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
 import com.hanas.addy.ui.NavScreen
-import com.hanas.addy.view.home.NavigationHandler
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,9 +17,9 @@ object CreateNewCardStack : NavScreen {
 }
 
 
-fun NavGraphBuilder.createNewCardStackNavigation(navHandler: NavigationHandler, navController: NavController) {
+fun NavGraphBuilder.createNewCardStackNavigation(navController: NavController, navigateBack: () -> Unit) {
     navigation<CreateNewCardStack>(CreateNewCardStack.SelectPhotos) {
-        createNewCardStackSelectPhotosComposable(navHandler, navController)
-        viewNewCardStackComposable(navHandler, navController)
+        createNewCardStackSelectPhotosComposable(navController, navigateBack)
+        viewNewCardStackComposable(navController, navigateBack)
     }
 }

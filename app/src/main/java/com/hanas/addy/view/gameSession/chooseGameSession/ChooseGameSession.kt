@@ -33,6 +33,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.model.DataHolder
@@ -43,30 +44,30 @@ import com.hanas.addy.ui.theme.AppColors.blue
 import com.hanas.addy.ui.theme.AppColors.containerFor
 import com.hanas.addy.ui.theme.AppColors.pink
 import com.hanas.addy.ui.theme.AppTheme
-import com.hanas.addy.view.home.NavigationHandler
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
 @Serializable
 object ChooseSession : NavScreen
 
-fun NavGraphBuilder.chooseGameSessionComposable(navHandler: NavigationHandler) {
+fun NavGraphBuilder.chooseGameSessionComposable(navController: NavController, navigateBack: () -> Unit, openChooseCardStack: () -> Unit) {
     composable<ChooseSession> {
         val viewModel: ChooseGameSessionViewModel = koinNavViewModel()
         val state by viewModel.state.collectAsState()
-        viewModel.observeNavigation(navHandler)
-        ChooseGameSessionScreen(navHandler, state, viewModel::joinSession)
+        viewModel.observeNavigation(navController)
+        ChooseGameSessionScreen(state, viewModel::joinSession, navigateBack, openChooseCardStack)
     }
 }
 
 @Composable
 fun ChooseGameSessionScreen(
-    navHandler: NavigationHandler,
     state: DataHolder<String>,
-    joinGameSession: (String) -> Unit
+    joinGameSession: (String) -> Unit,
+    navigateBack: () -> Unit,
+    openChooseCardStack: () -> Unit
 ) {
     AppScaffold(
-        navHandler = navHandler,
+        navigateBack = navigateBack,
         topBarTitle = { Text("Choose Table") },
         bottomBar = {
             Surface(
@@ -76,7 +77,7 @@ fun ChooseGameSessionScreen(
                     .navigationBarsPadding()
             ) {
                 PrimaryButton(
-                    onClick = { navHandler.navigate(ChooseCardStack) },
+                    onClick = openChooseCardStack,
                     color = blue,
                     isLoading = state is DataHolder.Loading
                 ) {
@@ -171,6 +172,6 @@ fun AppInput(
 @Preview
 fun ChooseGameSessionScreenPreview() {
     AppTheme {
-        ChooseGameSessionScreen({}, DataHolder.Idle(), {})
+        ChooseGameSessionScreen(DataHolder.Idle(), {}, {}, {})
     }
 }

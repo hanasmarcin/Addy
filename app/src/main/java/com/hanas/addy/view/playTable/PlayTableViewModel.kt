@@ -59,7 +59,11 @@ class PlayTableViewModel(
     private val repository: GameSessionRepository,
 ) : ViewModel() {
     private val handledActions = mutableSetOf<String>()
-    private val navArgs by lazy { savedStateHandle.toRoute<PlayTable>() }
+    private val navArgs by lazy {
+        savedStateHandle.toRoute<PlayTable>().apply {
+            Log.d("HANASSS", "Navargs: ${this.gameSessionId}")
+        }
+    }
 
     private val gameSession = repository.getGameSessionFlow(navArgs.gameSessionId)
         .filterNotNull()
