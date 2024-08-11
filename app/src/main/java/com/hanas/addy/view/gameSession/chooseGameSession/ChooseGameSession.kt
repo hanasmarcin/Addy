@@ -54,7 +54,7 @@ fun NavGraphBuilder.chooseGameSessionComposable(navController: NavController, na
     composable<ChooseSession> {
         val viewModel: ChooseGameSessionViewModel = koinNavViewModel()
         val state by viewModel.state.collectAsState()
-        viewModel.observeNavigation(navController)
+        viewModel.observeNavigation<ChooseSession>(navController)
         ChooseGameSessionScreen(state, viewModel::joinSession, navigateBack, openChooseCardStack)
     }
 }

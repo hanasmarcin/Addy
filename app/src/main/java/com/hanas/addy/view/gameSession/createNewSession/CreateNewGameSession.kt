@@ -102,7 +102,7 @@ fun NavGraphBuilder.createNewSessionComposable(navController: NavController, nav
     composable<CreateNewGameSession> {
         val viewModel: CreateNewGameSessionViewModel = koinNavViewModel()
         val state by viewModel.gameSessionStateFlow.collectAsState()
-        viewModel.observeNavigation(navController)
+        viewModel.observeNavigation<CreateNewGameSession>(navController)
         CreateNewSessionScreen(state, viewModel::startGame, navigateBack)
     }
 }

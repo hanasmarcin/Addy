@@ -108,7 +108,7 @@ class PlayTableViewModel(
 
     private fun updateConnectionInFirebase(gameSessionId: String, userId: String) {
         presenceReference(gameSessionId, userId).setValue(true) // Set presence to true on connect
-        presenceReference(gameSessionId, userId).onDisconnect().removeValue() // Remove presence on disconnect
+        presenceReference(gameSessionId, userId).onDisconnect().setValue(false) // Remove presence on disconnect
     }
 
     override fun onCleared() {

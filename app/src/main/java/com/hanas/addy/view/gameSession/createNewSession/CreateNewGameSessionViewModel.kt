@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.hanas.addy.model.DataHolder
 import com.hanas.addy.model.wrapInDataHolder
+import com.hanas.addy.ui.NavAction
 import com.hanas.addy.view.gameSession.GameSessionRepository
 import com.hanas.addy.view.gameSession.GameSessionState
 import com.hanas.addy.view.gameSession.chooseGameSession.NavigationRequester
@@ -27,7 +28,7 @@ class CreateNewGameSessionViewModel(
         .filterNotNull()
         .onEach {
             if (it is GameSessionState.GameInProgress) {
-                requestNavigation(PlayTable(navArgs.gameSessionId))
+                requestNavigation(NavAction(PlayTable(navArgs.gameSessionId), closeCurrentActivity = true))
             }
         }
         .wrapInDataHolder()

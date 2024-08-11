@@ -12,6 +12,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.hanas.addy.BuildConfig
+import com.hanas.addy.ui.NavAction
 import com.hanas.addy.view.gameSession.chooseGameSession.NavigationRequester
 import com.hanas.addy.view.home.Home
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,7 +42,7 @@ class LoginViewModel : ViewModel(), NavigationRequester by NavigationRequester()
                         val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
                         val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
                         Firebase.auth.signInWithCredential(firebaseCredential)
-                        requestNavigation(Home)
+                        requestNavigation(NavAction(Home, closeCurrentActivity = true))
                         _loginStateFlow.value = LoginState.NotLoggedIn
                     } catch (e: GoogleIdTokenParsingException) {
                         _loginStateFlow.value = LoginState.Error(e.localizedMessage ?: "")

@@ -3,6 +3,7 @@ package com.hanas.addy.view.gameSession.chooseGameSession
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hanas.addy.model.DataHolder
+import com.hanas.addy.ui.NavAction
 import com.hanas.addy.view.gameSession.GameSessionRepository
 import com.hanas.addy.view.gameSession.createNewSession.CreateNewGameSession
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,7 @@ class ChooseGameSessionViewModel(
                 }
                 .collect {
                     state.value = DataHolder.Success(it)
-                    requestNavigation(CreateNewGameSession(it, null))
+                    requestNavigation(NavAction(CreateNewGameSession(it, null)))
                 }
         }
     }

@@ -41,7 +41,7 @@ class ChooseCardStackViewModel(
         viewModelScope.launch {
             repository.createGameSession(id).collect { newGameSessionId ->
                 creatingGameSessionStateFlow.value = DataHolder.Success(newGameSessionId)
-                requestNavigation(CreateNewGameSession(newGameSessionId, id))
+                requestNavigation(NavAction(CreateNewGameSession(newGameSessionId, id), closeCurrentActivity = true))
             }
         }
     }

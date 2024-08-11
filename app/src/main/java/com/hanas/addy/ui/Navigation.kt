@@ -1,6 +1,8 @@
 package com.hanas.addy.ui
 
-interface NavScreen: NavAction
-interface NavAction
+interface NavScreen
+data class NavAction(
+    val targetScreen: NavScreen,
+    val closeCurrentActivity: Boolean = false
+)
 
-object GoBack: NavAction

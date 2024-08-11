@@ -31,7 +31,7 @@ fun NavGraphBuilder.chooseCardStackComposable(navController: NavController, navi
         val viewModel: ChooseCardStackViewModel = koinNavViewModel()
         val state by viewModel.stateFlow.collectAsState()
         val (createGameState, cardStacksState) = state
-        viewModel.observeNavigation(navController)
+        viewModel.observeNavigation<ChooseCardStack>(navController)
         ChooseCardStackScreen(cardStacksState, createGameState, viewModel::onChooseCardStack, navigateBack)
     }
 }
@@ -67,11 +67,17 @@ fun ChooseCardStackScreenPreview(@PreviewParameter(SamplePlayCardStackListProvid
 
 @SuppressLint("ComposableNaming")
 @Composable
-fun NavigationRequester.observeNavigation(navController: NavController) {
+inline fun <reified T : Any> NavigationRequester.observeNavigation(navController: NavController) {
     val navigationRequest by navigationRequestFlow.collectAsState(initial = null)
     LaunchedEffect(navigationRequest) {
-        navigationRequest?.let {
-            navController.navigate(it)
+        navigationRequest?.let { request ->
+            navController.navigate(request.targetScreen) {
+                if (request.closeCurrentActivity) {
+                    popUpTo<T> {
+                        inclusive = true
+                    }
+                }
+            }
         }
     }
 }

@@ -56,7 +56,7 @@ fun NavGraphBuilder.createNewCardStackSelectPhotosComposable(navController: NavC
     composable<CreateNewCardStack.SelectPhotos> {
         val parent = remember(it) { navController.getBackStackEntry<CreateNewCardStack>() }
         val viewModel: CreateNewCardStackViewModel = koinNavViewModel(viewModelStoreOwner = parent)
-        viewModel.observeNavigation(navController)
+        viewModel.observeNavigation<CreateNewCardStack.SelectPhotos>(navController)
         val photoDrawables by viewModel.photoUrisFlow.collectAsState()
         val cardStackFlow by viewModel.cardStackFlow.collectAsState()
         val cameraHelper = rememberCameraHelper {

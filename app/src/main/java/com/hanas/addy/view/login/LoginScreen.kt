@@ -53,7 +53,7 @@ fun NavGraphBuilder.loginComposable(navController: NavController) {
         val viewModel: LoginViewModel = koinNavViewModel()
         val context = LocalContext.current
         val loginState by viewModel.loginStateFlow.collectAsState()
-        viewModel.observeNavigation(navController)
+        viewModel.observeNavigation<Login>(navController)
         LoginScreen(loginState) {
             login(
                 context = context,
