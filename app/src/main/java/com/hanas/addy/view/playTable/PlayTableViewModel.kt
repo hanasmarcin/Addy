@@ -209,6 +209,20 @@ class PlayTableViewModel(
             is GameAction.QuestionRaceResult -> handleQuestionRaceResult(action)
             is GameAction.SelectActiveAttribute -> handleSelectActiveAttribute(action)
             is GameAction.AttributeBattleResult -> handleAttributeBattleResult(action)
+            is GameAction.RemovePlayer -> handleRemovePlayer(action)
+        }
+    }
+
+    private fun handleRemovePlayer(action: GameAction.RemovePlayer) {
+        val (position, playerState) = tableState.players.toList().first { (_, player) ->
+            player.id == action.playerId
+        }
+        if (position == PositionOnTable.TOP) {
+            tableState = tableState.copy(
+                players = tableState.players.filterNot { it.value.id == action.playerId },
+                opponentBattleSlot = null,
+                opponentHand = CardCollection(emptyList())
+            )
         }
     }
 

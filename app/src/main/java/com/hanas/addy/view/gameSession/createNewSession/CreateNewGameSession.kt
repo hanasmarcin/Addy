@@ -374,7 +374,6 @@ sealed class GameAction(open val msDelay: Long) {
     ) : GameAction(msDelay)
 
     data class QuestionRaceResult(
-        val cardId: Long, // Id of the winning card
         val playerId: String, // Id of the winning player, that will choose active attribute
         override val msDelay: Long
     ) : GameAction(msDelay)
@@ -393,6 +392,12 @@ sealed class GameAction(open val msDelay: Long) {
         val targetPlacement: CardPosition,
         override val msDelay: Long
     ) : GameAction(msDelay)
+
+    class RemovePlayer(
+        val playerId: String,
+        override val msDelay: Long
+    ) : GameAction(msDelay)
+
 }
 
 sealed class CardPosition {
@@ -468,9 +473,10 @@ fun GameActionDTO.toDomain(): GameAction {
         )
         "startAnsweringQuestion" -> GameAction.StartAnsweringQuestion(requireNotNull(cardId), requireNotNull(playerId), msDelay)
         "finishAnsweringQuestion" -> GameAction.FinishAnsweringQuestion(requireNotNull(cardId), requireNotNull(playerId), msDelay)
-        "questionRaceResult" -> GameAction.QuestionRaceResult(requireNotNull(cardId), requireNotNull(playerId), msDelay)
+        "questionRaceResult" -> GameAction.QuestionRaceResult(requireNotNull(playerId), msDelay)
         "selectActiveAttribute" -> GameAction.SelectActiveAttribute(requireNotNull(attribute), msDelay)
         "attributeBattleResult" -> GameAction.AttributeBattleResult(requireNotNull(winnerIds), msDelay)
+        "removePlayer" -> GameAction.RemovePlayer(requireNotNull(playerId), msDelay)
         else -> throw InvalidParameterException("Unknown player action type: $type")
     }
 }
@@ -496,9 +502,9 @@ fun GameAction.toDTO() = when (this) {
         "move", cardId, currentSegment = currentPlacement.toDTO(), targetSegment = targetPlacement.toDTO(), msDelay = msDelay
     )
     is GameAction.StartAnsweringQuestion -> GameActionDTO("startAnsweringQuestion", cardId, playerId, msDelay = msDelay)
-    is GameAction.QuestionRaceResult -> GameActionDTO("questionRaceResult", cardId, playerId, msDelay = msDelay)
+    is GameAction.QuestionRaceResult -> GameActionDTO("questionRaceResult", playerId = playerId, msDelay = msDelay)
     is GameAction.SelectActiveAttribute -> GameActionDTO("selectActiveAttribute", attribute = attribute, msDelay = msDelay)
     is GameAction.AttributeBattleResult -> GameActionDTO("attributeBattleResult", winnerIds = winnerIds, msDelay = msDelay)
     is GameAction.SwapCard -> GameActionDTO("swap", cardId, targetSegment = targetPlacement.toDTO(), msDelay = msDelay)
-
+    is GameAction.RemovePlayer -> GameActionDTO("removePlayer", playerId = playerId, msDelay = msDelay)
 }
