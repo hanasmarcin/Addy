@@ -1,5 +1,7 @@
 package com.hanas.addy.view.playTable
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -8,8 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +36,6 @@ import com.hanas.addy.view.playTable.model.CardCollection
 import com.hanas.addy.view.playTable.model.CardSlot
 import com.hanas.addy.view.playTable.model.PlayTableState
 import com.hanas.addy.view.playTable.view.PlayTable
-import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
 
@@ -45,8 +46,10 @@ fun NavGraphBuilder.playTableComposable() {
     composable<PlayTable> {
         val viewModel = koinNavViewModel<PlayTableViewModel>()
         val state by viewModel.playTableStateFlow.collectAsState()
+        val connection by viewModel.connectionStatusFlow.collectAsState()
         PlayTableScreen(
             state,
+            connection,
             viewModel::onClickAwayFromCloseUp,
             viewModel::onClickCard,
             viewModel::onSelectAnswer,
@@ -60,6 +63,7 @@ fun NavGraphBuilder.playTableComposable() {
 @Composable
 fun PlayTableScreen(
     state: PlayTableState,
+    isConnected: Boolean,
     onClickAwayFromCloseUp: () -> Unit,
     onClickCard: (Long, ClickOrigin) -> Unit,
     onSelectAnswer: (Long, Answer) -> Unit,
@@ -88,34 +92,12 @@ fun PlayTableScreen(
             onStartAnswer = onStartAnswer,
             onSelectAttribute = onSelectAttribute,
         )
-    }
-}
-
-@Preview
-@Composable
-fun PlayTableScreenPreview2() {
-    AppTheme {
-        val cardStack = samplePlayCardStack.cards
-        var playTableState by remember {
-            mutableStateOf(
-                PlayTableState(
-                    emptyMap(),
-                    CardCollection(emptyList()),
-                    CardCollection(emptyList()),
-                    CardCollection(emptyList()),
-                )
-            )
+        AnimatedVisibility(isConnected.not()) {
+            Text("Connection lost",
+                Modifier
+                    .padding(16.dp)
+                    .background(Color.Cyan))
         }
-        LaunchedEffect(Unit) {
-            delay(100)
-            for (i in 0..20) {
-                playTableState = playTableState.copy(
-                    deck = CardCollection(listOf(cardStack[i]) + playTableState.deck.cards, 20)
-                )
-                delay(1000)
-            }
-        }
-        PlayTableScreen(playTableState, {}, { _, _ -> }, { _, _ -> }, {}, {}) {}
     }
 }
 
@@ -135,6 +117,6 @@ fun PlayTableScreenPreview() {
                 )
             )
         }
-        PlayTableScreen(playTableState, {}, { _, _ -> }, { _, _ -> }, {}, {}) { }
+        PlayTableScreen(playTableState, false, {}, { _, _ -> }, { _, _ -> }, {}, {}) { }
     }
 }

@@ -108,12 +108,6 @@ fun CardOnTableLayout(
                 }
             }
         }
-        LaunchedEffect(contentState, contentTransition.targetState, contentTransition.currentState, orientation) {
-            Log.d(
-                "HANASSS",
-                "contentState: $contentState,\ncontentTransition.targetState: ${contentTransition.targetState},\ncontentTransition.currentState: ${contentTransition.currentState},\norientation: $orientation"
-            )
-        }
         CardOnTableContent(
             data = state.data,
             contentState = contentState,

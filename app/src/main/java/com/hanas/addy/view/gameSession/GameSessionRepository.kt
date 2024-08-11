@@ -1,8 +1,10 @@
 package com.hanas.addy.view.gameSession
 
 import android.util.Log
+import androidx.lifecycle.ViewModel
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.snapshots
 import com.google.firebase.firestore.DocumentReference
@@ -29,9 +31,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 class GameSessionRepository {
-    private val functions by lazy { Firebase.functions }
+    private val functions by lazy { Firebase.functions("europe-north1") }
     private val firestore by lazy { Firebase.firestore }
-    private val database by lazy { Firebase.database("https://addy-7f8ed236-default-rtdb.europe-west1.firebasedatabase.app/") }
+    private val database by lazy { Firebase.database("https://addy-7f8ed236-default-rtdb.europe-west1.firebasedatabase.app") }
 
 
     fun createGameSession(selectedCardStackId: String) = callbackFlow {
@@ -57,7 +59,8 @@ class GameSessionRepository {
         .call(mapOf("code" to code))
         .asFlow()
         .map { result ->
-            result.data as? String ?: throw Exception("data is null")
+            (result.data as? String ?: throw Exception("data is null")).also {
+            }
         }
 
 
@@ -75,17 +78,17 @@ class GameSessionRepository {
             Log.e("HANASSS", it.stackTraceToString())
         }
 
-    fun getGameActionsFlow(gameSessionId: String, isHandled: (String) -> Boolean) = actionsCollectionReference(gameSessionId)
-        .snapshots
-        .map {
-            Log.d("HANASSS", "new game actions snapshot")
-            it.children.mapNotNull { document ->
-                val key = document.key
-                if (key != null && isHandled(key).not()) {
-                    document.getValue(GameActionsBatchDTO::class.java)?.toDomain(key)
-                } else null
-            }.sortedBy { it.timestamp }
-        }
+    fun getGameActionsFlow(gameSessionId: String, isHandled: (String) -> Boolean) =
+        actionsCollectionReference(gameSessionId).snapshots
+            .map {
+                Log.d("HANASSS", "new game actions snapshot")
+                it.children.mapNotNull { document ->
+                    val key = document.key
+                    if (key != null && isHandled(key).not()) {
+                        document.getValue(GameActionsBatchDTO::class.java)?.toDomain(key)
+                    } else null
+                }.sortedBy { it.timestamp }
+            }
 
     private fun actionsCollectionReference(gameSessionId: String) = database.getReference("gameSessions/$gameSessionId/actions")
 

@@ -23,7 +23,7 @@ class GenerateCardStackWorker(
     private val workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    private val functions by lazy { Firebase.functions }
+    private val functions by lazy { Firebase.functions("europe-north1") }
     private val auth by lazy { Firebase.auth }
     private val storage by lazy { Firebase.storage }
     private val cancellationToken = CancellationTokenSource()

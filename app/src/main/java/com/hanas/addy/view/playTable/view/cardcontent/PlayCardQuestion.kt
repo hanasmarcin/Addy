@@ -96,7 +96,6 @@ fun PlayCardQuestion(
             )
             .padding(12.dp)
     ) {
-        LaunchedEffect(state) { Log.d("HANASSS", "LaunchedEffect $state") }
         CardImageWithTitle(card)
         Spacer(Modifier.size(8.dp))
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center)

@@ -7,6 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayCardData
@@ -30,16 +34,21 @@ import com.hanas.addy.view.playTable.model.CardCollection
 import com.hanas.addy.view.playTable.model.CardSlot
 import com.hanas.addy.view.playTable.model.PlayTableState
 import com.hanas.addy.view.playTable.model.QuestionFace
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 
@@ -53,16 +62,58 @@ data class PlayerState(
     val points: Int = 0,
 )
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class PlayTableViewModel(
     savedStateHandle: SavedStateHandle,
     private val repository: GameSessionRepository,
 ) : ViewModel() {
+
+    private val database by lazy { Firebase.database("https://addy-7f8ed236-default-rtdb.europe-west1.firebasedatabase.app") }
     private val handledActions = mutableSetOf<String>()
-    private val navArgs by lazy {
-        savedStateHandle.toRoute<PlayTable>().apply {
-            Log.d("HANASSS", "Navargs: ${this.gameSessionId}")
+    private val navArgs by lazy { savedStateHandle.toRoute<PlayTable>() }
+    val connectionStatusFlow = getUserConnectionStatusFlow()
+        .onEach { isConnected ->
+            if (isConnected) {
+                updateConnectionInFirebase(navArgs.gameSessionId, requireNotNull(Firebase.auth.uid))
+            }
         }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    private fun getUserConnectionStatusFlow() = callbackFlow {
+        val connectedRef = database.getReference(".info/connected")
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val connected = snapshot.getValue(Boolean::class.java) ?: true
+                trySend(connected)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Close the flow if the listener is cancelled and report the error
+                close(error.toException())
+            }
+        }
+
+        connectedRef.addValueEventListener(listener)
+
+        // Clean up the listener when the flow is closed
+        awaitClose {
+            connectedRef.removeEventListener(listener)
+        }
+    }.onCompletion {
+        Log.d("HANASSS", "Connection flow completed")
+    }.catch { e ->
+        Log.w("HANASSS", "Connection flow encountered an error: ${e.message}")
+    }
+
+    private fun presenceReference(gameSessionId: String, userId: String) = database.getReference("gameSessions/$gameSessionId/presence/$userId")
+
+    private fun updateConnectionInFirebase(gameSessionId: String, userId: String) {
+        presenceReference(gameSessionId, userId).setValue(true) // Set presence to true on connect
+        presenceReference(gameSessionId, userId).onDisconnect().removeValue() // Remove presence on disconnect
+    }
+
+    override fun onCleared() {
+        presenceReference(navArgs.gameSessionId, requireNotNull(Firebase.auth.uid)).setValue(false)
+        super.onCleared()
     }
 
     private val gameSession = repository.getGameSessionFlow(navArgs.gameSessionId)
@@ -73,7 +124,6 @@ class PlayTableViewModel(
     private val gameActions = repository.getGameActionsFlow(navArgs.gameSessionId, ::isActionHandled)
         .filterNotNull()
         .onEach { batchActions ->
-            Log.d("HANASSS", "Batchactions: $batchActions")
             handledActions.addAll(batchActions.map { it.actionId })
         }
 
@@ -102,13 +152,10 @@ class PlayTableViewModel(
             gameSession.flatMapConcat { gameSession ->
                 handleGameSession(gameSession)
             }.flatMapConcat {
-                Log.d("HANASSS", "Game session flow: $it")
                 it.unitActions.asFlow()
             }.collect { batchAction ->
                 try {
-                    Log.d("HANASSS", "START Handling action: $batchAction")
                     handleBatchAction(batchAction)
-                    Log.d("HANASSS", "FINISH Handling action: $batchAction")
                 } catch (e: Exception) {
                     Log.e("HANASSS", "ERROR handling action: $batchAction", e)
                 }
@@ -153,7 +200,6 @@ class PlayTableViewModel(
     }
 
     private suspend fun handleBatchAction(action: GameAction) {
-        Log.d("HANASSS", "Performing action: $action")
         when (action) {
             is GameAction.AddCard -> handleAddCardAction(action)
             is GameAction.MoveCard -> handleMoveCardAction(action)
@@ -335,7 +381,6 @@ class PlayTableViewModel(
 
     private suspend fun handleStartAnsweringQuestion(action: GameAction.StartAnsweringQuestion) {
         if (action.playerId == Firebase.auth.currentUser?.uid) return // Skip if our own event
-        Log.d("HANASSS", "handleStartAnsweringQuestion")
         tableState.opponentHand.cards.firstOrNull { it.id == action.cardId }?.let { card ->
             tableState = tableState.copy(
                 opponentBattleSlot = CardSlot(card, BackFace.OpponentAnswering)
@@ -409,7 +454,6 @@ class PlayTableViewModel(
 
     fun onSelectToBattle(cardId: Long) {
         viewModelScope.launch {
-            Log.d("HANASSS", "onSelectToBattle")
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
                 tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionFace.ReadyToAnswer))
             }
@@ -469,7 +513,6 @@ class PlayTableViewModel(
                 val newSlot = slot.copy(contentState = QuestionFace.Answering)
                 tableState = tableState.copy(closeUp = newSlot, playerBattleSlot = newSlot)
                 answerStartTimestamp = System.currentTimeMillis()
-                Log.d("HANASSS", "onStartAnswer: $newSlot")
             }
         }
     }
