@@ -1,14 +1,23 @@
 package com.hanas.addy.view.playTable
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,18 +26,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
+import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.drawPattern
+import com.hanas.addy.ui.theme.AppColors.blue
+import com.hanas.addy.ui.theme.AppColors.orange
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
 import com.hanas.addy.view.playTable.model.AttributesFace
@@ -42,7 +57,7 @@ import org.koin.androidx.compose.navigation.koinNavViewModel
 @Serializable
 data class PlayTable(val gameSessionId: String) : NavScreen
 
-fun NavGraphBuilder.playTableComposable() {
+fun NavGraphBuilder.playTableComposable(navigateBack: () -> Unit) {
     composable<PlayTable> {
         val viewModel = koinNavViewModel<PlayTableViewModel>()
         val state by viewModel.playTableStateFlow.collectAsState()
@@ -56,7 +71,69 @@ fun NavGraphBuilder.playTableComposable() {
             viewModel::onSelectToBattle,
             viewModel::onStartAnswer,
             viewModel::onSelectAttribute,
+            navigateBack
         )
+    }
+}
+
+@Composable
+fun LeavePlayTableDialog(dismiss: () -> Unit, navigateBack: () -> Unit) {
+    Dialog(
+        onDismissRequest = dismiss,
+//        confirmButton = {
+//            PrimaryButton(
+//                color = blue,
+//                onClick = dismiss
+//            ) {
+//                Text("Back to the game")
+//            }
+//        },
+//        dismissButton = {
+//            PrimaryButton(
+//                onClick = navigateBack
+//            ) {
+//                Text("Leave")
+//            }
+//
+//        }
+    ) {
+        Column(
+            Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .background(orange)
+                .padding(start = 4.dp, top = 2.dp, end = 4.dp, bottom = 8.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(16.dp)
+        ) {
+            Text(text = "Do you want to leave the game?", style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.size(16.dp))
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+            ) {
+                PrimaryButton(
+                    onClick = navigateBack,
+
+                    ) {
+                    Text("Leave")
+                }
+                PrimaryButton(
+                    color = blue,
+                    onClick = dismiss
+                ) {
+                    Text("Back to the game")
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun LeavePlayTableDialogPreview() {
+    AppTheme {
+        LeavePlayTableDialog({}, {})
     }
 }
 
@@ -70,6 +147,7 @@ fun PlayTableScreen(
     onSelectToBattle: (Long) -> Unit,
     onStartAnswer: (Long) -> Unit,
     onSelectAttribute: (Int) -> Unit,
+    navigateBack: () -> Unit,
 ) {
 
     val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
@@ -77,7 +155,10 @@ fun PlayTableScreen(
     val end = systemBarsPadding.calculateEndPadding(LocalLayoutDirection.current) + 32.dp
     val top = systemBarsPadding.calculateTopPadding()
     val bottom = systemBarsPadding.calculateBottomPadding()
-
+    var openAlertDialog by remember { mutableStateOf(false) }
+    BackHandler {
+        openAlertDialog = openAlertDialog.not()
+    }
     Surface {
         PlayTable(
             state,
@@ -93,12 +174,20 @@ fun PlayTableScreen(
             onSelectAttribute = onSelectAttribute,
         )
         AnimatedVisibility(isConnected.not()) {
-            Text("Connection lost",
+            Text(
+                "Connection lost",
                 Modifier
                     .padding(16.dp)
-                    .background(Color.Cyan))
+                    .background(Color.Cyan)
+            )
         }
     }
+    if (openAlertDialog) {
+        LeavePlayTableDialog(dismiss = { openAlertDialog = false }) {
+            navigateBack()
+        }
+    }
+
 }
 
 @Preview(showSystemUi = true)
@@ -117,6 +206,6 @@ fun PlayTableScreenPreview() {
                 )
             )
         }
-        PlayTableScreen(playTableState, false, {}, { _, _ -> }, { _, _ -> }, {}, {}) { }
+        PlayTableScreen(playTableState, false, {}, { _, _ -> }, { _, _ -> }, {}, {}, {}) { }
     }
 }

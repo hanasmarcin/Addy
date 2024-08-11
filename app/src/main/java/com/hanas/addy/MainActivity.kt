@@ -90,7 +90,11 @@ class MainActivity : ComponentActivity() {
                             navigateBack = {
                                 navController.navigateUp()
                             })
-                        playTableComposable()
+                        playTableComposable(
+                            navigateBack = {
+                                navController.navigateUp()
+                            },
+                        )
                         chooseGameSessionComposable(
                             navController = navController,
                             navigateBack = {
