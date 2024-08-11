@@ -8,6 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -29,13 +34,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.layoutId
-import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hanas.addy.R
@@ -47,6 +51,7 @@ import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
 import com.hanas.addy.view.playTable.PlayerState
 import com.hanas.addy.view.playTable.PositionOnTable
 import com.hanas.addy.view.playTable.model.AttributesFace
+import com.hanas.addy.view.playTable.model.BackFace
 import com.hanas.addy.view.playTable.model.CardCollection
 import com.hanas.addy.view.playTable.model.CardSlot
 import com.hanas.addy.view.playTable.model.PlayTableState
@@ -65,19 +70,13 @@ fun PlayTable(
     onSelectAttribute: (Int) -> Unit,
 ) {
     val cards = state.toCardStateMap()
-    var scrimSize by remember { mutableStateOf(IntSize.Zero) }
-    BoxWithConstraints(modifier
-        .onPlaced {
-            scrimSize = it.parentCoordinates?.size ?: it.size
-        }
-        .fillMaxSize()) {
+    BoxWithConstraints(modifier.fillMaxSize()) {
         val screenSizeInDp = with(LocalDensity.current) {
             DpSize(constraints.maxWidth.toDp(), constraints.maxHeight.toDp())
         }
         Scrim(
             enabled = state.closeUp != null,
             isClickAvailable = (state.closeUp?.contentState is AttributesFace),
-            scrimSize = scrimSize,
             onClickAwayFromCloseUp = onClickAwayFromCloseUp
         )
         cards.forEach { (cardId, state) ->
@@ -151,18 +150,26 @@ private fun BoxWithConstraintsScope.PlayerLabel(
 fun Scrim(
     enabled: Boolean,
     isClickAvailable: Boolean,
-    scrimSize: IntSize? = null,
     onClickAwayFromCloseUp: () -> Unit
 ) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val padding = WindowInsets.displayCutout.asPaddingValues()
     AnimatedVisibility(enabled, Modifier
         .fillMaxSize()
         .zIndex(700f)
-        .layout { measurable, constraints ->
+        .layout { measurable, _ ->
+            val start = padding.calculateStartPadding(layoutDirection)
+            val end = padding.calculateEndPadding(layoutDirection)
+            val top = padding.calculateTopPadding()
+            val bottom = padding.calculateBottomPadding()
+            val height = screenHeight + top + bottom
+            val width = screenWidth + start + end
             val placeable = measurable.measure(
-                scrimSize?.let { Constraints.fixed(it.width, it.height) } ?: constraints
+                Constraints.fixed(width.roundToPx(), height.roundToPx())
             )
             layout(placeable.width, placeable.height) {
-                placeable.place(0, 0)
+                placeable.place(-start.roundToPx(), -top.roundToPx())
             }
         }
     ) {
@@ -194,29 +201,14 @@ fun PlayTablePreview() {
                         cardStack[3], contentState = QuestionFace.Answering
                     ),
                     opponentBattleSlot = CardSlot(
-                        cardStack[4], contentState = QuestionFace.Answering
-                    )
+                        cardStack[4], contentState = BackFace.OpponentWaitingForAttributeBattle
+                    ),
+                    closeUp = CardSlot(
+                        cardStack[3], contentState = QuestionFace.Answering
+                    ),
                 )
             )
         }
-//        LaunchedEffect(Unit) {
-//            for (i in 0..20) {
-//                playTableState = PlayTableState(
-//                    PlayTableState.Segment(cardStack.take(i)),
-//                    PlayTableState.Segment(emptyList()),
-//                    PlayTableState.Segment(emptyList()),
-//                )
-//            }
-//            delay(600)
-//            playTableState = PlayTableState(
-//                PlayTableState.Segment(playTableState.unusedStack.cards.drop(5)),
-//                PlayTableState.Segment(listOf(playTableState.unusedStack.cards[0])),
-//                PlayTableState.Segment(listOf(playTableState.unusedStack.cards[1])),
-//                opponentBattleSlot = PlayTableState.CardSlot(
-//                    playTableState.unusedStack.cards[2], PlayTableSegmentType.PLAYER_HAND, 0
-//                )
-//            )
-//        }
         Surface {
             PlayTable(
                 playTableState,

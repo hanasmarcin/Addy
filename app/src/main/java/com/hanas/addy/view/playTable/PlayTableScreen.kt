@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -44,6 +46,7 @@ import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.drawPattern
 import com.hanas.addy.ui.theme.AppColors.blue
 import com.hanas.addy.ui.theme.AppColors.orange
+import com.hanas.addy.ui.theme.AppColors.pink
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
 import com.hanas.addy.view.playTable.model.AttributesFace
@@ -78,25 +81,7 @@ fun NavGraphBuilder.playTableComposable(navigateBack: () -> Unit) {
 
 @Composable
 fun LeavePlayTableDialog(dismiss: () -> Unit, navigateBack: () -> Unit) {
-    Dialog(
-        onDismissRequest = dismiss,
-//        confirmButton = {
-//            PrimaryButton(
-//                color = blue,
-//                onClick = dismiss
-//            ) {
-//                Text("Back to the game")
-//            }
-//        },
-//        dismissButton = {
-//            PrimaryButton(
-//                onClick = navigateBack
-//            ) {
-//                Text("Leave")
-//            }
-//
-//        }
-    ) {
+    Dialog(onDismissRequest = dismiss) {
         Column(
             Modifier
                 .clip(RoundedCornerShape(12.dp))
@@ -155,10 +140,6 @@ fun PlayTableScreen(
     val end = systemBarsPadding.calculateEndPadding(LocalLayoutDirection.current) + 32.dp
     val top = systemBarsPadding.calculateTopPadding()
     val bottom = systemBarsPadding.calculateBottomPadding()
-    var openAlertDialog by remember { mutableStateOf(false) }
-    BackHandler {
-        openAlertDialog = openAlertDialog.not()
-    }
     Surface {
         PlayTable(
             state,
@@ -173,21 +154,43 @@ fun PlayTableScreen(
             onStartAnswer = onStartAnswer,
             onSelectAttribute = onSelectAttribute,
         )
-        AnimatedVisibility(isConnected.not()) {
-            Text(
-                "Connection lost",
-                Modifier
-                    .padding(16.dp)
-                    .background(Color.Cyan)
-            )
-        }
+    }
+    ConnectionAlert(isConnected)
+    BackHandlerDialog(navigateBack)
+
+}
+
+@Composable
+private fun BackHandlerDialog(navigateBack: () -> Unit) {
+    var openAlertDialog by remember { mutableStateOf(false) }
+    BackHandler {
+        openAlertDialog = openAlertDialog.not()
     }
     if (openAlertDialog) {
         LeavePlayTableDialog(dismiss = { openAlertDialog = false }) {
             navigateBack()
         }
     }
+}
 
+@Composable
+private fun ConnectionAlert(isConnected: Boolean) {
+    AnimatedVisibility(isConnected.not(), Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize()) {
+            Text(
+                "Connection lost",
+                Modifier
+                    .systemBarsPadding()
+                    .padding(16.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(pink)
+                    .padding(start = 4.dp, top = 2.dp, end = 4.dp, bottom = 8.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
+    }
 }
 
 @Preview(showSystemUi = true)
