@@ -1,7 +1,6 @@
 package com.hanas.addy.view.playTable.model
 
 import com.hanas.addy.model.PlayCardData
-import com.hanas.addy.view.gameSession.createNewSession.PlayerResult
 import com.hanas.addy.view.playTable.PlayerState
 import com.hanas.addy.view.playTable.PositionOnTable
 import com.hanas.addy.view.playTable.view.uistate.PlayCardUiPlacement
@@ -25,7 +24,6 @@ data class PlayTableState(
     val closeUp: CardSlot? = null,
     val playerBattleSlot: CardSlot? = null,
     val opponentBattleSlot: CardSlot? = null,
-    val finalResult: List<PlayerResult>? = null,
 ) {
     fun toCardStateMap() = mutableMapOf<Long, PlayCardUiState>().apply {
         playerBattleSlot?.let { slot ->

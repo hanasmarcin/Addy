@@ -336,7 +336,7 @@ data class GameActionDTO(
     val currentSegment: CardPositionDTO? = null,
     val targetSegment: CardPositionDTO? = null,
     val winnerIds: List<String>? = null,
-    val results: List<PlayerResult>? = null,
+    val results: List<PlayerResultDAO>? = null,
     val msDelay: Long = 0,
 )
 
@@ -400,14 +400,25 @@ sealed class GameAction(open val msDelay: Long) {
     ) : GameAction(msDelay)
 
     class FinishGame(
-        val results: List<PlayerResult>,
+        val results: List<PlayerResultDAO>,
         override val msDelay: Long
     ) : GameAction(msDelay)
 }
 
-data class PlayerResult(
+data class PlayerResultDAO(
     val playerId: String = "",
     val points: Int = 0,
+)
+
+enum class Medal {
+    GOLD, SILVER, BRONZE, NONE
+}
+
+@Serializable
+data class PlayerResult(
+    val medal: Medal,
+    val playerDisplayName: String,
+    val points: Int,
 )
 
 sealed class CardPosition {

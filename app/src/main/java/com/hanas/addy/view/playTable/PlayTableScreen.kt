@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -36,25 +35,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
 import com.hanas.addy.model.Answer
 import com.hanas.addy.repository.gemini.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
-import com.hanas.addy.ui.components.AppListItem
 import com.hanas.addy.ui.components.PrimaryButton
-import com.hanas.addy.ui.components.itemsWithPosition
 import com.hanas.addy.ui.drawPattern
 import com.hanas.addy.ui.theme.AppColors.blue
-import com.hanas.addy.ui.theme.AppColors.containerFor
 import com.hanas.addy.ui.theme.AppColors.orange
 import com.hanas.addy.ui.theme.AppColors.pink
 import com.hanas.addy.ui.theme.AppTheme
-import com.hanas.addy.view.cardStackList.LabelPill
-import com.hanas.addy.view.gameSession.createNewSession.PlayerResult
+import com.hanas.addy.view.gameSession.chooseGameSession.observeNavigation
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin
 import com.hanas.addy.view.playTable.model.AttributesFace
 import com.hanas.addy.view.playTable.model.CardCollection
@@ -67,11 +62,12 @@ import org.koin.androidx.compose.navigation.koinNavViewModel
 @Serializable
 data class PlayTable(val gameSessionId: String) : NavScreen
 
-fun NavGraphBuilder.playTableComposable(navigateBack: () -> Unit) {
+fun NavGraphBuilder.playTableComposable(navController: NavController, navigateBack: () -> Unit) {
     composable<PlayTable> {
         val viewModel = koinNavViewModel<PlayTableViewModel>()
         val state by viewModel.playTableStateFlow.collectAsState()
         val connection by viewModel.connectionStatusFlow.collectAsState()
+        viewModel.observeNavigation<PlayTable>(navController)
         PlayTableScreen(
             state,
             connection,
@@ -141,7 +137,6 @@ fun PlayTableScreen(
     onSelectAttribute: (Int) -> Unit,
     navigateBack: () -> Unit,
 ) {
-
     val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
     val start = systemBarsPadding.calculateStartPadding(LocalLayoutDirection.current) + 32.dp
     val end = systemBarsPadding.calculateEndPadding(LocalLayoutDirection.current) + 32.dp
@@ -163,14 +158,13 @@ fun PlayTableScreen(
         )
     }
     ConnectionAlert(isConnected)
-    BackHandlerDialog(state, navigateBack)
-    FinalResultDialog(state, navigateBack)
+    BackHandlerDialog(navigateBack)
 }
 
 @Composable
-private fun BackHandlerDialog(state: PlayTableState, navigateBack: () -> Unit) {
+private fun BackHandlerDialog(navigateBack: () -> Unit) {
     var openAlertDialog by remember { mutableStateOf(false) }
-    BackHandler(state.finalResult == null) {
+    BackHandler {
         openAlertDialog = openAlertDialog.not()
     }
     if (openAlertDialog) {
@@ -179,84 +173,6 @@ private fun BackHandlerDialog(state: PlayTableState, navigateBack: () -> Unit) {
         }
     }
 }
-
-@Composable
-private fun FinalResultDialog(state: PlayTableState, navigateBack: () -> Unit) {
-    if (state.finalResult != null) {
-        Dialog(onDismissRequest = {}) {
-            Column(
-                Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(orange)
-                    .padding(start = 4.dp, top = 2.dp, end = 4.dp, bottom = 8.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(16.dp)
-            ) {
-                Text(text = "Game over!", style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.size(16.dp))
-                LazyColumn {
-                    itemsWithPosition(state.finalResult) { item, position, index ->
-                        AppListItem(
-                            position = position,
-                            isLoading = false,
-                            enabled = false,
-                            onClick = {},
-                            trailingContent = {
-                                LabelPill("${item.points} points")
-                            },
-                            leadingContent = {
-                                Text(
-                                    "\uD83E\uDD49",
-                                    Modifier
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(containerFor(blue))
-                                        .padding(vertical = 2.dp),
-                                    style = MaterialTheme.typography.headlineMedium.copy(letterSpacing = (-6).sp)
-                                )
-                            }) {
-                            Text(text = item.playerId)
-                        }
-                    }
-                }
-                Spacer(Modifier.size(16.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
-                ) {
-                    PrimaryButton(
-                        onClick = {
-                            navigateBack()
-                        },
-                    ) {
-                        Text("Leave")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun FinalResultDialogPreview() {
-    AppTheme {
-        val cardStack = samplePlayCardStack.cards
-        val playTableState = PlayTableState(
-            emptyMap(),
-            CardCollection(List(6) { cardStack[it] }),
-            CardCollection(List(3) { cardStack[it + 6] }),
-            CardCollection(List(2) { cardStack[it + 6 + 3] }),
-            closeUp = CardSlot(cardStack[12], AttributesFace.StaticPreview),
-            finalResult = listOf(
-                PlayerResult("abc", 1),
-                PlayerResult("abc", 1)
-            )
-        )
-        FinalResultDialog(playTableState) { }
-    }
-}
-
 
 @Composable
 private fun ConnectionAlert(isConnected: Boolean) {

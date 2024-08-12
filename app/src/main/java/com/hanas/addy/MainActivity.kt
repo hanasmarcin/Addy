@@ -33,6 +33,7 @@ import com.hanas.addy.view.home.Home
 import com.hanas.addy.view.home.homeComposable
 import com.hanas.addy.view.login.Login
 import com.hanas.addy.view.login.loginComposable
+import com.hanas.addy.view.playTable.gameOverComposable
 import com.hanas.addy.view.playTable.playTableComposable
 
 class MainActivity : ComponentActivity() {
@@ -91,6 +92,7 @@ class MainActivity : ComponentActivity() {
                                 navController.navigateUp()
                             })
                         playTableComposable(
+                            navController = navController,
                             navigateBack = {
                                 navController.navigateUp()
                             },
@@ -114,6 +116,9 @@ class MainActivity : ComponentActivity() {
                                 navController.navigateUp()
                             }
                         )
+                        gameOverComposable {
+                            navController.navigateUp()
+                        }
                     }
                 }
             }

@@ -14,6 +14,7 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.hanas.addy.model.Answer
 import com.hanas.addy.model.PlayCardData
+import com.hanas.addy.ui.NavAction
 import com.hanas.addy.ui.theme.AppColors.blue
 import com.hanas.addy.ui.theme.AppColors.orange
 import com.hanas.addy.ui.theme.AppColors.pink
@@ -21,9 +22,12 @@ import com.hanas.addy.ui.theme.AppColors.yellow
 import com.hanas.addy.view.gameSession.GameSessionRepository
 import com.hanas.addy.view.gameSession.GameSessionState
 import com.hanas.addy.view.gameSession.Player
+import com.hanas.addy.view.gameSession.chooseGameSession.NavigationRequester
 import com.hanas.addy.view.gameSession.createNewSession.CardPosition
 import com.hanas.addy.view.gameSession.createNewSession.GameAction
 import com.hanas.addy.view.gameSession.createNewSession.GameActionsBatch
+import com.hanas.addy.view.gameSession.createNewSession.Medal
+import com.hanas.addy.view.gameSession.createNewSession.PlayerResult
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.CLOSE_UP
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.OPPONENT_BATTLE_SLOT
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.PLAYER_BATTLE_SLOT
@@ -34,6 +38,7 @@ import com.hanas.addy.view.playTable.model.CardCollection
 import com.hanas.addy.view.playTable.model.CardSlot
 import com.hanas.addy.view.playTable.model.PlayTableState
 import com.hanas.addy.view.playTable.model.QuestionFace
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
@@ -62,10 +67,11 @@ data class PlayerState(
     val points: Int = 0,
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class PlayTableViewModel(
     savedStateHandle: SavedStateHandle,
     private val repository: GameSessionRepository,
-) : ViewModel() {
+) : ViewModel(), NavigationRequester by NavigationRequester() {
 
     private val database by lazy { Firebase.database("https://addy-7f8ed236-default-rtdb.europe-west1.firebasedatabase.app") }
     private val handledActions = mutableSetOf<String>()
@@ -215,9 +221,22 @@ class PlayTableViewModel(
     }
 
     private fun handleFinishGame(action: GameAction.FinishGame) {
-        tableState = tableState.copy(
-            finalResult = action.results
-        )
+        val groupedResults = action.results.groupBy { it.points }
+            .toSortedMap(reverseOrder())
+        val results = groupedResults.toList().flatMapIndexed { index, (points, results) ->
+            val medal = when (index) {
+                0 -> Medal.GOLD
+                1 -> Medal.SILVER
+                2 -> Medal.BRONZE
+                else -> Medal.NONE
+            }
+            results.mapNotNull { result ->
+                tableState.players.values.firstOrNull { it.id == result.playerId }?.let { player ->
+                    PlayerResult(medal, player.name, points)
+                }
+            }
+        }
+        requestNavigation(NavAction(GameOver(results), closeCurrentActivity = true))
     }
 
     private fun handleRemovePlayer(action: GameAction.RemovePlayer) {
