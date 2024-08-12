@@ -336,6 +336,7 @@ data class GameActionDTO(
     val currentSegment: CardPositionDTO? = null,
     val targetSegment: CardPositionDTO? = null,
     val winnerIds: List<String>? = null,
+    val results: List<PlayerResult>? = null,
     val msDelay: Long = 0,
 )
 
@@ -398,7 +399,16 @@ sealed class GameAction(open val msDelay: Long) {
         override val msDelay: Long
     ) : GameAction(msDelay)
 
+    class FinishGame(
+        val results: List<PlayerResult>,
+        override val msDelay: Long
+    ) : GameAction(msDelay)
 }
+
+data class PlayerResult(
+    val playerId: String = "",
+    val points: Int = 0,
+)
 
 sealed class CardPosition {
     data class UnusedStack(val positionInSegment: Int?) : CardPosition()
@@ -477,6 +487,7 @@ fun GameActionDTO.toDomain(): GameAction {
         "selectActiveAttribute" -> GameAction.SelectActiveAttribute(requireNotNull(attribute), msDelay)
         "attributeBattleResult" -> GameAction.AttributeBattleResult(requireNotNull(winnerIds), msDelay)
         "removePlayer" -> GameAction.RemovePlayer(requireNotNull(playerId), msDelay)
+        "finish" -> GameAction.FinishGame(requireNotNull(results), msDelay)
         else -> throw InvalidParameterException("Unknown player action type: $type")
     }
 }
@@ -507,4 +518,5 @@ fun GameAction.toDTO() = when (this) {
     is GameAction.AttributeBattleResult -> GameActionDTO("attributeBattleResult", winnerIds = winnerIds, msDelay = msDelay)
     is GameAction.SwapCard -> GameActionDTO("swap", cardId, targetSegment = targetPlacement.toDTO(), msDelay = msDelay)
     is GameAction.RemovePlayer -> GameActionDTO("removePlayer", playerId = playerId, msDelay = msDelay)
+    is GameAction.FinishGame -> GameActionDTO("finish", results = results, msDelay = msDelay)
 }

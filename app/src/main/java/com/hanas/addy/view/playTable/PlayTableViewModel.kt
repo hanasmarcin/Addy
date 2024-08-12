@@ -210,11 +210,18 @@ class PlayTableViewModel(
             is GameAction.SelectActiveAttribute -> handleSelectActiveAttribute(action)
             is GameAction.AttributeBattleResult -> handleAttributeBattleResult(action)
             is GameAction.RemovePlayer -> handleRemovePlayer(action)
+            is GameAction.FinishGame -> handleFinishGame(action)
         }
     }
 
+    private fun handleFinishGame(action: GameAction.FinishGame) {
+        tableState = tableState.copy(
+            finalResult = action.results
+        )
+    }
+
     private fun handleRemovePlayer(action: GameAction.RemovePlayer) {
-        val (position, playerState) = tableState.players.toList().first { (_, player) ->
+        val (position, _) = tableState.players.toList().first { (_, player) ->
             player.id == action.playerId
         }
         if (position == PositionOnTable.TOP) {

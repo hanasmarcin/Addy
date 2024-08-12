@@ -47,6 +47,8 @@ import com.hanas.addy.ui.components.AppScaffold
 import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.components.itemsWithPosition
 import com.hanas.addy.ui.components.shapes.BlobShape
+import com.hanas.addy.ui.theme.AppColors.blue
+import com.hanas.addy.ui.theme.AppColors.containerFor
 import com.hanas.addy.ui.theme.AppTheme
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.navigation.koinNavViewModel
@@ -126,7 +128,7 @@ fun CardStacksListContent(
             AppListItem(
                 position = position,
                 trailingContent = {
-                    CardStackSizePill(cardStack.cards.size)
+                    LabelPill("${cardStack.cards.size} cards")
                 },
                 enabled = isGameCreationInProgress.not(),
                 onClick = {
@@ -144,10 +146,10 @@ fun CardStacksListContent(
 }
 
 @Composable
-private fun CardStackSizePill(size: Int) {
-    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
+fun LabelPill(text: String) {
+    Surface(shape = CircleShape, color = containerFor(blue)) {
         Text(
-            "$size cards",
+            text,
             Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )
