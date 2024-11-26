@@ -57,7 +57,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -68,6 +70,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.hanas.addy.R
 import com.hanas.addy.model.DataHolder
 import com.hanas.addy.model.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
@@ -115,7 +118,7 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, startGame: () ->
     AppScaffold(
         navigateBack = navigateBack,
         snackbarHostState = snackbarHostState,
-        topBarTitle = { Text("Create New Table") },
+        topBarTitle = { Text(stringResource(R.string.create_new_table)) },
         bottomBar = {
             Surface(
                 modifier = Modifier
@@ -123,15 +126,16 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, startGame: () ->
                     .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
                     .navigationBarsPadding()
             ) {
+                val context = LocalContext.current
                 PrimaryButton(onClick = {
                     if (state.data?.players?.size in 2..4) {
                         startGame()
                     } else {
                         coroutineScope.launch {
-                            snackbarHostState.showSnackbar("You need from 2 to 4 players to start a game.")
+                            snackbarHostState.showSnackbar(context.getString(R.string.create_new_game_description))
                         }
                     }
-                }) { Text("Start game") }
+                }) { Text(stringResource(R.string.start_game)) }
             }
         }) {
         Column(Modifier.padding(16.dp)) {
@@ -143,7 +147,7 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, startGame: () ->
                     .background(containerFor(AppColors.yellow))
                     .padding(16.dp)
             ) {
-                Text("Players", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.players), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.size(8.dp))
                 LazyColumn {
                     itemsWithPosition(state.data?.players ?: emptyList()) { player, position, _ ->
@@ -176,7 +180,11 @@ fun CreateNewSessionScreen(state: DataHolder<GameSessionState>, startGame: () ->
                     .background(containerFor(blue))
                     .padding(16.dp)
             ) {
-                Text("Card stack", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    stringResource(R.string.card_stack),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Spacer(Modifier.size(8.dp))
                 PrimaryButton(onClick = {
                     isCardPreviewEnabled = true

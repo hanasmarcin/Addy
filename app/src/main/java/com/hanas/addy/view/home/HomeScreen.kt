@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -92,11 +93,11 @@ fun HomeScreen(
                     ),
             )
             DropdownMenu(menuExpanded, onDismissRequest = { menuExpanded = !menuExpanded }) {
-                DropdownMenuItem({ Text("Logout") }, logout)
+                DropdownMenuItem({ Text(stringResource(R.string.logout)) }, logout)
             }
         },
         topBarTitle = {
-            Text("Hello, $username!")
+            Text(stringResource(R.string.hello, username ?: ""))
         }
     ) {
         Column(
@@ -125,7 +126,11 @@ fun HomeScreen(
                     color = AppColors.orange,
                     onClick = openPlayScreen,
                 ) {
-                    Text("Play", Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                    Text(
+                        stringResource(R.string.play),
+                        Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
                 }
                 PrimaryButton(
                     color = AppColors.orange,

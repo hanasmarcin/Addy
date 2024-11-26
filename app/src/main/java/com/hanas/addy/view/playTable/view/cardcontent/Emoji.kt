@@ -18,10 +18,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hanas.addy.R
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -37,7 +39,7 @@ fun AnimatableEmoji() {
         Modifier.padding(64.dp),
     ) {
         Button(onClick = { showEmoji = !showEmoji }) {
-            Text("Click me!")
+            Text(stringResource(R.string.click_me))
         }
         AnimatedEmoji(showEmoji, -1, -1)
         AnimatedEmoji(showEmoji, -1, 1)

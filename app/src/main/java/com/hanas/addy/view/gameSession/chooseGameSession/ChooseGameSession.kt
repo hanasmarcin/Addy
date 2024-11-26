@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.hanas.addy.R
 import com.hanas.addy.model.DataHolder
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppScaffold
@@ -68,7 +70,7 @@ fun ChooseGameSessionScreen(
 ) {
     AppScaffold(
         navigateBack = navigateBack,
-        topBarTitle = { Text("Choose Table") },
+        topBarTitle = { Text(stringResource(R.string.choose_table)) },
         bottomBar = {
             Surface(
                 Modifier
@@ -81,7 +83,7 @@ fun ChooseGameSessionScreen(
                     color = blue,
                     isLoading = state is DataHolder.Loading
                 ) {
-                    Text("Create new game")
+                    Text(stringResource(R.string.create_new_game))
                 }
             }
 
@@ -93,7 +95,11 @@ fun ChooseGameSessionScreen(
                     .clip(RoundedCornerShape(12.dp))
                     .background(containerFor(pink))) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Join with code", style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth())
+                    Text(
+                        stringResource(R.string.join_with_code),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                     Spacer(Modifier.size(8.dp))
                     var code by rememberSaveable { mutableStateOf("") }
                     AppInput(
@@ -105,7 +111,7 @@ fun ChooseGameSessionScreen(
                             .animateContentSize(),
                         value = code,
                         onValueChange = { code = it.filter { it.isDigit() }.take(6) },
-                        label = { Text("Code") },
+                        label = { Text(stringResource(R.string.enter_code_label)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
                     Spacer(Modifier.size(8.dp))
@@ -150,11 +156,11 @@ fun AppInput(
             label = label,
             supportingText = supportingText,
             container = {
-                val colors = OutlinedTextFieldDefaults.colors(
+                OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = pink,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface
                 )
-                val shape = RoundedCornerShape(8.dp)
+                RoundedCornerShape(8.dp)
                 Box(
                     Modifier
                         .clip(RoundedCornerShape(8.dp))

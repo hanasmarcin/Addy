@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -95,7 +96,7 @@ private fun CreateNewCardStackSelectPhotosScreen(
         navigateBack = navigateBack,
         modifier = Modifier.fillMaxSize(),
         topBarTitle = {
-            Text("Add New Card Stack")
+            Text(stringResource(R.string.add_new_card_stack))
         },
         bottomBar = {
             AnimatedVisibility(photoDrawables.isNotEmpty()) {
@@ -132,7 +133,7 @@ private fun CreateNewCardStackSelectPhotosScreen(
                                 onClick = pickImages,
                                 isLoading = isLoading,
                             ) {
-                                Text("Choose from gallery")
+                                Text(stringResource(R.string.choose_from_gallery))
                             }
                             Spacer(Modifier.size(8.dp))
                             PrimaryButton(
@@ -140,7 +141,7 @@ private fun CreateNewCardStackSelectPhotosScreen(
                                 onClick = takePhoto,
                                 isLoading = isLoading,
                             ) {
-                                Text("Take a photo")
+                                Text(stringResource(R.string.take_a_photo))
                             }
                         }
                     }
@@ -195,7 +196,7 @@ private fun GenerateStackCard(isLoading: Boolean, generateStack: () -> Unit) {
             ) {
                 Icon(painter = painterResource(R.drawable.auto_fix), null)
                 Spacer(Modifier.size(8.dp))
-                Text("Generate a stack")
+                Text(stringResource(R.string.generate_a_stack))
             }
         }
     }

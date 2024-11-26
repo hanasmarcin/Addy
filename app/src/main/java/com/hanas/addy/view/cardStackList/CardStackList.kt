@@ -128,7 +128,7 @@ fun CardStacksListContent(
             AppListItem(
                 position = position,
                 trailingContent = {
-                    LabelPill("${cardStack.cards.size} cards")
+                    LabelPill(stringResource(R.string.cards_count, cardStack.cards.size))
                 },
                 enabled = isGameCreationInProgress.not(),
                 onClick = {

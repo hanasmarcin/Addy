@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -105,7 +106,7 @@ fun PlayCardQuestion(
                         onClick = startAnswering,
                         modifier = Modifier
                     ) {
-                        Text("Reveal the question!")
+                        Text(stringResource(R.string.reveal_the_question))
                     }
                 }
                 is QuestionFace.Answering, is QuestionFace.AnswerScored -> {
