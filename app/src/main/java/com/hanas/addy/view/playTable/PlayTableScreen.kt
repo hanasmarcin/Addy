@@ -203,9 +203,10 @@ fun PlayTableScreenPreview() {
             mutableStateOf(
                 PlayTableState(
                     emptyMap(),
-                    CardCollection(List(6) { cardStack[it] }),
-                    CardCollection(List(3) { cardStack[it + 6] }),
-                    CardCollection(List(2) { cardStack[it + 6 + 3] }),
+                    inHands = mapOf(PositionOnTable.BOTTOM to CardCollection(List(6) { cardStack[it] }),
+                        PositionOnTable.TOP to CardCollection(List(3) { cardStack[it + 6] })
+                    ),
+                    deck = CardCollection(List(2) { cardStack[it + 6 + 3] }),
                     closeUp = CardSlot(cardStack[12], AttributesFace.StaticPreview)
                 )
             )

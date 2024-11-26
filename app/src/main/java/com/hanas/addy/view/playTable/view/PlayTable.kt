@@ -194,14 +194,18 @@ fun PlayTablePreview() {
                         PositionOnTable.BOTTOM to PlayerState("a", "Marcin", 1),
                         PositionOnTable.TOP to PlayerState("n", "Edward", 2)
                     ),
-                    CardCollection(listOf(cardStack[0])),
-                    CardCollection(listOf(cardStack[1], cardStack[5], cardStack[6])),
-                    CardCollection(listOf(cardStack[2], cardStack[7], cardStack[8])),
-                    playerBattleSlot = CardSlot(
-                        cardStack[3], contentState = QuestionFace.Answering
+                    deck = CardCollection(listOf(cardStack[0])),
+                    inHands = mapOf(
+                        PositionOnTable.BOTTOM to CardCollection(listOf(cardStack[1], cardStack[5], cardStack[6])),
+                        PositionOnTable.TOP to CardCollection(listOf(cardStack[2], cardStack[7], cardStack[8]))
                     ),
-                    opponentBattleSlot = CardSlot(
-                        cardStack[4], contentState = BackFace.OpponentWaitingForAttributeBattle
+                    battleSlots = mapOf(
+                        PositionOnTable.BOTTOM to CardSlot(
+                            cardStack[3], contentState = QuestionFace.Answering
+                        ),
+                        PositionOnTable.TOP to CardSlot(
+                            cardStack[4], contentState = BackFace.OpponentWaitingForAttributeBattle
+                        )
                     ),
                     closeUp = CardSlot(
                         cardStack[3], contentState = QuestionFace.Answering

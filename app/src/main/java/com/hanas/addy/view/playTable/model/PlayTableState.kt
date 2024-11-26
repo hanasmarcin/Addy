@@ -3,6 +3,7 @@ package com.hanas.addy.view.playTable.model
 import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.view.playTable.PlayerState
 import com.hanas.addy.view.playTable.PositionOnTable
+import com.hanas.addy.view.playTable.PositionOnTable.BOTTOM
 import com.hanas.addy.view.playTable.view.uistate.PlayCardUiPlacement
 import com.hanas.addy.view.playTable.view.uistate.PlayCardUiState
 
@@ -19,26 +20,19 @@ data class CardSlot(
 data class PlayTableState(
     val players: Map<PositionOnTable, PlayerState>,
     val deck: CardCollection,
-    val playerHand: CardCollection,
-    val opponentHand: CardCollection,
     val closeUp: CardSlot? = null,
-    val playerBattleSlot: CardSlot? = null,
-    val opponentBattleSlot: CardSlot? = null,
+    val inHands: Map<PositionOnTable, CardCollection>,
+    val battleSlots: Map<PositionOnTable, CardSlot?> = PositionOnTable.entries.associateWith { null },
 ) {
     fun toCardStateMap() = mutableMapOf<Long, PlayCardUiState>().apply {
-        playerBattleSlot?.let { slot ->
-            this[slot.card.id] = PlayCardUiState(
-                data = slot.card,
-                placement = PlayCardUiPlacement.PlayerBattleSlot,
-                contentState = slot.contentState
-            )
-        }
-        opponentBattleSlot?.let { slot ->
-            this[slot.card.id] = PlayCardUiState(
-                data = slot.card,
-                placement = PlayCardUiPlacement.OpponentBattleSlot,
-                contentState = slot.contentState
-            )
+        battleSlots.onEach { (position, slot) ->
+            if (slot != null) {
+                this[slot.card.id] = PlayCardUiState(
+                    data = slot.card,
+                    placement = PlayCardUiPlacement.BattleSlot(position),
+                    contentState = slot.contentState
+                )
+            }
         }
         closeUp?.let { slot ->
             this[slot.card.id] = PlayCardUiState(
@@ -52,17 +46,15 @@ data class PlayTableState(
                 this[card.id] = PlayCardUiState(card, PlayCardUiPlacement.Deck(index), BackFace.BackCover)
             }
         }
-        playerHand.cards.onEachIndexed { index, card ->
-            if (card.isNotInSlot()) {
-                this[card.id] = PlayCardUiState(card, PlayCardUiPlacement.PlayerHand(index, playerHand.size), AttributesFace.StaticPreview)
-            }
-        }
-        opponentHand.cards.onEachIndexed { index, card ->
-            if (card.isNotInSlot()) {
-                this[card.id] = PlayCardUiState(card, PlayCardUiPlacement.OpponentHand(index, opponentHand.size), BackFace.BackCover)
+        inHands.onEach { (position, hand) ->
+            val contentState = if (position == BOTTOM) AttributesFace.StaticPreview else BackFace.BackCover
+            hand.cards.onEachIndexed { index, card ->
+                if (card.isNotInSlot()) {
+                    this[card.id] = PlayCardUiState(card, PlayCardUiPlacement.InHand(position, index, hand.size), contentState)
+                }
             }
         }
     }
 
-    private fun PlayCardData.isNotInSlot() = this != closeUp?.card && this != playerBattleSlot?.card && this != opponentBattleSlot?.card
+    private fun PlayCardData.isNotInSlot() = this != closeUp?.card && this !in battleSlots.values.map { it?.card }
 }

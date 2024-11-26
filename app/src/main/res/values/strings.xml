@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Card game</string>
+    <string name="app_name">Trivia Titans</string>
     <string name="card_stack_list_screen_title">Card stacks</string>
     <string name="card_stack_list_screen_empty_state_button_label">Create new stack</string>
     <string name="card_stack_list_screen_empty_state_description">You have no card stacks yet. You can create them by uploading photos of material that you want to base them on.</string>

@@ -32,6 +32,7 @@ import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.CLOSE_UP
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.OPPONENT_BATTLE_SLOT
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.PLAYER_BATTLE_SLOT
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin.PLAYER_HAND
+import com.hanas.addy.view.playTable.PositionOnTable.BOTTOM
 import com.hanas.addy.view.playTable.model.AttributesFace
 import com.hanas.addy.view.playTable.model.BackFace
 import com.hanas.addy.view.playTable.model.CardCollection
@@ -139,8 +140,7 @@ class PlayTableViewModel(
         PlayTableState(
             players = emptyMap(),
             deck = CardCollection(emptyList()),
-            playerHand = CardCollection(emptyList()),
-            opponentHand = CardCollection(emptyList()),
+            inHands = PositionOnTable.entries.associateWith { CardCollection(emptyList()) },
         )
     )
 
@@ -190,7 +190,7 @@ class PlayTableViewModel(
             players =
             players.mapIndexed { index, player ->
                 val position = when {
-                    index == 0 -> PositionOnTable.BOTTOM
+                    index == 0 -> BOTTOM
                     index == 1 && players.size > 2 -> PositionOnTable.START
                     index == 1 && players.size == 2 || index == 2 -> PositionOnTable.TOP
                     else -> PositionOnTable.END
@@ -240,16 +240,14 @@ class PlayTableViewModel(
     }
 
     private fun handleRemovePlayer(action: GameAction.RemovePlayer) {
-        val (position, _) = tableState.players.toList().first { (_, player) ->
+        val (playerPosition, _) = tableState.players.toList().first { (_, player) ->
             player.id == action.playerId
         }
-        if (position == PositionOnTable.TOP) {
-            tableState = tableState.copy(
-                players = tableState.players.filterNot { it.value.id == action.playerId },
-                opponentBattleSlot = null,
-                opponentHand = CardCollection(emptyList())
-            )
-        }
+        tableState = tableState.copy(
+            players = tableState.players.filterNot { it.value.id == action.playerId },
+            battleSlots = tableState.battleSlots.mapValues { (position, slot) -> if (position == playerPosition) null else slot },
+            inHands = tableState.inHands.mapValues { (position, hand) -> if (position == playerPosition) CardCollection(emptyList()) else hand },
+        )
     }
 
     private fun handleSwapCardAction(action: GameAction.SwapCard) {
@@ -275,22 +273,26 @@ class PlayTableViewModel(
     }
 
     private suspend fun handleAttributeBattleResult(action: GameAction.AttributeBattleResult) {
-        val hasPlayerWon = Firebase.auth.currentUser?.uid in action.winnerIds
-        val hasOpponentWon = (hasPlayerWon && action.winnerIds.size > 1) || (hasPlayerWon.not() && action.winnerIds.isNotEmpty())
+        val winnerPositions = tableState.players.mapNotNull { (position, player) ->
+            if (player.id in action.winnerIds) position else null
+        }
         tableState = tableState.copy(
             closeUp = null,
-            players = tableState.players.mapValues { (_, state) -> if (state.id in action.winnerIds) state.copy(points = state.points + 1) else state },
-            playerBattleSlot = tableState.playerBattleSlot?.copy(contentState = AttributesFace.BattleResult(hasPlayerWon)),
-            opponentBattleSlot = tableState.opponentBattleSlot?.copy(contentState = AttributesFace.BattleResult(hasOpponentWon))
+            players = tableState.players.mapValues { (_, state) ->
+                if (state.id in action.winnerIds) state.copy(points = state.points + 1) else state
+            },
+            battleSlots = tableState.battleSlots.mapValues { (position, slot) ->
+                slot?.copy(contentState = AttributesFace.BattleResult(position in winnerPositions))
+            },
         )
         delay(3000)
     }
 
     private suspend fun handleSelectActiveAttribute(action: GameAction.SelectActiveAttribute) {
-        tableState.playerBattleSlot?.let {
+        tableState.battleSlots[BOTTOM]?.let {
             val updatedSlot = it.copy(contentState = AttributesFace.ActiveAttributeSelected(action.attribute))
             tableState = tableState.copy(
-                playerBattleSlot = updatedSlot,
+                battleSlots = tableState.battleSlots.mapValues { (position, slot) -> if (position == BOTTOM) updatedSlot else slot },
                 closeUp = updatedSlot
             )
             delay(3000)
@@ -300,11 +302,11 @@ class PlayTableViewModel(
     private suspend fun handleQuestionRaceResult(action: GameAction.QuestionRaceResult) {
         if (Firebase.auth.currentUser?.uid == action.playerId) {
             delay(2000)
-            val winningCard = tableState.playerBattleSlot?.card
+            val winningCard = tableState.battleSlots[BOTTOM]?.card
             if (winningCard != null) {
                 val newSlot = CardSlot(winningCard, contentState = AttributesFace.ChooseActiveAttribute)
                 tableState = tableState.copy(
-                    playerBattleSlot = newSlot,
+                    battleSlots = tableState.battleSlots.mapValues { (position, slot) -> if (position == BOTTOM) newSlot else slot },
                     closeUp = newSlot
                 )
             }
@@ -328,29 +330,33 @@ class PlayTableViewModel(
     }
 
     private fun removeCardFromBattleSlot(currentPlacement: CardPosition.OnBattleSlot, cardId: Long): Pair<PlayCardData, PlayTableState> {
-        return if (currentPlacement.forPlayerId == Firebase.auth.currentUser?.uid) {
-            requireNotNull(tableState.playerBattleSlot?.card) to tableState.copy(
-                playerHand = CardCollection(tableState.playerHand.cards.filter { it.id != cardId }),
-                playerBattleSlot = null
-            )
-        } else {
-            requireNotNull(tableState.opponentBattleSlot?.card) to tableState.copy(
-                opponentHand = CardCollection(tableState.opponentHand.cards.filter { it.id != cardId }),
-                opponentBattleSlot = null
-            )
+        val position = tableState.players.firstNotNullOf { (position, player) ->
+            position.takeIf { player.id == currentPlacement.forPlayerId }
         }
+        val card = tableState.battleSlots[position]?.card
+        return requireNotNull(card) to tableState.copy(
+            inHands = tableState.inHands.mapValues { (handPosition, hand) ->
+                if (handPosition == position) CardCollection(hand.cards.filter { it.id != cardId })
+                else hand
+            },
+            battleSlots = tableState.battleSlots.mapValues { (slotPosition, slot) ->
+                if (slotPosition == position) null
+                else slot
+            }
+        )
     }
 
     private fun removeCardFromHand(currentPlacement: CardPosition.InHand, cardId: Long): Pair<PlayCardData, PlayTableState> {
-        return if (currentPlacement.forPlayerId == Firebase.auth.currentUser?.uid) {
-            tableState.playerHand.cards.first { it.id == cardId } to tableState.copy(
-                playerHand = CardCollection(tableState.playerHand.cards.dropAt(requireNotNull(currentPlacement.positionInSegment)))
-            )
-        } else {
-            tableState.opponentHand.cards.first { it.id == cardId } to tableState.copy(
-                opponentHand = CardCollection(tableState.opponentHand.cards.dropAt(requireNotNull(currentPlacement.positionInSegment)))
-            )
+        val position = tableState.players.firstNotNullOf { (position, player) ->
+            position.takeIf { player.id == currentPlacement.forPlayerId }
         }
+        val card = tableState.inHands[position]?.cards?.first { it.id == cardId }
+        return requireNotNull(card) to tableState.copy(
+            inHands = tableState.inHands.mapValues { (handPosition, hand) ->
+                if (handPosition == position) CardCollection(hand.cards.filter { it.id != cardId })
+                else hand
+            },
+        )
     }
 
     private fun removeCardFromUnusedStack(cardId: Long): Pair<PlayCardData, PlayTableState> {
@@ -382,21 +388,16 @@ class PlayTableViewModel(
         removedCard: PlayCardData,
         stateWithRemovedCard: PlayTableState
     ): PlayTableState {
-        return if (targetPlacement.forPlayerId == Firebase.auth.currentUser?.uid) {
-            stateWithRemovedCard.copy(
-                playerHand = CardCollection(
-                    stateWithRemovedCard.playerHand.cards + removedCard,
-                    stateWithRemovedCard.playerHand.size + 1
-                )
-            )
-        } else {
-            stateWithRemovedCard.copy(
-                opponentHand = CardCollection(
-                    stateWithRemovedCard.opponentHand.cards + removedCard,
-                    stateWithRemovedCard.opponentHand.size + 1
-                )
-            )
+        val targetPosition = stateWithRemovedCard.players.firstNotNullOf { (position, player) ->
+            if (player.id == targetPlacement.forPlayerId) {
+                position
+            } else null
         }
+        return stateWithRemovedCard.copy(
+            inHands = stateWithRemovedCard.inHands.mapValues { (position, hand) ->
+                if (position == targetPosition) CardCollection(hand.cards + removedCard, hand.size + 1) else hand
+            }
+        )
     }
 
     private fun placeCardInUnusedStack(removedCard: PlayCardData, stateWithRemovedCard: PlayTableState, positionInSegment: Int): PlayTableState {
@@ -412,19 +413,30 @@ class PlayTableViewModel(
     }
 
     private suspend fun handleFinishAnsweringQuestion(action: GameAction.FinishAnsweringQuestion) {
-        tableState.opponentHand.cards.firstOrNull { it.id == action.cardId }?.let { card ->
-            tableState = tableState.copy(
-                opponentBattleSlot = CardSlot(card, BackFace.OpponentWaitingForAttributeBattle)
-            )
+        if (action.playerId == Firebase.auth.currentUser?.uid) return // Skip if our own event
+        tableState.inHands.onEach { (handPosition, hand) ->
+            hand.cards.firstOrNull { it.id == action.cardId }?.let { card ->
+                tableState = tableState.copy(
+                    battleSlots = tableState.battleSlots.mapValues { (slotPosition, slot) ->
+                        if (slotPosition == handPosition) CardSlot(card, BackFace.OpponentWaitingForAttributeBattle)
+                        else slot
+                    }
+                )
+            }
         }
     }
 
     private suspend fun handleStartAnsweringQuestion(action: GameAction.StartAnsweringQuestion) {
         if (action.playerId == Firebase.auth.currentUser?.uid) return // Skip if our own event
-        tableState.opponentHand.cards.firstOrNull { it.id == action.cardId }?.let { card ->
-            tableState = tableState.copy(
-                opponentBattleSlot = CardSlot(card, BackFace.OpponentAnswering)
-            )
+        tableState.inHands.onEach { (handPosition, hand) ->
+            hand.cards.firstOrNull { it.id == action.cardId }?.let { card ->
+                tableState = tableState.copy(
+                    battleSlots = tableState.battleSlots.mapValues { (slotPosition, slot) ->
+                        if (slotPosition == handPosition) CardSlot(card, BackFace.OpponentAnswering)
+                        else slot
+                    }
+                )
+            }
         }
     }
 
@@ -443,16 +455,18 @@ class PlayTableViewModel(
                     clearCloseUp()
                 }
                 PLAYER_HAND -> {
-                    val position = tableState.playerHand.cards.indexOfFirst { it.id == cardId }
-                    closeUpTheCardFromPlayerHand(position)
+                    tableState.inHands[BOTTOM]?.cards?.indexOfFirst { it.id == cardId }?.let {
+                        closeUpTheCardFromPlayerHand(it)
+                    }
                 }
                 PLAYER_BATTLE_SLOT -> {
-                    val cardSlot = tableState.playerBattleSlot ?: return@launch
-                    closeUpFromSlot(cardSlot)
+                    tableState.battleSlots[BOTTOM]?.let {
+                        closeUpFromSlot(it)
+                    }
                 }
                 OPPONENT_BATTLE_SLOT -> {
-                    val cardSlot = tableState.opponentBattleSlot ?: return@launch
-                    closeUpFromSlot(cardSlot)
+//                    val cardSlot = tableState.opponentBattleSlot ?: return@launch
+//                    closeUpFromSlot(cardSlot)
                 }
                 ClickOrigin.NOT_CLICKABLE -> {}
             }
@@ -481,12 +495,10 @@ class PlayTableViewModel(
                         )
                     )
                 )
-                delay(1500)
+                delay(3000)
                 tableState = tableState.copy(
                     closeUp = null,
-                    playerBattleSlot = slot.copy(
-                        contentState = AttributesFace.WaitingForActiveAttributeSelected
-                    )
+                    battleSlots = tableState.battleSlots.mapValues { (position, slot) -> if (position == BOTTOM) slot?.copy(contentState = AttributesFace.WaitingForActiveAttributeSelected) else slot }
                 )
             }
         }
@@ -497,7 +509,6 @@ class PlayTableViewModel(
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
                 tableState = tableState.copy(closeUp = slot.copy(contentState = QuestionFace.ReadyToAnswer))
             }
-            //TODO Send to firebase
         }
     }
 
@@ -518,28 +529,11 @@ class PlayTableViewModel(
     }
 
     private fun closeUpTheCardFromPlayerHand(position: Int) {
-        val card = tableState.playerHand.cards[position]
-        val contentState = if (tableState.playerBattleSlot == null) AttributesFace.ChoosingToBattle else AttributesFace.StaticPreview
-        tableState = tableState.copy(closeUp = CardSlot(card, contentState))
+        tableState.inHands[BOTTOM]?.cards?.getOrNull(position)?.let { card ->
+            val contentState = if (tableState.battleSlots[BOTTOM] == null) AttributesFace.ChoosingToBattle else AttributesFace.StaticPreview
+            tableState = tableState.copy(closeUp = CardSlot(card, contentState))
+        }
     }
-
-//    private fun moveCloseUpToNextCardInPlayerHand(): Boolean {
-//        tableState.closeUp?.let { closeUp ->
-//            if (closeUp.ori != PlayTableSegmentType.PLAYER_HAND || closeUp.positionWithinOriginSegment == tableState.playerHand.availableSlots - 1) return false
-//            val newPosition = closeUp.positionWithinOriginSegment + 1
-//            tableState = tableState.copy(closeUp = CardSlot(tableState.playerHand.cards[newPosition], PlayTableSegmentType.PLAYER_HAND, newPosition))
-//            return true
-//        } ?: return false
-//    }
-//<
-//    private fun moveCloseUpToPreviousCardInPlayerHand(): Boolean {
-//        tableState.closeUp?.let { closeUp ->
-//            if (closeUp.originSegment != PlayTableSegmentType.PLAYER_HAND || closeUp.positionWithinOriginSegment == 0) return false
-//            val newPosition = closeUp.positionWithinOriginSegment - 1
-//            tableState = tableState.copy(closeUp = CardSlot(tableState.playerHand.cards[newPosition], PlayTableSegmentType.PLAYER_HAND, newPosition))
-//            return true
-//        } ?: return false
-//    }
 
     private var answerStartTimestamp: Long? = null
 
@@ -551,7 +545,9 @@ class PlayTableViewModel(
             }
             tableState.closeUp?.takeIf { it.card.id == cardId }?.let { slot ->
                 val newSlot = slot.copy(contentState = QuestionFace.Answering)
-                tableState = tableState.copy(closeUp = newSlot, playerBattleSlot = newSlot)
+                tableState = tableState.copy(
+                    closeUp = newSlot,
+                    battleSlots = tableState.battleSlots.mapValues { (position, slot) -> if (position == BOTTOM) newSlot else slot })
                 answerStartTimestamp = System.currentTimeMillis()
             }
         }
