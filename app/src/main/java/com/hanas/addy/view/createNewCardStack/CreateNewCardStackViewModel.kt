@@ -76,7 +76,7 @@ class CreateNewCardStackViewModel(
                 .await()
             workManager.getWorkInfoByIdLiveData(request.id).asFlow()
                 .onEach { workInfo ->
-                    when (workInfo.state) {
+                    when (workInfo?.state) {
                         WorkInfo.State.SUCCEEDED -> {
                             Log.d("CreateNewCardStackViewModel", "Work succeeded")
                             workInfo.outputData
@@ -96,7 +96,7 @@ class CreateNewCardStackViewModel(
 
                         else -> {
                             // Handle other states like ENQUEUED, CANCELLED, etc., if necessary
-                            Log.d("CreateNewCardStackViewModel", "Work state: ${workInfo.state}")
+                            Log.d("CreateNewCardStackViewModel", "Work state: ${workInfo?.state}")
                         }
                     }
                 }

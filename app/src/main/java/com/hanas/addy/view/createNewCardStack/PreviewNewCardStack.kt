@@ -24,7 +24,7 @@ fun NavGraphBuilder.viewNewCardStackComposable(navController: NavController, nav
 
 @Composable
 private fun ViewNewCardStack(
-    stack: Unit?,
+    stack: Unit?, //TODO: Fetch stack after it's created
     deleteGeneratedStack: () -> Unit,
     navigateBack: () -> Unit
 ) {

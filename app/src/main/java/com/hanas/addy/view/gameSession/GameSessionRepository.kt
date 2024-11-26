@@ -40,7 +40,7 @@ class GameSessionRepository {
             .continueWith { task ->
                 try {
                     val result = task.result ?: throw Exception("result is null")
-                    val data = result.data as? String ?: throw Exception("data is null")
+                    val data = result.getData() as? String ?: throw Exception("data is null")
                     trySend(data)
                 } catch (e: Throwable) {
                     e.printStackTrace()
@@ -56,7 +56,7 @@ class GameSessionRepository {
         .call(mapOf("code" to code))
         .asFlow()
         .map { result ->
-            (result.data as? String ?: throw Exception("data is null")).also {
+            (result.getData() as? String ?: throw Exception("data is null")).also {
             }
         }
 
@@ -107,7 +107,7 @@ class GameSessionRepository {
             "answerTimeInMs" to answerTimeInMs
         )
         val result = functions.getHttpsCallable("answer_question").call(args).await()
-        val data = result.data as HashMap<*, *>
+        val data = result.getData() as HashMap<*, *>
         return AnswerScoreResult(
             greenBooster = data["greenBooster"] as Int,
             redBooster = data["redBooster"] as Int,

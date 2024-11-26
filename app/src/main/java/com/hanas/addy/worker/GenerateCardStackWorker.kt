@@ -52,7 +52,7 @@ class GenerateCardStackWorker(
                 val result = functions.getHttpsCallable("generate_card_stack")
                     .call(mapOf("cardStackId" to cardStackId))
                     .await(cancellationToken)
-                result.data
+                result.getData()
                 // Indicate whether the work finished successfully with the Result
                 Result.success()
             } catch (e: Throwable) {

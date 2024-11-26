@@ -33,11 +33,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -249,7 +249,7 @@ fun AttributeRow(
             .heightIn(min = 48.dp)
             .clickable(
                 interactionSource = interactionSource,
-                indication = rememberRipple(),
+                indication = ripple(),
                 enabled = state is AttributesFace.ChooseActiveAttribute,
             ) { onSelectAttribute() }
             .clip(RoundedCornerShape(6.dp))

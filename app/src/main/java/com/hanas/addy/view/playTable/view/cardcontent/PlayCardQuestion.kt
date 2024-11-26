@@ -1,6 +1,5 @@
 package com.hanas.addy.view.playTable.view.cardcontent
 
-import android.util.Log
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateInt
@@ -23,12 +22,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -309,7 +308,7 @@ fun AnswerBox(
             .padding(innerPadding)
             .clip(RoundedCornerShape(6.dp))
             .background(containerColor)
-            .clickable(interactionSource = interactionSource, indication = rememberRipple()) {
+            .clickable(interactionSource = interactionSource, indication = ripple()) {
                 onClick()
             },
         contentAlignment = Alignment.Center
@@ -320,7 +319,7 @@ fun AnswerBox(
         ) {
             content()
         }
-        var isSuccessEmoji by remember { mutableStateOf(isCorrect ?: false) }
+        var isSuccessEmoji by remember { mutableStateOf(isCorrect == true) }
         LaunchedEffect(isCorrect) {
             if (isCorrect != null)
                 isSuccessEmoji = isCorrect
