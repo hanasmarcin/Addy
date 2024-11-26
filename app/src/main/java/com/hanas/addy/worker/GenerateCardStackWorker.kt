@@ -56,6 +56,7 @@ class GenerateCardStackWorker(
                 // Indicate whether the work finished successfully with the Result
                 Result.success()
             } catch (e: Throwable) {
+                e.printStackTrace()
                 Result.failure()
             }
         }
