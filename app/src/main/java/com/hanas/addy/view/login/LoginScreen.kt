@@ -86,7 +86,7 @@ fun LoginScreen(
     val errorHandler = object : CoroutineExceptionHandler {
         override val key = CoroutineExceptionHandler
         override fun handleException(context: CoroutineContext, exception: Throwable) {
-            Log.d("HANASSS", exception.stackTraceToString())
+            exception.printStackTrace()
         }
     }
     LaunchedEffect(loginState) {
@@ -146,4 +146,4 @@ fun LoginScreenPreview() {
     }
 }
 
-const val TAG = "HANASSS"
+const val TAG = "ADDY"

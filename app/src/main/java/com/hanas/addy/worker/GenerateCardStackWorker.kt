@@ -29,14 +29,13 @@ class GenerateCardStackWorker(
     private val cancellationToken = CancellationTokenSource()
 
     private val errorHandler = CoroutineExceptionHandler { context, throwable ->
-        Log.e("HANASSS", "Error in GenerateCardStackWorker", throwable)
+        Log.e("GenerateCardStackWorker", "Error", throwable)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun doWork(): Result {
         return withContext(Dispatchers.IO + errorHandler) {
             try {
-                Log.d("HANASSS", "start work")
                 val images = workerParams.inputData.getStringArray("imagesUri")?.map { it.toUri() }
 
                 // Do the work here--in this case, upload the images.
@@ -49,11 +48,10 @@ class GenerateCardStackWorker(
                 val tasks = images?.map {
                     storage.reference.child("images/$cardStackId/${it.lastPathSegment}").putFile(it, metadata)
                 }
-                val results = tasks?.onEach { it.await() }
+                tasks?.onEach { it.await() }
                 val result = functions.getHttpsCallable("generate_card_stack")
                     .call(mapOf("cardStackId" to cardStackId))
                     .await(cancellationToken)
-                Log.d("HANASSS", result.toString())
                 result.data
                 // Indicate whether the work finished successfully with the Result
                 Result.success()

@@ -2,6 +2,7 @@ package com.hanas.addy.di
 
 import android.content.Context
 import androidx.credentials.CredentialManager
+import androidx.work.WorkManager
 import coil.ImageLoader
 import com.hanas.addy.view.cardStackDetail.CardStackDetailViewModel
 import com.hanas.addy.view.cardStackList.CardStackListViewModel
@@ -27,6 +28,9 @@ val appModule = module {
     single {
         provideCredentialManager(androidContext())
     }
+    single {
+        provideWorkManager(androidContext())
+    }
     singleOf(::CardStackRepository)
     factoryOf(::GameSessionRepository)
     viewModelOf(::HomeViewModel)
@@ -47,4 +51,10 @@ fun provideImageLoader(context: Context): ImageLoader {
 fun provideCredentialManager(context: Context): CredentialManager {
     return CredentialManager.create(context)
 }
+
+fun provideWorkManager(context: Context): WorkManager {
+    return WorkManager.getInstance(context)
+}
+
+
 

@@ -1,6 +1,5 @@
-package com.hanas.addy.repository.gemini
+package com.hanas.addy.model
 
-import com.hanas.addy.model.PlayCardStackDTO
 import com.hanas.addy.view.createNewCardStack.mapToPlayCardStack
 import kotlinx.serialization.json.Json
 

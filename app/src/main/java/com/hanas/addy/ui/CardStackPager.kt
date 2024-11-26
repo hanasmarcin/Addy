@@ -40,7 +40,7 @@ import com.hanas.addy.model.Attribute
 import com.hanas.addy.model.Attributes
 import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.model.Question
-import com.hanas.addy.repository.gemini.samplePlayCardStack
+import com.hanas.addy.model.samplePlayCardStack
 import com.hanas.addy.ui.components.shapes.BlobShape
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.model.AttributesFace

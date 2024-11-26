@@ -1,10 +1,7 @@
 package com.hanas.addy.view.gameSession
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.snapshots
 import com.google.firebase.firestore.DocumentReference
@@ -46,7 +43,7 @@ class GameSessionRepository {
                     val data = result.data as? String ?: throw Exception("data is null")
                     trySend(data)
                 } catch (e: Throwable) {
-                    Log.e("HANASSS", e.stackTraceToString())
+                    e.printStackTrace()
                 }
             }
         awaitClose {
@@ -75,13 +72,12 @@ class GameSessionRepository {
             } else null
         }
         .catch {
-            Log.e("HANASSS", it.stackTraceToString())
+            it.printStackTrace()
         }
 
     fun getGameActionsFlow(gameSessionId: String, isHandled: (String) -> Boolean) =
         actionsCollectionReference(gameSessionId).snapshots
             .map {
-                Log.d("HANASSS", "new game actions snapshot")
                 it.children.mapNotNull { document ->
                     val key = document.key
                     if (key != null && isHandled(key).not()) {

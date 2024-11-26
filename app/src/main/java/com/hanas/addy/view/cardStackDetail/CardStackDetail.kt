@@ -8,7 +8,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.model.PlayCardStack
-import com.hanas.addy.repository.gemini.samplePlayCardStack
+import com.hanas.addy.model.samplePlayCardStack
 import com.hanas.addy.ui.CardStackPager
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.AppScaffold

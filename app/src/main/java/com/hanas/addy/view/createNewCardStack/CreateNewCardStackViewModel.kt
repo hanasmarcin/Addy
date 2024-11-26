@@ -1,6 +1,5 @@
 package com.hanas.addy.view.createNewCardStack
 
-import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -21,7 +20,6 @@ import com.hanas.addy.model.PlayCardData
 import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.model.PlayCardStackDTO
 import com.hanas.addy.model.Question
-import com.hanas.addy.view.cardStackList.CardStackRepository
 import com.hanas.addy.view.gameSession.chooseGameSession.NavigationRequester
 import com.hanas.addy.worker.GenerateCardStackWorker
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,14 +30,15 @@ import kotlinx.coroutines.launch
 
 
 class CreateNewCardStackViewModel(
-    private val cardStackRepository: CardStackRepository,
-    private val context: Context,
+    private val workManager: WorkManager,
 ) : ViewModel(), NavigationRequester by NavigationRequester() {
-    val cardStackFlow = MutableStateFlow<DataHolder<Unit>>(DataHolder.Idle())
-    val photoUrisFlow: StateFlow<List<Uri>>
-        get() = _photoUrisFlow
+    private val _cardStackFlow = MutableStateFlow<DataHolder<Unit>>(DataHolder.Idle())
+    val cardStackFlow: StateFlow<DataHolder<Unit>>
+        get() = _cardStackFlow
 
     private val _photoUrisFlow = MutableStateFlow<List<Uri>>(emptyList())
+    val photoUrisFlow: StateFlow<List<Uri>>
+        get() = _photoUrisFlow
 
     fun addPhoto(uri: Uri) {
         _photoUrisFlow.value = _photoUrisFlow.value.toMutableList().apply { add(uri) }
@@ -50,7 +49,7 @@ class CreateNewCardStackViewModel(
     }
 
     fun deleteGeneratedStack() {
-        cardStackFlow.value = DataHolder.Idle()
+        _cardStackFlow.value = DataHolder.Idle()
     }
 
     fun generateStack() {
@@ -61,7 +60,10 @@ class CreateNewCardStackViewModel(
         val request = OneTimeWorkRequestBuilder<GenerateCardStackWorker>()
             .setInputData(
                 Data.Builder()
-                    .putStringArray("imagesUri", _photoUrisFlow.value.map { it.toString() }.toTypedArray())
+                    .putStringArray(
+                        /* key = */ "imagesUri",
+                        /* value = */ _photoUrisFlow.value.map { it.toString() }.toTypedArray()
+                    )
                     .build()
             )
             .setConstraints(constraints)
@@ -69,28 +71,29 @@ class CreateNewCardStackViewModel(
             .build()
 
         viewModelScope.launch {
-            val workManager = WorkManager.getInstance(context)
-            val result = workManager
+            workManager
                 .enqueue(request)
                 .await()
-            Log.d("HANASSS", result.toString())
             workManager.getWorkInfoByIdLiveData(request.id).asFlow()
                 .onEach { workInfo ->
                     when (workInfo.state) {
                         WorkInfo.State.SUCCEEDED -> {
                             Log.d("CreateNewCardStackViewModel", "Work succeeded")
-                            val outputData = workInfo.outputData
-//                             val generatedStack = outputData.getString("generatedStackId") // Example of retrieving output data
-                            cardStackFlow.value = DataHolder.Success(Unit)
+                            workInfo.outputData
+                            _cardStackFlow.value = DataHolder.Success(Unit)
                         }
+
                         WorkInfo.State.FAILED -> {
                             Log.e("CreateNewCardStackViewModel", "Work failed")
-                            cardStackFlow.value = DataHolder.Error(Throwable("Failed to generate stack"))
+                            _cardStackFlow.value =
+                                DataHolder.Error(Throwable("Failed to generate stack"))
                         }
+
                         WorkInfo.State.RUNNING -> {
                             Log.d("CreateNewCardStackViewModel", "Work running")
-                            cardStackFlow.value = DataHolder.Loading()
+                            _cardStackFlow.value = DataHolder.Loading()
                         }
+
                         else -> {
                             // Handle other states like ENQUEUED, CANCELLED, etc., if necessary
                             Log.d("CreateNewCardStackViewModel", "Work state: ${workInfo.state}")

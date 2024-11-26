@@ -213,10 +213,6 @@ fun GenerateStackCardPreview() {
 @Composable
 fun AddNewCardStackScreenPreview() {
     AppTheme {
-//        val list = listOf(
-////            "https://picsum.photos/200/800".toUri(),
-////            "https://picsum.photos/200/800".toUri(),
-//        )
         CreateNewCardStackSelectPhotosScreen(emptyList(), false, {}, {}, {}, {})
     }
 }

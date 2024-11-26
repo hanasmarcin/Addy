@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.hanas.addy.R
 import com.hanas.addy.model.Answer
-import com.hanas.addy.repository.gemini.samplePlayCardStack
+import com.hanas.addy.model.samplePlayCardStack
 import com.hanas.addy.ui.drawPattern
 import com.hanas.addy.ui.theme.AppTheme
 import com.hanas.addy.view.playTable.PlayTableViewModel.ClickOrigin

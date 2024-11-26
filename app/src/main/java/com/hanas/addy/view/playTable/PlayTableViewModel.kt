@@ -89,7 +89,7 @@ class PlayTableViewModel(
         val connectedRef = database.getReference(".info/connected")
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val connected = snapshot.getValue(Boolean::class.java) ?: true
+                val connected = snapshot.getValue(Boolean::class.java) != false
                 trySend(connected)
             }
 
@@ -106,9 +106,9 @@ class PlayTableViewModel(
             connectedRef.removeEventListener(listener)
         }
     }.onCompletion {
-        Log.d("HANASSS", "Connection flow completed")
+        Log.d("ADDY", "Connection flow completed")
     }.catch { e ->
-        Log.w("HANASSS", "Connection flow encountered an error: ${e.message}")
+        Log.w("ADDY", "Connection flow encountered an error: ${e.message}")
     }
 
     private fun presenceReference(gameSessionId: String, userId: String) = database.getReference("gameSessions/$gameSessionId/presence/$userId")
@@ -163,7 +163,7 @@ class PlayTableViewModel(
                 try {
                     handleBatchAction(batchAction)
                 } catch (e: Exception) {
-                    Log.e("HANASSS", "ERROR handling action: $batchAction", e)
+                    Log.e("ADDY", "ERROR handling action: $batchAction", e)
                 }
             }
         }

@@ -41,7 +41,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.hanas.addy.R
 import com.hanas.addy.model.Answer
-import com.hanas.addy.repository.gemini.samplePlayCardStack
+import com.hanas.addy.model.samplePlayCardStack
 import com.hanas.addy.ui.NavScreen
 import com.hanas.addy.ui.components.PrimaryButton
 import com.hanas.addy.ui.drawPattern

@@ -38,7 +38,7 @@ class CreateNewGameSessionViewModel(
         viewModelScope.launch {
             gameSessionRepository
                 .startGame(navArgs.gameSessionId)
-                .catch { Log.e("HANASSS", it.stackTraceToString()) }
+                .catch { it.printStackTrace() }
                 .collect {}
         }
     }

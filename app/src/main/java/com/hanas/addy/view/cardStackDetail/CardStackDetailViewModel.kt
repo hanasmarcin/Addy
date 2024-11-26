@@ -7,6 +7,7 @@ import androidx.navigation.toRoute
 import com.hanas.addy.model.PlayCardStack
 import com.hanas.addy.view.cardStackList.CardStackRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class CardStackDetailViewModel(
@@ -15,12 +16,14 @@ class CardStackDetailViewModel(
 ) : ViewModel() {
     private val cardStackId by lazy { savedStateHandle.toRoute<CardStackDetail>().id }
 
-    val cardStack = MutableStateFlow<PlayCardStack?>(null)
+    private val _cardStack = MutableStateFlow<PlayCardStack?>(null)
+    val cardStack: StateFlow<PlayCardStack?>
+        get() = _cardStack
 
     init {
         viewModelScope.launch {
             val x = cardStackRepository.getPlayCardStackById(cardStackId)
-            cardStack.value = x
+            _cardStack.value = x
         }
     }
 }
